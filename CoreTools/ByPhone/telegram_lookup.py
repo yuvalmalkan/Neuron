@@ -46,7 +46,7 @@ async def _lookup_phone(client: TelegramClient, phone: str) -> dict:
 
         user = users[0]
 
-        # Clean name — avoid ". ." style empty names
+
         first = (user.first_name or "").strip()
         last  = (user.last_name  or "").strip()
         full  = " ".join(filter(None, [first, last])).strip()
@@ -91,7 +91,7 @@ async def _lookup_phone(client: TelegramClient, phone: str) -> dict:
         else:
             result["has_profile_photo"] = False
 
-        # Clean up
+        # clean up
         await client(DeleteContactsRequest([user]))
 
     except FloodWaitError as e:
@@ -125,9 +125,10 @@ def bulk_lookup_sync(phones: list) -> list:
 
 
 if __name__ == "__main__":
-    PHONE = "+972537733734"
+    PHONE = ""
     result = lookup_phone_sync(PHONE)
-    # Don't print base64 to console — just show metadata
+
+
     display = {k: v for k, v in result.items() if k != "profile_photo_base64"}
     print(json.dumps(display, indent=2, ensure_ascii=False))
     if result.get("profile_photo_saved"):

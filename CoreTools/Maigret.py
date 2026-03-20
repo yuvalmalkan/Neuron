@@ -95,8 +95,8 @@ def search_username(username: str) -> dict:
 
 
 if __name__ == "__main__":
-    report = search_username("rombrosh")
-    print(f"\n✅ Done in {report['duration']}s — found {report['total']} accounts\n")
+    report = search_username("")
+    print(f"\n Done in {report['duration']}s — found {report['total']} accounts\n")
     for r in report["accounts"]:
         print(f"  → {r['site']}: {r['url']}")
         for key, val in r["details"].items():

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# ─── PHONE VALIDATION ─────────────────────────────────────────────────────────
+#PHONE VALIDATION
 
 def parse_phone(phone: str) -> dict:
     digits = re.sub(r'\D', '', phone)
@@ -24,7 +24,7 @@ def parse_phone(phone: str) -> dict:
     }
 
 
-# ─── ABSTRACT API ─────────────────────────────────────────────────────────────
+#ABSTRACT API
 
 def lookup_abstract(phone: str, api_key: str) -> dict:
     url = "https://phonevalidation.abstractapi.com/v1/"
@@ -46,7 +46,7 @@ def lookup_abstract(phone: str, api_key: str) -> dict:
         return {"source": "abstract", "error": str(e)}
 
 
-# ─── COUNTRY FROM DIAL CODE (offline fallback) ────────────────────────────────
+# find country offline fallback
 
 DIAL_CODES = {
     "972": {"country": "Israel",            "flag": "🇮🇱"},
@@ -83,7 +83,7 @@ def get_country_from_dialcode(phone: str) -> dict:
     return {"error": "Unknown dial code"}
 
 
-# ─── GOOGLE DORKS (just URLs, no scraping — avoids 429) ──────────────────────
+#google dorks no scraping
 
 def google_dorks_for_phone(phone: str) -> list:
     digits = re.sub(r'\D', '', phone)
@@ -103,7 +103,7 @@ def google_dorks_for_phone(phone: str) -> list:
     return [base + requests.utils.quote(d) for d in dorks]
 
 
-# ─── AGGREGATE ────────────────────────────────────────────────────────────────
+#AGGREGATE
 
 def full_phone_osint(phone: str, abstract_key: Optional[str] = None) -> dict:
     results = {
