@@ -158,7 +158,7 @@ def build_gemini_prompt(report: dict) -> str:
 
 
 if __name__ == "__main__":
-    PHONE = ""
+    PHONE = input("Enter phone number: ")
 
     report = run_full_osint(PHONE)
     print_report(report)
