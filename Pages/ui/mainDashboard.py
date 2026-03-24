@@ -1,24 +1,14 @@
 __author__ = "Yuval Malkan"
 
-
 from uiConstants import *
-
-
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QFrame, QScrollArea,
     QStackedWidget, QSizePolicy, QGraphicsDropShadowEffect, QTextEdit
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, QTimer, QSize
-from PyQt6.QtGui import QFont, QColor, QPalette, QLinearGradient, QPainter, QIcon, QPixmap, QCursor
-
-
-
-
-
-
-
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor, QPalette, QCursor
 
 def shadow(widget, color="#00d4ff", blur=20, offset=(0, 0)):
     fx = QGraphicsDropShadowEffect()
@@ -28,21 +18,13 @@ def shadow(widget, color="#00d4ff", blur=20, offset=(0, 0)):
     widget.setGraphicsEffect(fx)
     return fx
 
-
 # ──────────────────────────────────────────
 #  REUSABLE STYLED CARD
 # ──────────────────────────────────────────
 class Card(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: {BG_CARD};
-                border: 1px solid {BORDER_COLOR};
-                border-radius: 12px;
-            }}
-        """)
-
+        # Style handles globally via QSS
 
 # ──────────────────────────────────────────
 #  GLOWING INPUT FIELD
@@ -53,70 +35,20 @@ class GlowInput(QLineEdit):
         self.setPlaceholderText(placeholder)
         self.setFont(QFont(FONT_MONO, 11))
         self.setMinimumHeight(44)
-        self._apply_style(False)
-
-    def _apply_style(self, focused: bool):
-        border = ACCENT_CYAN if focused else BORDER_COLOR
-        glow   = f"border: 1px solid {border}; "
-        self.setStyleSheet(f"""
-            QLineEdit {{
-                background: #0d1117;
-                {glow}
-                border-radius: 8px;
-                color: {TEXT_PRIMARY};
-                padding: 0 14px;
-                selection-background-color: {ACCENT_CYAN}44;
-            }}
-            QLineEdit::placeholder {{
-                color: {TEXT_MUTED};
-            }}
-        """)
-
-    def focusInEvent(self, e):
-        self._apply_style(True)
-        super().focusInEvent(e)
-
-    def focusOutEvent(self, e):
-        self._apply_style(False)
-        super().focusOutEvent(e)
-
+        # States (:focus, ::placeholder) handled globally via QSS
 
 # ──────────────────────────────────────────
 #  CYBER BUTTON
 # ──────────────────────────────────────────
 class CyberButton(QPushButton):
-    def __init__(self, text, accent=ACCENT_CYAN, parent=None):
+    def __init__(self, text, variant="primary", parent=None):
         super().__init__(text, parent)
-        self.accent = accent
         self.setMinimumHeight(44)
         self.setFont(QFont(FONT_MONO, 10))
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self._apply_style(False)
 
-    def _apply_style(self, hovered: bool):
-        bg = self.accent + "22" if not hovered else self.accent + "44"
-        self.setStyleSheet(f"""
-            QPushButton {{
-                background: {bg};
-                border: 1px solid {self.accent};
-                border-radius: 8px;
-                color: {self.accent};
-                padding: 0 20px;
-                letter-spacing: 1px;
-            }}
-            QPushButton:pressed {{
-                background: {self.accent}66;
-            }}
-        """)
-
-    def enterEvent(self, e):
-        self._apply_style(True)
-        super().enterEvent(e)
-
-    def leaveEvent(self, e):
-        self._apply_style(False)
-        super().leaveEvent(e)
-
+        # Set property for QSS to target specific variants ("primary" or "danger")
+        self.setProperty("variant", variant)
 
 # ──────────────────────────────────────────
 #  SIDEBAR NAV BUTTON
@@ -131,45 +63,6 @@ class NavButton(QPushButton):
         self.setFont(QFont(FONT_TITLE, 10))
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.setText(f"  {icon_text}  {label}")
-        self._refresh()
-
-    def _refresh(self):
-        if self.isChecked():
-            self.setStyleSheet(f"""
-                QPushButton {{
-                    background: {ACCENT_CYAN}18;
-                    border: none;
-                    border-left: 3px solid {ACCENT_CYAN};
-                    border-radius: 0px;
-                    color: {ACCENT_CYAN};
-                    text-align: left;
-                    padding-left: 16px;
-                    font-weight: bold;
-                }}
-            """)
-        else:
-            self.setStyleSheet(f"""
-                QPushButton {{
-                    background: transparent;
-                    border: none;
-                    border-left: 3px solid transparent;
-                    border-radius: 0px;
-                    color: {TEXT_DIM};
-                    text-align: left;
-                    padding-left: 16px;
-                }}
-                QPushButton:hover {{
-                    background: {BORDER_COLOR};
-                    color: {TEXT_PRIMARY};
-                }}
-            """)
-
-    def nextCheckState(self):
-        pass  # controlled externally
-
-
-
-
 
 # ──────────────────────────────────────────
 #  RESULT DISPLAY WIDGET
@@ -180,29 +73,7 @@ class ResultDisplay(QTextEdit):
         self.setReadOnly(True)
         self.setFont(QFont(FONT_MONO, 10))
         self.setMinimumHeight(300)
-        self.setStyleSheet(f"""
-            QTextEdit {{
-                background: {BG_CARD};
-                border: 1px solid {BORDER_COLOR};
-                border-radius: 10px;
-                color: {TERMINAL_GREEN};
-                padding: 14px;
-                selection-background-color: {ACCENT_CYAN}33;
-            }}
-            QScrollBar:vertical {{
-                background: {BG_CARD};
-                width: 6px;
-                border-radius: 3px;
-            }}
-            QScrollBar::handle:vertical {{
-                background: {ACCENT_CYAN}66;
-                border-radius: 3px;
-            }}
-        """)
-
-
         self.setPlaceholderText("[Neuron - Waiting for scan]\n")
-
 
 # ──────────────────────────────────────────
 #  OSINT TAB  (= Main Dashboard)
@@ -210,7 +81,7 @@ class ResultDisplay(QTextEdit):
 class OsintDashboard(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(f"background: {BG_DARK};")
+        self.setObjectName("osintDashboard")
         self._build_ui()
 
     def _build_ui(self):
@@ -222,14 +93,11 @@ class OsintDashboard(QWidget):
         hdr = QHBoxLayout()
         title = QLabel("OSINT ENGINE")
         title.setFont(QFont(FONT_TITLE, 20, QFont.Weight.Bold))
-        title.setStyleSheet(f"color: {TEXT_PRIMARY};")
-
+        title.setStyleSheet(f"color: {TEXT_TITLE};")
 
         hdr.addWidget(title)
         hdr.addStretch()
         root.addLayout(hdr)
-
-
 
         # ── SEARCH CARD ──────────────────────────
         search_card = Card()
@@ -237,20 +105,18 @@ class OsintDashboard(QWidget):
         sc_layout.setContentsMargins(20, 16, 20, 16)
         sc_layout.setSpacing(14)
 
-
-
         search_title = QLabel("Find Target")
         search_title.setFont(QFont(FONT_TITLE, 11, QFont.Weight.Bold))
-        search_title.setStyleSheet(f"color: {TEXT_PRIMARY}; background: transparent; border: none;")
+        search_title.setStyleSheet(f"color: {TEXT_TITLE}; background: transparent; border: none;")
         sc_layout.addWidget(search_title)
 
         # Input row
         input_row = QHBoxLayout()
         input_row.setSpacing(10)
 
-        self.name_input    = GlowInput("Full Name")
-        self.phone_input   = GlowInput("Phone Number")
-        self.email_input   = GlowInput("Email Address")
+        self.name_input = GlowInput("Full Name")
+        self.phone_input = GlowInput("Phone Number")
+        self.email_input = GlowInput("Email Address")
 
         input_row.addWidget(self.name_input, 2)
         input_row.addWidget(self.phone_input, 1)
@@ -262,7 +128,7 @@ class OsintDashboard(QWidget):
         input_row2.setSpacing(10)
 
         self.address_input = GlowInput("Home Address")
-        self.extra_input   = GlowInput("Additional information (social networks, nickname...)")
+        self.extra_input = GlowInput("Additional information (social networks, nickname...)")
 
         input_row2.addWidget(self.address_input, 1)
         input_row2.addWidget(self.extra_input, 2)
@@ -272,9 +138,10 @@ class OsintDashboard(QWidget):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
 
-        self.scan_btn  = CyberButton("▶  SCAN", ACCENT_CYAN)
-        self.clear_btn = CyberButton("✕  CLEAR", ACCENT_RED)
-        self.save_btn  = CyberButton("⬇  Save", ACCENT_CYAN)
+        # Use semantic variant tags instead of raw color constants
+        self.scan_btn = CyberButton("▶  SCAN", "primary")
+        self.clear_btn = CyberButton("✕  CLEAR", "danger")
+        self.save_btn = CyberButton("⬇  Save", "primary")
 
         self.scan_btn.clicked.connect(self._on_scan)
         self.clear_btn.clicked.connect(self._on_clear)
@@ -290,7 +157,7 @@ class OsintDashboard(QWidget):
         # ── RESULTS ──────────────────────────────
         result_label = QLabel("Scan Results")
         result_label.setFont(QFont(FONT_TITLE, 10))
-        result_label.setStyleSheet(f"color: {TEXT_MUTED};")
+        result_label.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
         root.addWidget(result_label)
 
         self.result_box = ResultDisplay()
@@ -298,11 +165,11 @@ class OsintDashboard(QWidget):
 
     # ── SLOTS ────────────────────────────────
     def _on_scan(self):
-        name    = self.name_input.text().strip()
-        phone   = self.phone_input.text().strip()
-        email   = self.email_input.text().strip()
+        name = self.name_input.text().strip()
+        phone = self.phone_input.text().strip()
+        email = self.email_input.text().strip()
         address = self.address_input.text().strip()
-        extra   = self.extra_input.text().strip()
+        extra = self.extra_input.text().strip()
 
         if not any([name, phone, email, address]):
             self.result_box.setPlainText("Error - Please enter at least one field")
@@ -332,30 +199,28 @@ class OsintDashboard(QWidget):
         self.extra_input.clear()
         self.result_box.clear()
 
-
 # ──────────────────────────────────────────
 #  PLACEHOLDER TABS
 # ──────────────────────────────────────────
 class PlaceholderPage(QWidget):
-    def __init__(self, title, accent=ACCENT_CYAN, parent=None):
+    def __init__(self, title, hex_color="#4ADE80", parent=None):
         super().__init__(parent)
-        self.setStyleSheet(f"background: {BG_DARK};")
+        self.setObjectName("placeholderPage")
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         lbl = QLabel(title)
         lbl.setFont(QFont(FONT_MONO, 18))
-        lbl.setStyleSheet(f"color: {accent}44;")
+        lbl.setStyleSheet(f"color: {hex_color}44;")
         lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         sub = QLabel("SOON...")
         sub.setFont(QFont(FONT_MONO, 11))
-        sub.setStyleSheet(f"color: {TEXT_MUTED};")
+        sub.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout.addWidget(lbl)
         layout.addWidget(sub)
-
 
 # ──────────────────────────────────────────
 #  MAIN WINDOW
@@ -366,15 +231,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Project Neuron")
         self.setMinimumSize(1100, 700)
         self.resize(1280, 780)
-        self._apply_global_style()
         self._build_layout()
-
-    def _apply_global_style(self):
-        self.setStyleSheet(f"""
-            QMainWindow {{ background: {BG_DARK}; }}
-            QScrollArea {{ background: transparent; border: none; }}
-            QWidget {{ font-family: '{FONT_TITLE}'; }}
-        """)
 
     def _build_layout(self):
         central = QWidget()
@@ -386,13 +243,8 @@ class MainWindow(QMainWindow):
         # ── SIDEBAR ──────────────────────────────
         sidebar = QWidget()
         sidebar.setFixedWidth(210)
-        sidebar.setStyleSheet(f"""
-            QWidget {{
-                background: {BG_PANEL};
-                border-right: 1px solid {BORDER_COLOR};
-    
-            }}
-        """)
+        sidebar.setObjectName("sidebar")
+
         sb_layout = QVBoxLayout(sidebar)
         sb_layout.setContentsMargins(0, 0, 0, 0)
         sb_layout.setSpacing(0)
@@ -400,28 +252,21 @@ class MainWindow(QMainWindow):
         # Logo
         logo_area = QWidget()
         logo_area.setFixedHeight(100)
-        logo_area.setStyleSheet(f"""
-            background: {BG_PANEL};
-            border-bottom: 1px solid {BORDER_COLOR};
-        """)
+        logo_area.setObjectName("logoArea")
+
         logo_layout = QHBoxLayout(logo_area)
         logo_layout.setContentsMargins(16, 0, 16, 0)
-
-
         logo_layout.addStretch()
         sb_layout.addWidget(logo_area)
-
-
-
 
         self.pages = QStackedWidget()
         self.nav_buttons = []
 
         nav_items = [
             ("⬡", "OSINT", OsintDashboard()),
-            ("◈", "ROOMS",       PlaceholderPage("◈  ROOMS", ACCENT_GREEN)),
-            ("◉", "NETWORK",      PlaceholderPage("◉  NETWORK", "#ff9f1c")),
-            ("◎", "SETTINGS",            PlaceholderPage("◎  SETTINGS", TEXT_DIM)),
+            ("◈", "ROOMS", PlaceholderPage("◈  ROOMS", "#48CAE4")),
+            ("◉", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
+            ("◎", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
         ]
 
         for icon, label, page in nav_items:
@@ -433,9 +278,6 @@ class MainWindow(QMainWindow):
 
         sb_layout.addStretch()
 
-
-
-
         root.addWidget(sidebar)
         root.addWidget(self.pages, 1)
 
@@ -446,10 +288,8 @@ class MainWindow(QMainWindow):
         for i, btn in enumerate(self.nav_buttons):
             is_active = btn is clicked_btn
             btn.setChecked(is_active)
-            btn._refresh()
             if is_active:
                 self.pages.setCurrentIndex(i)
-
 
 # ──────────────────────────────────────────
 #  ENTRY POINT
@@ -458,19 +298,19 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     load_application_font()
-
     app.setStyle("Fusion")
 
+    # Apply the global QSS!
+    app.setStyleSheet(load_stylesheet())
 
-
-    # Dark palette for native widgets
+    # Dark palette for native widgets using semantic variables
     palette = QPalette()
-    palette.setColor(QPalette.ColorRole.Window,          QColor(BG_DARK))
-    palette.setColor(QPalette.ColorRole.WindowText,      QColor(TEXT_PRIMARY))
-    palette.setColor(QPalette.ColorRole.Base,            QColor(BG_CARD))
-    palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(BG_PANEL))
-    palette.setColor(QPalette.ColorRole.Highlight,       QColor(ACCENT_CYAN))
-    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(BG_DARK))
+    palette.setColor(QPalette.ColorRole.Window, QColor(WINDOW_BG))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(TEXT_TITLE))
+    palette.setColor(QPalette.ColorRole.Base, QColor(CARD_BG))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(SIDEBAR_BG))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(INPUT_FOCUS))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
     app.setPalette(palette)
 
     window = MainWindow()
