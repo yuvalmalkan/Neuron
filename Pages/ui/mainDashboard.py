@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QCursor
+from PyQt6.QtGui import QPixmap
 
 def shadow(widget, color="#00d4ff", blur=20, offset=(0, 0)):
     fx = QGraphicsDropShadowEffect()
@@ -155,8 +156,8 @@ class OsintDashboard(QWidget):
         root.addWidget(search_card)
 
         # ── RESULTS ──────────────────────────────
-        result_label = QLabel("Scan Results")
-        result_label.setFont(QFont(FONT_TITLE, 10))
+        result_label = QLabel("SCAN RESULTS")
+        result_label.setFont(QFont(FONT_TITLE, 15))
         result_label.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
         root.addWidget(result_label)
 
@@ -184,10 +185,8 @@ class OsintDashboard(QWidget):
         if email:   lines.append(f"  EMAIL   : {email}")
         if address: lines.append(f"  ADDRESS : {address}")
         if extra:   lines.append(f"  EXTRA   : {extra}")
-        lines.append("-" * 56)
-        lines.append("  [ ממתין לחיבור Gemini API... ]")
-        lines.append("  → כאן יוצגו תוצאות הסריקה מהמקורות")
-        lines.append("=" * 56)
+
+
 
         self.result_box.setPlainText("\n".join(lines))
 
@@ -242,31 +241,55 @@ class MainWindow(QMainWindow):
 
         # ── SIDEBAR ──────────────────────────────
         sidebar = QWidget()
-        sidebar.setFixedWidth(210)
+        sidebar.setFixedWidth(180)
         sidebar.setObjectName("sidebar")
 
         sb_layout = QVBoxLayout(sidebar)
         sb_layout.setContentsMargins(0, 0, 0, 0)
-        sb_layout.setSpacing(0)
+        sb_layout.setSpacing(10)
 
-        # Logo
         logo_area = QWidget()
-        logo_area.setFixedHeight(100)
+        logo_area.setFixedHeight(80)
         logo_area.setObjectName("logoArea")
+
+
+
+        # Path to logo
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.dirname(os.path.dirname(current_dir))
+        logo_path = os.path.join(root_dir, "Assets", "Photos", "neuronBanner2.png")
 
         logo_layout = QHBoxLayout(logo_area)
         logo_layout.setContentsMargins(16, 0, 16, 0)
+
+
+        logo_label = QLabel()
+        logo_pixmap = QPixmap(logo_path)
+
+
+        #לסדר איכות תמונה
+        ratio = self.devicePixelRatioF()
+        physical_height = int(60 * ratio)
+        scaled_logo = logo_pixmap.scaledToHeight(physical_height, Qt.TransformationMode.SmoothTransformation)
+        scaled_logo.setDevicePixelRatio(ratio)
+        logo_label.setPixmap(scaled_logo)
+
+
+
+        logo_layout.addWidget(logo_label)
         logo_layout.addStretch()
         sb_layout.addWidget(logo_area)
+
+
 
         self.pages = QStackedWidget()
         self.nav_buttons = []
 
         nav_items = [
-            ("⬡", "OSINT", OsintDashboard()),
-            ("◈", "ROOMS", PlaceholderPage("◈  ROOMS", "#48CAE4")),
-            ("◉", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
-            ("◎", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
+            (">", "OSINT", OsintDashboard()),
+            (">", "ROOMS", PlaceholderPage("◈  ROOMS", "#48CAE4")),
+            (">", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
+            (">", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
         ]
 
         for icon, label, page in nav_items:

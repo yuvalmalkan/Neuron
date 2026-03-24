@@ -76,6 +76,7 @@ NavButton {
     color: @NAV_TEXT_IDLE@;
     text-align: left;
     padding-left: 16px;
+    font-size: 14px;
 }
 NavButton:hover {
     background: @NAV_BG_HOVER@;
