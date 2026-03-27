@@ -45,7 +45,8 @@ def search_username(username: str) -> list:
 
 
 if __name__ == "__main__":
-    results = search_username("yuvalmalkan")
+    user =input("username: ")
+    results = search_username(user)
     print()
     for r in results:
         print(f"  → {r['site']}: {r['url']}")

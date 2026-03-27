@@ -1,0 +1,259 @@
+{
+  "categories": {
+    "Tech / Dev": {
+      "GitHub":          { "url": "https://github.com/{}",                         "not_found": ["Not Found"],                              "check_url": true  },
+      "GitLab":          { "url": "https://gitlab.com/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Stack Overflow":  { "url": "https://stackoverflow.com/users/{}",            "not_found": [],                                         "check_url": true  },
+      "HackerNews":      { "url": "https://news.ycombinator.com/user?id={}",       "not_found": ["No such user"],                           "check_url": false },
+      "Replit":          { "url": "https://replit.com/@{}",                        "not_found": ["404"],                                    "check_url": false },
+      "Codepen":         { "url": "https://codepen.io/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Dev.to":          { "url": "https://dev.to/{}",                             "not_found": ["404"],                                    "check_url": false },
+      "Hashnode":        { "url": "https://hashnode.com/@{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Kaggle":          { "url": "https://www.kaggle.com/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "HuggingFace":     { "url": "https://huggingface.co/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "npm":             { "url": "https://www.npmjs.com/~{}",                     "not_found": ["404"],                                    "check_url": false },
+      "PyPI":            { "url": "https://pypi.org/user/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "DockerHub":       { "url": "https://hub.docker.com/u/{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Bitbucket":       { "url": "https://bitbucket.org/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "SourceForge":     { "url": "https://sourceforge.net/u/{}/profile",          "not_found": ["404"],                                    "check_url": false },
+      "Vercel":          { "url": "https://vercel.com/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Netlify":         { "url": "https://app.netlify.com/teams/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Glitch":          { "url": "https://glitch.com/@{}",                        "not_found": ["404"],                                    "check_url": false },
+      "JSFiddle":        { "url": "https://jsfiddle.net/user/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "Exercism":        { "url": "https://exercism.org/profiles/{}",              "not_found": ["404"],                                    "check_url": false },
+      "LeetCode":        { "url": "https://leetcode.com/{}",                       "not_found": ["404"],                                    "check_url": false },
+      "Codeforces":      { "url": "https://codeforces.com/profile/{}",             "not_found": ["404"],                                    "check_url": false },
+      "HackerRank":      { "url": "https://www.hackerrank.com/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "CodinGame":       { "url": "https://www.codingame.com/profile/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Topcoder":        { "url": "https://www.topcoder.com/members/{}",           "not_found": ["404"],                                    "check_url": false }
+    },
+    "Social Media": {
+      "Reddit":          { "url": "https://reddit.com/user/{}",                    "not_found": ["nobody on Reddit goes by that name"],     "check_url": false },
+      "Twitter/X":       { "url": "https://twitter.com/{}",                        "not_found": ["This account doesn't exist"],             "check_url": false },
+      "Instagram":       { "url": "https://instagram.com/{}",                      "not_found": ["Page Not Found"],                         "check_url": false },
+      "Facebook":        { "url": "https://www.facebook.com/{}",                   "not_found": ["content isn't available"],                "check_url": false },
+      "TikTok":          { "url": "https://www.tiktok.com/@{}",                    "not_found": ["Couldn't find this account"],             "check_url": false },
+      "Pinterest":       { "url": "https://www.pinterest.com/{}",                  "not_found": [],                                         "check_url": true  },
+      "Snapchat":        { "url": "https://www.snapchat.com/add/{}",               "not_found": ["Sorry, we couldn't find"],                "check_url": false },
+      "Tumblr":          { "url": "https://{}.tumblr.com",                         "not_found": ["There's nothing here"],                   "check_url": false },
+      "Mastodon":        { "url": "https://mastodon.social/@{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Bluesky":         { "url": "https://bsky.app/profile/{}",                   "not_found": ["Profile not found"],                      "check_url": false },
+      "Threads":         { "url": "https://www.threads.net/@{}",                   "not_found": ["Page not found"],                         "check_url": false },
+      "LinkedIn":        { "url": "https://www.linkedin.com/in/{}",                "not_found": ["Page not found"],                         "check_url": false },
+      "Vero":            { "url": "https://vero.co/{}",                            "not_found": ["404"],                                    "check_url": false },
+      "MeWe":            { "url": "https://mewe.com/i/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Clubhouse":       { "url": "https://www.clubhouse.com/@{}",                 "not_found": ["404"],                                    "check_url": false },
+      "BeReal":          { "url": "https://bere.al/{}",                            "not_found": ["404"],                                    "check_url": false },
+      "Lemon8":          { "url": "https://www.lemon8app.com/@{}",                 "not_found": ["404"],                                    "check_url": false },
+      "Minds":           { "url": "https://www.minds.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "VK":              { "url": "https://vk.com/{}",                             "not_found": ["404"],                                    "check_url": false },
+      "OK.ru":           { "url": "https://ok.ru/profile/{}",                      "not_found": ["404"],                                    "check_url": false }
+    },
+    "Video / Streaming": {
+      "YouTube":         { "url": "https://www.youtube.com/@{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Twitch":          { "url": "https://www.twitch.tv/{}",                      "not_found": ["Sorry. Unless you", "404"],               "check_url": false },
+      "Vimeo":           { "url": "https://vimeo.com/{}",                          "not_found": ["404"],                                    "check_url": false },
+      "Dailymotion":     { "url": "https://www.dailymotion.com/{}",                "not_found": ["404"],                                    "check_url": false },
+      "Rumble":          { "url": "https://rumble.com/user/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Odysee":          { "url": "https://odysee.com/@{}",                        "not_found": ["404"],                                    "check_url": false },
+      "Kick":            { "url": "https://kick.com/{}",                           "not_found": ["404"],                                    "check_url": false },
+      "Trovo":           { "url": "https://trovo.live/s/{}",                       "not_found": ["404"],                                    "check_url": false },
+      "Streamlabs":      { "url": "https://streamlabs.com/{}",                     "not_found": ["404"],                                    "check_url": false }
+    },
+    "Music": {
+      "SoundCloud":      { "url": "https://soundcloud.com/{}",                     "not_found": ["404"],                                    "check_url": true  },
+      "Bandcamp":        { "url": "https://{}.bandcamp.com",                       "not_found": ["Sorry, that something"],                  "check_url": false },
+      "Last.fm":         { "url": "https://www.last.fm/user/{}",                   "not_found": ["User not found"],                         "check_url": false },
+      "Mixcloud":        { "url": "https://www.mixcloud.com/{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Spotify":         { "url": "https://open.spotify.com/user/{}",              "not_found": ["User not found"],                         "check_url": false },
+      "Apple Music":     { "url": "https://music.apple.com/profile/{}",            "not_found": ["404"],                                    "check_url": false },
+      "Deezer":          { "url": "https://www.deezer.com/en/profile/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Tidal":           { "url": "https://tidal.com/browse/profile/{}",           "not_found": ["404"],                                    "check_url": false },
+      "Audiomack":       { "url": "https://audiomack.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "ReverbNation":    { "url": "https://www.reverbnation.com/{}",               "not_found": ["404"],                                    "check_url": false }
+    },
+    "Gaming": {
+      "Steam":           { "url": "https://steamcommunity.com/id/{}",              "not_found": ["The specified profile could not be found"], "check_url": false },
+      "Xbox":            { "url": "https://www.xbox.com/en-US/gamertag/{}",        "not_found": ["404"],                                    "check_url": false },
+      "PSN":             { "url": "https://psnprofiles.com/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Epic Games":      { "url": "https://www.epicgames.com/id/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Roblox":          { "url": "https://www.roblox.com/user.aspx?username={}", "not_found": ["Page not found"],                         "check_url": false },
+      "Minecraft":       { "url": "https://namemc.com/profile/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "Battlenet":       { "url": "https://overwatch.blizzard.com/en-us/career/{}", "not_found": ["404"],                                  "check_url": false },
+      "Chess.com":       { "url": "https://www.chess.com/member/{}",               "not_found": ["Oops! That page can't be found"],         "check_url": false },
+      "Lichess":         { "url": "https://lichess.org/@/{}",                      "not_found": ["No such user"],                           "check_url": false },
+      "Faceit":          { "url": "https://www.faceit.com/en/players/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Riot Games":      { "url": "https://tracker.gg/valorant/profile/riot/{}/overview", "not_found": ["We could not find"],              "check_url": false },
+      "GOG":             { "url": "https://www.gog.com/u/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Itch.io":         { "url": "https://{}.itch.io",                            "not_found": ["404"],                                    "check_url": false },
+      "GameJolt":        { "url": "https://gamejolt.com/@{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Kongregate":      { "url": "https://www.kongregate.com/accounts/{}",        "not_found": ["404"],                                    "check_url": false }
+    },
+    "Photography / Art": {
+      "Flickr":          { "url": "https://www.flickr.com/people/{}",              "not_found": ["Page Not Found"],                         "check_url": false },
+      "500px":           { "url": "https://500px.com/p/{}",                        "not_found": ["Page not found"],                         "check_url": false },
+      "DeviantArt":      { "url": "https://www.deviantart.com/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "ArtStation":      { "url": "https://www.artstation.com/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "Behance":         { "url": "https://www.behance.net/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Dribbble":        { "url": "https://dribbble.com/{}",                       "not_found": ["Whoops"],                                 "check_url": false },
+      "Unsplash":        { "url": "https://unsplash.com/@{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Pixiv":           { "url": "https://www.pixiv.net/en/users/{}",             "not_found": ["404"],                                    "check_url": false },
+      "Pexels":          { "url": "https://www.pexels.com/@{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Adobe Portfolio": { "url": "https://{}.myportfolio.com",                    "not_found": ["404"],                                    "check_url": false },
+      "Cara":            { "url": "https://cara.app/{}",                           "not_found": ["404"],                                    "check_url": false }
+    },
+    "Writing / Blogging": {
+      "Medium":          { "url": "https://medium.com/@{}",                        "not_found": ["404"],                                    "check_url": false },
+      "Substack":        { "url": "https://{}.substack.com",                       "not_found": ["This publication doesn't exist"],         "check_url": false },
+      "WordPress":       { "url": "https://{}.wordpress.com",                      "not_found": ["doesn't exist"],                          "check_url": false },
+      "Blogger":         { "url": "https://{}.blogspot.com",                       "not_found": ["Blog not found"],                         "check_url": false },
+      "Ghost":           { "url": "https://{}.ghost.io",                           "not_found": ["404"],                                    "check_url": false },
+      "Wix":             { "url": "https://{}.wixsite.com",                        "not_found": ["404"],                                    "check_url": false },
+      "Squarespace":     { "url": "https://{}.squarespace.com",                    "not_found": ["404"],                                    "check_url": false },
+      "Wattpad":         { "url": "https://www.wattpad.com/user/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Archive of Our Own": { "url": "https://archiveofourown.org/users/{}",       "not_found": ["Sorry, we couldn't find"],                "check_url": false },
+      "Fanfiction.net":  { "url": "https://www.fanfiction.net/u/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Royal Road":      { "url": "https://www.royalroad.com/profile/{}",          "not_found": ["404"],                                    "check_url": false }
+    },
+    "Professional / Portfolio": {
+      "AngelList":       { "url": "https://angel.co/u/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Product Hunt":    { "url": "https://www.producthunt.com/@{}",               "not_found": ["404"],                                    "check_url": false },
+      "Freelancer":      { "url": "https://www.freelancer.com/u/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Upwork":          { "url": "https://www.upwork.com/freelancers/~{}",        "not_found": ["404"],                                    "check_url": false },
+      "Fiverr":          { "url": "https://www.fiverr.com/{}",                     "not_found": ["Page not found"],                         "check_url": false },
+      "Toptal":          { "url": "https://www.toptal.com/resume/{}",              "not_found": ["404"],                                    "check_url": false },
+      "About.me":        { "url": "https://about.me/{}",                           "not_found": ["404"],                                    "check_url": true  },
+      "Gravatar":        { "url": "https://en.gravatar.com/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Linktree":        { "url": "https://linktr.ee/{}",                          "not_found": ["Sorry, this page isn't available"],       "check_url": false },
+      "Wellfound":       { "url": "https://wellfound.com/u/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Polywork":        { "url": "https://www.polywork.com/{}",                   "not_found": ["404"],                                    "check_url": false }
+    },
+    "Q&A / Communities": {
+      "Quora":           { "url": "https://www.quora.com/profile/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Disqus":          { "url": "https://disqus.com/by/{}/",                     "not_found": ["404"],                                    "check_url": false },
+      "Discourse":       { "url": "https://meta.discourse.org/u/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Goodreads":       { "url": "https://www.goodreads.com/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "Letterboxd":      { "url": "https://letterboxd.com/{}",                     "not_found": ["Sorry, we can't find"],                   "check_url": false },
+      "IMDb":            { "url": "https://www.imdb.com/user/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "MyAnimeList":     { "url": "https://myanimelist.net/profile/{}",            "not_found": ["Invalid Username"],                       "check_url": false },
+      "Anilist":         { "url": "https://anilist.co/user/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Kitsu":           { "url": "https://kitsu.io/users/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "Trakt":           { "url": "https://trakt.tv/users/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "TV Time":         { "url": "https://www.tvtime.com/en/user/{}/profile",     "not_found": ["404"],                                    "check_url": false }
+    },
+    "Israeli / Local": {
+      "Tapuz":           { "url": "https://www.tapuz.co.il/profile/{}",            "not_found": ["404"],                                    "check_url": false },
+      "Yad2":            { "url": "https://www.yad2.co.il/users/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Zap":             { "url": "https://www.zap.co.il/profile/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Xnet":            { "url": "https://www.xnet.co.il/member/{}",              "not_found": ["404"],                                    "check_url": false },
+      "WallaGames":      { "url": "https://games.walla.co.il/user/{}",             "not_found": ["404"],                                    "check_url": false }
+    },
+    "Finance / Crypto": {
+      "eToro":           { "url": "https://www.etoro.com/people/{}",               "not_found": ["404"],                                    "check_url": true  },
+      "Binance":         { "url": "https://www.binance.com/en/feed/profile/{}",    "not_found": ["404"],                                    "check_url": false },
+      "Robinhood":       { "url": "https://robinhood.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "CoinMarketCap":   { "url": "https://coinmarketcap.com/community/profile/{}", "not_found": ["404"],                                   "check_url": false },
+      "Kraken":          { "url": "https://www.kraken.com/u/{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Coinbase":        { "url": "https://www.coinbase.com/{}",                   "not_found": ["404"],                                    "check_url": false }
+    },
+    "Fitness / Sport": {
+      "Strava":          { "url": "https://www.strava.com/athletes/{}",            "not_found": ["404"],                                    "check_url": false },
+      "Fitbit":          { "url": "https://www.fitbit.com/user/{}",                "not_found": ["404"],                                    "check_url": false },
+      "Garmin Connect":  { "url": "https://connect.garmin.com/modern/profile/{}",  "not_found": ["404"],                                    "check_url": false },
+      "AllTrails":       { "url": "https://www.alltrails.com/members/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Komoot":          { "url": "https://www.komoot.com/user/{}",                "not_found": ["404"],                                    "check_url": false },
+      "Zwift":           { "url": "https://www.zwift.com/athlete/{}",              "not_found": ["404"],                                    "check_url": false },
+      "MyFitnessPal":    { "url": "https://www.myfitnesspal.com/profile/{}",       "not_found": ["404"],                                    "check_url": false },
+      "Peloton":         { "url": "https://members.onepeloton.com/members/{}/overview", "not_found": ["404"],                               "check_url": false },
+      "Freeletics":      { "url": "https://www.freeletics.com/en/athletes/{}",    "not_found": ["404"],                                    "check_url": false },
+      "Nike Run Club":   { "url": "https://www.nike.com/member/{}",                "not_found": ["404"],                                    "check_url": false }
+    },
+    "Food / Lifestyle": {
+      "Untappd":         { "url": "https://untappd.com/user/{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Vivino":          { "url": "https://www.vivino.com/users/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Yelp":            { "url": "https://www.yelp.com/user_details?userid={}",   "not_found": ["404"],                                    "check_url": false },
+      "Tripadvisor":     { "url": "https://www.tripadvisor.com/Profile/{}",        "not_found": ["404"],                                    "check_url": false },
+      "OpenTable":       { "url": "https://www.opentable.com/profile/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Zomato":          { "url": "https://www.zomato.com/{}",                     "not_found": ["Page not found"],                         "check_url": false },
+      "AllRecipes":      { "url": "https://www.allrecipes.com/cook/{}",            "not_found": ["404"],                                    "check_url": false }
+    },
+    "Commerce / Marketplace": {
+      "Etsy":            { "url": "https://www.etsy.com/people/{}",                "not_found": ["Hmm, that page can't be found"],          "check_url": false },
+      "eBay":            { "url": "https://www.ebay.com/usr/{}",                   "not_found": ["404"],                                    "check_url": false },
+      "Depop":           { "url": "https://www.depop.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Poshmark":        { "url": "https://poshmark.com/closet/{}",                "not_found": ["404"],                                    "check_url": false },
+      "Vinted":          { "url": "https://www.vinted.com/member/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Mercari":         { "url": "https://www.mercari.com/u/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "Gumroad":         { "url": "https://gumroad.com/{}",                        "not_found": ["404"],                                    "check_url": false },
+      "Shopify":         { "url": "https://{}.myshopify.com",                      "not_found": ["404"],                                    "check_url": false }
+    },
+    "Creator / Funding": {
+      "Patreon":         { "url": "https://www.patreon.com/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Ko-fi":           { "url": "https://ko-fi.com/{}",                          "not_found": ["404"],                                    "check_url": false },
+      "Buy Me a Coffee": { "url": "https://www.buymeacoffee.com/{}",               "not_found": ["404"],                                    "check_url": false },
+      "Kickstarter":     { "url": "https://www.kickstarter.com/profile/{}",        "not_found": ["404"],                                    "check_url": false },
+      "Indiegogo":       { "url": "https://www.indiegogo.com/individuals/{}",      "not_found": ["404"],                                    "check_url": false },
+      "Open Collective": { "url": "https://opencollective.com/{}",                 "not_found": ["404"],                                    "check_url": false }
+    },
+    "Payments": {
+      "PayPal":          { "url": "https://paypal.me/{}",                          "not_found": ["404"],                                    "check_url": true  },
+      "Venmo":           { "url": "https://venmo.com/{}",                          "not_found": ["404"],                                    "check_url": false },
+      "Cash App":        { "url": "https://cash.app/${}",                          "not_found": ["404"],                                    "check_url": false }
+    },
+    "Education": {
+      "Duolingo":        { "url": "https://www.duolingo.com/profile/{}",           "not_found": ["404"],                                    "check_url": false },
+      "Coursera":        { "url": "https://www.coursera.org/user/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Udemy":           { "url": "https://www.udemy.com/user/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "Khan Academy":    { "url": "https://www.khanacademy.org/profile/{}",        "not_found": ["404"],                                    "check_url": false },
+      "Instructables":   { "url": "https://www.instructables.com/member/{}",       "not_found": ["404"],                                    "check_url": false },
+      "Skillshare":      { "url": "https://www.skillshare.com/en/user/{}",         "not_found": ["404"],                                    "check_url": false },
+      "Udacity":         { "url": "https://www.udacity.com/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "edX":             { "url": "https://courses.edx.org/u/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "Brilliant":       { "url": "https://brilliant.org/profile/{}",              "not_found": ["404"],                                    "check_url": false }
+    },
+    "Design / No-Code": {
+      "Figma":           { "url": "https://www.figma.com/@{}",                     "not_found": ["404"],                                    "check_url": false },
+      "Canva":           { "url": "https://www.canva.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Framer":          { "url": "https://www.framer.com/@{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Webflow":         { "url": "https://webflow.com/{}",                        "not_found": ["404"],                                    "check_url": false },
+      "Bubble":          { "url": "https://bubble.io/@{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Carrd":           { "url": "https://{}.carrd.co",                           "not_found": ["404"],                                    "check_url": false }
+    },
+    "Productivity / Tools": {
+      "Notion":          { "url": "https://www.notion.so/@{}",                     "not_found": ["404"],                                    "check_url": false },
+      "Trello":          { "url": "https://trello.com/{}",                         "not_found": ["404"],                                    "check_url": false },
+      "Asana":           { "url": "https://app.asana.com/{}",                      "not_found": ["404"],                                    "check_url": false },
+      "Monday.com":      { "url": "https://{}.monday.com",                         "not_found": ["404"],                                    "check_url": false },
+      "Airtable":        { "url": "https://airtable.com/{}",                       "not_found": ["404"],                                    "check_url": false },
+      "Coda":            { "url": "https://coda.io/@{}",                           "not_found": ["404"],                                    "check_url": false },
+      "Obsidian Publish":{ "url": "https://publish.obsidian.md/{}",                "not_found": ["404"],                                    "check_url": false }
+    },
+    "Messaging / Communication": {
+      "Telegram":        { "url": "https://t.me/{}",                               "not_found": ["If you have Telegram"],                   "check_url": false },
+      "Discord":         { "url": "https://discord.com/users/{}",                  "not_found": ["404"],                                    "check_url": false },
+      "Slack":           { "url": "https://{}.slack.com",                          "not_found": ["404"],                                    "check_url": false },
+      "Zoom":            { "url": "https://zoom.us/profile/{}",                    "not_found": ["404"],                                    "check_url": false },
+      "Microsoft Teams": { "url": "https://profile.microsoft.com/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Apple Discussions":{ "url": "https://discussions.apple.com/profile/{}",     "not_found": ["404"],                                    "check_url": false },
+      "Matrix":          { "url": "https://matrix.to/#/@{}:matrix.org",            "not_found": ["404"],                                    "check_url": false }
+    },
+    "Travel / Local": {
+      "Airbnb":          { "url": "https://www.airbnb.com/users/show/{}",          "not_found": ["404"],                                    "check_url": false },
+      "Couchsurfing":    { "url": "https://www.couchsurfing.com/people/{}",        "not_found": ["404"],                                    "check_url": false },
+      "Foursquare":      { "url": "https://foursquare.com/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "Polarsteps":      { "url": "https://www.polarsteps.com/{}",                 "not_found": ["404"],                                    "check_url": false },
+      "Nomad List":      { "url": "https://nomadlist.com/@{}",                     "not_found": ["404"],                                    "check_url": false }
+    },
+    "Dating": {
+      "OkCupid":         { "url": "https://www.okcupid.com/profile/{}",            "not_found": ["404"],                                    "check_url": false },
+      "Badoo":           { "url": "https://badoo.com/en/profile/{}",               "not_found": ["404"],                                    "check_url": false }
+    },
+    "Reading / Podcasts": {
+      "Goodpods":        { "url": "https://goodpods.com/profiles/{}",              "not_found": ["404"],                                    "check_url": false },
+      "Pocket Casts":    { "url": "https://pca.st/profile/{}",                     "not_found": ["404"],                                    "check_url": false },
+      "Audible":         { "url": "https://www.audible.com/profile/{}",            "not_found": ["404"],                                    "check_url": false },
+      "StoryGraph":      { "url": "https://app.thestorygraph.com/profile/{}",      "not_found": ["404"],                                    "check_url": false },
+      "LibraryThing":    { "url": "https://www.librarything.com/profile/{}",       "not_found": ["404"],                                    "check_url": false }
+    }
+  }
+}
