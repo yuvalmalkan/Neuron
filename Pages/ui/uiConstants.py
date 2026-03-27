@@ -61,9 +61,9 @@ FONT_MONO  = "SF Pro"
 FONT_TITLE = "SF Pro"
 
 
-def load_stylesheet():
+def load_stylesheet(filename):
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    qss_path = os.path.join(base_dir, "Styles", "main.qss")
+    qss_path = os.path.join(base_dir, "Styles", f"{filename}.qss")
 
     try:
         with open(qss_path, "r", encoding="utf-8") as f:
@@ -128,3 +128,6 @@ def load_application_font():
             print(f"[-] Error: Failed to load font from {font_path}")
     else:
         print(f"[-] Error: Font file not found at {font_path}")
+
+
+

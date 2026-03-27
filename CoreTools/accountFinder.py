@@ -41,7 +41,7 @@ def check_not_found_strings(response_text: str, not_found_strings: list) -> bool
     return any(s.lower() in text_lower for s in not_found_strings)
 
 
-def findByUsername(username: str):
+def findByUsername(username): #todo add website/account search by intrests or categorys
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

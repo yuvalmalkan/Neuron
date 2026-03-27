@@ -1,0 +1,43 @@
+/* ── loginSignup.qss ── */
+
+QMainWindow {
+    background: #161616;
+}
+
+AuthInput {
+    background: #0D0D0D;
+    border: 1px solid #2A2A2A;
+    border-radius: 4px;
+    color: #E8E8E8;
+}
+
+AuthInput:focus {
+    border: 1px solid #8A2BE2; /* Custom purple glow for auth */
+    background: #111111;
+}
+
+StandardAuthButton {
+    background: #E8E8E8;
+    color: #0D0D0D;
+    border-radius: 4px;
+}
+
+StandardAuthButton:hover {
+    background: #FFFFFF;
+}
+
+StandardAuthButton:pressed {
+    background: #CCCCCC;
+}
+
+LinkButton {
+    background: transparent;
+    color: #8892a0;
+    border: none;
+    text-align: center;
+}
+
+LinkButton:hover {
+    color: #E8E8E8;
+    text-decoration: underline;
+}
