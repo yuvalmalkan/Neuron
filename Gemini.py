@@ -27,3 +27,9 @@ def start_chat():
 def send_message(chat, message: str) -> str:
     response = chat.send_message(message)
     return response.text
+
+
+
+if __name__ == "__main__":
+    user = input(" ")
+    print(ask_gemini(user))

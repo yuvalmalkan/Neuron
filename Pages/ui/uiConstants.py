@@ -4,15 +4,15 @@ import os
 from PyQt6.QtGui import QFontDatabase
 
 # ── SEMANTIC COLORS ───────────────────────
-#$$$$ rf
+
 # Window & Layout
-WINDOW_BG       = "#161616"
-SIDEBAR_BG      = "#1F1F1F"
-SIDEBAR_BORDER  = "#2E2E2E"
+WINDOW_BG       = "#000000"
+SIDEBAR_BG      = "#0D0D0D"
+SIDEBAR_BORDER  = "#1C1C1C"
 
 # Cards & Containers
-CARD_BG         = "#1F1F1F"
-CARD_BORDER     = "#2E2E2E"
+CARD_BG         = "#0D0D0D"
+CARD_BORDER     = "#1C1C1C"
 
 # Inputs
 INPUT_BG        = "#3D3D3B"
@@ -22,9 +22,9 @@ INPUT_SELECTION = "#4ADE8044"
 
 # Buttons (Primary - e.g., Scan, Save)
 BTN_PRIMARY_BG     = "-"
-BTN_PRIMARY_BORDER = "#1F6FEB"
+BTN_PRIMARY_BORDER = "#EEEEEE"
 BTN_PRIMARY_TEXT   = BTN_PRIMARY_BORDER
-BTN_PRIMARY_HOVER  = "#EF233C44"
+BTN_PRIMARY_HOVER  = "#BB000044"
 BTN_PRIMARY_PRESS  = "#4ADE8066"
 
 # Buttons (Danger - e.g., Clear)
@@ -35,16 +35,16 @@ BTN_DANGER_HOVER   = "#EF233C44"
 BTN_DANGER_PRESS   = "#EF233C66"
 
 # Navigation Sidebar
-NAV_TEXT_IDLE      = "#8892a0"
-NAV_TEXT_HOVER     = "#CAF0F8"
+NAV_TEXT_IDLE      = "#3D3D3B"
+NAV_TEXT_HOVER     = "#AAAAAA"
 NAV_BG_ACTIVE      = SIDEBAR_BG
 NAV_BG_HOVER       = NAV_BG_ACTIVE
 NAV_TEXT_ACTIVE    = "#D4D4D4"
-NAV_BORDER_ACTIVE  = "#388BFD"
+NAV_BORDER_ACTIVE  = "#EEEEEE"
 
 # Typography
-TEXT_TITLE       = "#E8E8E8"
-TEXT_BODY        = "#E8E8E8"
+TEXT_TITLE       = "#DDDDDD"
+TEXT_BODY        = "#DDDDDD"
 TEXT_PLACEHOLDER = "#E8E8E8"
 #TEXT_TERMINAL    = "#22C55E"
 TEXT_TERMINAL = "#1F6FEB"
@@ -123,11 +123,11 @@ def load_application_font():
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id != -1:
             families = QFontDatabase.applicationFontFamilies(font_id)
-            print(f"[+] Success: Loaded custom font families -> {families}")
+            print(f"Loaded custom font families {families}")
         else:
-            print(f"[-] Error: Failed to load font from {font_path}")
+            print(f"Failed to load font from {font_path}")
     else:
-        print(f"[-] Error: Font file not found at {font_path}")
+        print(f"Font file not found at {font_path}")
 
 
 

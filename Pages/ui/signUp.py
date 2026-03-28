@@ -1,7 +1,7 @@
 __author__ = "Yuval Malkan"
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
-from uiElements import AuthInput, StandardAuthButton, LinkButton
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLineEdit
+from uiElements import GlowInput, CyberButton
 
 
 class SignupForm(QWidget):
@@ -10,13 +10,17 @@ class SignupForm(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
 
-        self.user_input = AuthInput("Desired Username")
-        self.badge_input = AuthInput("Organization Badge Number")
-        self.pass_input = AuthInput("Passcode", is_password=True)
-        self.pass_confirm = AuthInput("Confirm Passcode", is_password=True)
+        self.user_input = GlowInput("Username")
+        self.badge_input = GlowInput("Organization Badge Number")
 
-        self.signup_btn = StandardAuthButton("SUBMIT CLEARANCE REQUEST")
-        self.switch_btn = LinkButton("Return to Secure Login")
+        self.pass_input = GlowInput("Password")
+        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.pass_confirm = GlowInput("Confirm Password")
+        self.pass_confirm.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.signup_btn = CyberButton("SIGN UP", "primary")
+        self.switch_btn = CyberButton("RETURN TO LOGIN", "danger")
         self.switch_btn.clicked.connect(switch_callback)
 
         layout.addWidget(self.user_input)

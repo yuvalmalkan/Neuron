@@ -2,15 +2,44 @@ __author__ = "Yuval Malkan"
 
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QLabel, QStackedWidget
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QStackedWidget, QLineEdit
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QFont, QPalette, QColor
 
 from uiConstants import *
-from uiElements import Card, AuthInput, StandardAuthButton, LinkButton
+from uiElements import Card, GlowInput, CyberButton
 from signUp import SignupForm
+
+
+# ──────────────────────────────────────────
+#  TYPING ANIMATION WIDGET
+# ──────────────────────────────────────────
+class TypingLabel(QLabel):
+    def __init__(self, text_to_type, parent=None):
+        super().__init__(parent)
+        self.full_text = text_to_type
+        self.current_text = ""
+        self.index = 0
+
+        self.setFont(QFont(FONT_TITLE, 45, QFont.Weight.Bold))
+        self.setStyleSheet(f"color: {TEXT_TITLE};")
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+        # Setup the timer for the typing effect
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._type_next_char)
+        self.timer.start(80)  # Speed in milliseconds per character
+
+    def _type_next_char(self):
+        if self.index < len(self.full_text):
+            self.current_text += self.full_text[self.index]
+            self.setText(self.current_text + " ✍🏼")  # Add a terminal block cursor
+            self.index += 1
+        else:
+            self.timer.stop()
+            # Blinking cursor effect can be added here later
 
 
 # ──────────────────────────────────────────
@@ -22,11 +51,12 @@ class LoginForm(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
 
-        self.user_input = AuthInput("Agent ID / Username")
-        self.pass_input = AuthInput("Passcode", is_password=True)
+        self.user_input = GlowInput("Username")
+        self.pass_input = GlowInput("Password")
+        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        self.login_btn = StandardAuthButton("INITIALIZE SECURE SESSION")
-        self.switch_btn = LinkButton("Request Access Clearance (Sign Up)")
+        self.login_btn = CyberButton("LOGIN INTO NEURON", "primary")
+        self.switch_btn = CyberButton("NEW USER? SIGN UP", "danger")
         self.switch_btn.clicked.connect(switch_callback)
 
         layout.addWidget(self.user_input)
@@ -39,10 +69,10 @@ class LoginForm(QWidget):
 # ──────────────────────────────────────────
 #  START PAGE MAIN WINDOW
 # ──────────────────────────────────────────
-class StartPage(QMainWindow):
+class Login(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Project Neuron - Auth")
+        self.setWindowTitle("Neuron")
         self.setMinimumSize(1100, 700)
         self.resize(1280, 780)
 
@@ -52,27 +82,37 @@ class StartPage(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
 
-        main_layout = QVBoxLayout(central)
-        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Single unified layout for the whole window
+        root = QHBoxLayout(central)
+        root.setContentsMargins(80, 0, 80, 0)  # Margins to keep things away from the screen edges
+        root.setSpacing(40)
+
+        # ── LEFT SIDE (ANIMATION) ─────────────────
+        self.typing_label = TypingLabel("N  e  u  r  o  n \n A Project By Yuval Malkan")
+        root.addWidget(self.typing_label, 1)
+
+        # ── RIGHT SIDE (AUTH CARD) ─────────────────
+        card_container = QVBoxLayout()
+        card_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.auth_card = Card()
-        self.auth_card.setFixedSize(400, 450)
+        self.auth_card.setFixedSize(450, 480)
 
         card_layout = QVBoxLayout(self.auth_card)
         card_layout.setContentsMargins(40, 40, 40, 40)
         card_layout.setSpacing(20)
 
-        welcome_lbl = QLabel("PROJECT NEURON")
-        welcome_lbl.setFont(QFont(FONT_TITLE, 18, QFont.Weight.Bold))
-        welcome_lbl.setStyleSheet(f"color: {TEXT_TITLE};")
-        welcome_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        hdr = QHBoxLayout()
+        title = QLabel("SYSTEM LOGIN")
+        title.setFont(QFont(FONT_TITLE, 18, QFont.Weight.Bold))
+        title.setStyleSheet(f"color: {TEXT_TITLE};")
+        hdr.addWidget(title)
+        hdr.addStretch()
+        card_layout.addLayout(hdr)
 
         sub_lbl = QLabel("RESTRICTED ACCESS")
         sub_lbl.setFont(QFont(FONT_MONO, 10))
         sub_lbl.setStyleSheet("color: #EF233C; letter-spacing: 2px;")
-        sub_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        card_layout.addWidget(welcome_lbl)
         card_layout.addWidget(sub_lbl)
         card_layout.addSpacing(10)
 
@@ -84,26 +124,36 @@ class StartPage(QMainWindow):
         self.stacked_forms.addWidget(self.signup_form)
 
         card_layout.addWidget(self.stacked_forms)
-        main_layout.addWidget(self.auth_card)
+
+        # Add the card container to the right side of the root layout
+        card_container.addWidget(self.auth_card)
+        root.addLayout(card_container, 1)
 
     def show_signup(self):
         self.stacked_forms.setCurrentIndex(1)
-        self.auth_card.setFixedSize(400, 520)
+        self.auth_card.setFixedSize(450, 560)
 
     def show_login(self):
         self.stacked_forms.setCurrentIndex(0)
-        self.auth_card.setFixedSize(400, 450)
-
-
-
+        self.auth_card.setFixedSize(450, 480)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
+    load_application_font()
+    app.setStyle("Fusion")
+    app.setStyleSheet(load_stylesheet("main"))
 
-    app.setStyleSheet(load_stylesheet("loginSignup"))
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor(WINDOW_BG))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(TEXT_TITLE))
+    palette.setColor(QPalette.ColorRole.Base, QColor(CARD_BG))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(SIDEBAR_BG))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(INPUT_FOCUS))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
+    app.setPalette(palette)
 
-    window = StartPage()
+    window = Login()
     window.show()
     sys.exit(app.exec())

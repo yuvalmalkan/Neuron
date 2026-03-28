@@ -4,7 +4,7 @@ import os
 from PyQt6.QtGui import QFontDatabase
 
 # ── SEMANTIC COLORS ───────────────────────
-#$$$$ rf
+
 # Window & Layout
 WINDOW_BG       = "#161616"
 SIDEBAR_BG      = "#1F1F1F"
@@ -29,14 +29,14 @@ BTN_PRIMARY_PRESS  = "#4ADE8066"
 
 # Buttons (Danger - e.g., Clear)
 BTN_DANGER_BG      = "-"
-BTN_DANGER_BORDER  = "#EF233C"
-BTN_DANGER_TEXT    = "#C0392B"
+BTN_DANGER_BORDER  = "#3D3D3B"
+BTN_DANGER_TEXT    = BTN_DANGER_BORDER
 BTN_DANGER_HOVER   = "#EF233C44"
 BTN_DANGER_PRESS   = "#EF233C66"
 
 # Navigation Sidebar
-NAV_TEXT_IDLE      = "#8892a0"
-NAV_TEXT_HOVER     = "#CAF0F8"
+NAV_TEXT_IDLE      = "#3D3D3B"
+NAV_TEXT_HOVER     = "#AAAAAA"
 NAV_BG_ACTIVE      = SIDEBAR_BG
 NAV_BG_HOVER       = NAV_BG_ACTIVE
 NAV_TEXT_ACTIVE    = "#D4D4D4"
@@ -56,14 +56,14 @@ SCROLLBAR_BG     = "#0C140C"
 SCROLLBAR_HANDLE = "#4ADE8066"
 
 
-# ── FONTS ─────────────────────────────────
+# FONTS
 FONT_MONO  = "SF Pro"
 FONT_TITLE = "SF Pro"
 
 
-def load_stylesheet():
+def load_stylesheet(filename):
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    qss_path = os.path.join(base_dir, "Styles", "main.qss")
+    qss_path = os.path.join(base_dir, "Styles", f"{filename}.qss")
 
     try:
         with open(qss_path, "r", encoding="utf-8") as f:
@@ -128,3 +128,6 @@ def load_application_font():
             print(f"[-] Error: Failed to load font from {font_path}")
     else:
         print(f"[-] Error: Font file not found at {font_path}")
+
+
+

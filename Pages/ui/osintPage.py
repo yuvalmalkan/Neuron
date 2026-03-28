@@ -2,6 +2,8 @@ __author__ = "Yuval Malkan"
 
 import sys
 import os
+import time
+
 from uiConstants import *
 from uiElements import shadow, Card, GlowInput, CyberButton, NavButton, ResultDisplay
 
@@ -114,7 +116,9 @@ class OsintDashboard(QWidget):
 
         lines = []
         lines.append("=" * 56)
+
         lines.append("  PROJECT NEURON  |  OSINT SCAN INITIATED")
+
         lines.append("=" * 56)
         if name:    lines.append(f"  NAME    : {name}")
         if phone:   lines.append(f"  PHONE   : {phone}")
