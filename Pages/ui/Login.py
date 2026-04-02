@@ -30,12 +30,12 @@ class TypingLabel(QLabel):
         # Setup the timer for the typing effect
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._type_next_char)
-        self.timer.start(80)  # Speed in milliseconds per character
+        self.timer.start(40)  # Speed in milliseconds per character
 
     def _type_next_char(self):
         if self.index < len(self.full_text):
             self.current_text += self.full_text[self.index]
-            self.setText(self.current_text + " ✍🏼")  # Add a terminal block cursor
+            self.setText(self.current_text + " ")  # Add a terminal block cursor
             self.index += 1
         else:
             self.timer.stop()
@@ -88,7 +88,7 @@ class Login(QMainWindow):
         root.setSpacing(40)
 
         # ── LEFT SIDE (ANIMATION) ─────────────────
-        self.typing_label = TypingLabel("N  e  u  r  o  n \n A Project By Yuval Malkan")
+        self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan")
         root.addWidget(self.typing_label, 1)
 
         # ── RIGHT SIDE (AUTH CARD) ─────────────────

@@ -11,7 +11,7 @@ class SignupForm(QWidget):
         layout.setSpacing(15)
 
         self.user_input = GlowInput("Username")
-        self.badge_input = GlowInput("Organization Badge Number")
+        self.email_address = GlowInput("Email Address")
 
         self.pass_input = GlowInput("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
@@ -24,7 +24,7 @@ class SignupForm(QWidget):
         self.switch_btn.clicked.connect(switch_callback)
 
         layout.addWidget(self.user_input)
-        layout.addWidget(self.badge_input)
+        layout.addWidget(self.email_address)
         layout.addWidget(self.pass_input)
         layout.addWidget(self.pass_confirm)
         layout.addSpacing(10)
