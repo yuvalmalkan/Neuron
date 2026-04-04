@@ -17,7 +17,7 @@ def strip_ansi(text: str) -> str:
     """Remove ANSI escape codes like \x1b[0m"""
     return re.sub(r'\x1b\[[0-9;]*m', '', text)
 
-def search_username(username: str) -> dict:
+def Maigret_search_username(username: str) -> dict:
     start_time = time.time()
     stop_timer = threading.Event()
 
@@ -92,6 +92,8 @@ def search_username(username: str) -> dict:
         "total":    len(found),
         "duration": total_time
     }
+
+
 
 
 if __name__ == "__main__":
