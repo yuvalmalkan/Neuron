@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
-from Rooms import RoomsPanel
+from RoomsPage import RoomsPanel
 
 # ──────────────────────────────────────────
 #  OSINT TAB  (= Main Dashboard)

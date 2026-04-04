@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QFrame, QScrollArea, QSizePolicy,
     QToolButton, QSpacerItem,
 )
+from uiElements import shadow, Card, GlowInput, CyberButton, NavButton, ResultDisplay
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QFont, QCursor, QIcon
 
@@ -230,6 +231,7 @@ class RoomsSidebar(QFrame):
         self._list_lay.insertWidget(self._list_lay.count() - 1, item)
         self._items.append(item)
 
+
     def _on_room_clicked(self, name: str):
         for item in self._items:
             item.set_active(item.room_name == name)
@@ -238,8 +240,9 @@ class RoomsSidebar(QFrame):
     def _toggle_collapse(self):
         self._collapsed = not self._collapsed
         if self._collapsed:
-            self.setFixedWidth(0)
+            self.setFixedWidth(50)
             self._collapse_btn.setText("▶")
+
         else:
             self.setFixedWidth(200)
             self._collapse_btn.setText("◀")
@@ -303,15 +306,15 @@ class ChatView(QFrame):
         # ── input bar ────────────────────────────────────────
         input_bar = QFrame()
         input_bar.setObjectName("InputBar")
-        input_bar.setFixedHeight(54)
+        input_bar.setFixedHeight(70)
         i_lay = QHBoxLayout(input_bar)
         i_lay.setContentsMargins(14, 8, 14, 8)
         i_lay.setSpacing(8)
 
-        self._input = QLineEdit()
+        self._input = GlowInput("input_bar")
         self._input.setObjectName("ChatInput")
         self._input.setPlaceholderText("// transmit message...")
-        self._input.setFont(QFont(FONT_MONO, 10))
+        self._input.setFont(QFont(FONT_MONO, 20))
         self._input.returnPressed.connect(self._send)
 
         self._send_btn = QPushButton("SEND  ▶")
