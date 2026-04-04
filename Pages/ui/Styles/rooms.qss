@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════════════
+   rooms.qss  —  Neuron Rooms / Comms panel stylesheet
+   All @TOKEN@ values are substituted by load_stylesheet()
+   in uiConstants.py before this is applied.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── PANEL ROOT ─────────────────────────────────────────── */
+#RoomsPanel {
+    background: @WINDOW_BG@;
+}
+
+/* ── ROOMS SIDEBAR ──────────────────────────────────────── */
+#RoomsSidebar {
+    background: @SIDEBAR_BG@;
+    border-right: 1px solid @SIDEBAR_BORDER@;
+}
+
+#SidebarHeader {
+    background: @SIDEBAR_BG@;
+    border-bottom: 1px solid @SIDEBAR_BORDER@;
+}
+
+#SidebarTitle {
+    color: @NAV_TEXT_IDLE@;
+    letter-spacing: 3px;
+    font-size: 8px;
+    text-transform: uppercase;
+}
+
+#SidebarIconBtn {
+    background: transparent;
+    color: @NAV_TEXT_IDLE@;
+    border: 1px solid @SIDEBAR_BORDER@;
+    border-radius: 6px;
+}
+
+#SidebarIconBtn:hover {
+    color: @NAV_TEXT_HOVER@;
+    border-color: @NAV_TEXT_HOVER@;
+    background: @NAV_BG_HOVER@;
+}
+
+/* scroll area — transparent, no frame */
+#RoomsScroll,
+#RoomsScroll > QWidget,
+#RoomsListContainer {
+    background: transparent;
+    border: none;
+}
+
+#RoomsScroll QScrollBar:vertical {
+    background: @SCROLLBAR_BG@;
+    width: 4px;
+    border-radius: 2px;
+}
+
+#RoomsScroll QScrollBar::handle:vertical {
+    background: @SCROLLBAR_HANDLE@;
+    border-radius: 2px;
+    min-height: 20px;
+}
+
+#RoomsScroll QScrollBar::add-line:vertical,
+#RoomsScroll QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* ── ROOM ITEM CARDS ────────────────────────────────────── */
+#RoomItem {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+
+#RoomItem:hover {
+    background: @CARD_BG@;
+    border-color: @CARD_BORDER@;
+}
+
+#RoomItem[active="true"] {
+    background: @CARD_BG@;
+    border-color: @NAV_BORDER_ACTIVE@;
+    border-left: 2px solid @NAV_BORDER_ACTIVE@;
+    border-radius: 10px;
+}
+
+#RoomName {
+    color: @NAV_TEXT_IDLE@;
+    letter-spacing: 1px;
+}
+
+#RoomItem[active="true"] #RoomName {
+    color: @NAV_TEXT_ACTIVE@;
+}
+
+#RoomPreview {
+    color: @SIDEBAR_BORDER@;
+}
+
+#RoomItem[active="true"] #RoomPreview {
+    color: @NAV_TEXT_IDLE@;
+}
+
+#UnreadBadge {
+    background: #BB0000;
+    color: #FFFFFF;
+    border-radius: 4px;
+    padding: 0 3px;
+}
+
+/* ── CHAT VIEW ──────────────────────────────────────────── */
+#ChatView {
+    background: @WINDOW_BG@;
+}
+
+#ChatHeader {
+    background: @SIDEBAR_BG@;
+    border-bottom: 1px solid @SIDEBAR_BORDER@;
+}
+
+#ChatRoomLabel {
+    color: @TEXT_TERMINAL@;
+    letter-spacing: 3px;
+}
+
+#SecureTag {
+    color: #2a6e2a;
+    border: 1px solid #1a4e1a;
+    border-radius: 5px;
+    padding: 2px 6px;
+    letter-spacing: 2px;
+}
+
+/* members strip */
+#AvatarBadge {
+    background: @CARD_BG@;
+    color: @TEXT_TERMINAL@;
+    border: 1px solid @SIDEBAR_BORDER@;
+    border-radius: 7px;
+}
+
+#MemberAvatar[online="false"] #AvatarBadge {
+    color: @NAV_TEXT_IDLE@;
+    border-color: @SIDEBAR_BORDER@;
+}
+
+#StatusDot {
+    border-radius: 3px;
+    background: #1a4e1a;
+}
+
+#StatusDot[online="true"] {
+    background: #2a6e2a;
+}
+
+#StatusDot[online="false"] {
+    background: @SIDEBAR_BORDER@;
+}
+
+#MembersCount {
+    color: @NAV_TEXT_IDLE@;
+    letter-spacing: 1px;
+}
+
+/* ── MESSAGE SCROLL ─────────────────────────────────────── */
+#MsgScroll,
+#MsgScroll > QWidget,
+#MsgContainer {
+    background: @WINDOW_BG@;
+    border: none;
+}
+
+#MsgScroll QScrollBar:vertical {
+    background: @SCROLLBAR_BG@;
+    width: 4px;
+    border-radius: 2px;
+}
+
+#MsgScroll QScrollBar::handle:vertical {
+    background: @SCROLLBAR_HANDLE@;
+    border-radius: 2px;
+    min-height: 20px;
+}
+
+#MsgScroll QScrollBar::add-line:vertical,
+#MsgScroll QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* ── MESSAGE BUBBLES ────────────────────────────────────── */
+#MsgSender {
+    color: @TEXT_TERMINAL@;
+    letter-spacing: 2px;
+}
+
+#MsgSender[mine="true"] {
+    color: #3a7a5a;
+}
+
+#MsgTime {
+    color: @SIDEBAR_BORDER@;
+}
+
+#BubbleText {
+    background: @CARD_BG@;
+    color: @TEXT_BODY@;
+    border: 1px solid @CARD_BORDER@;
+    border-radius: 4px 12px 12px 12px;
+    padding: 8px 11px;
+    line-height: 1.55;
+}
+
+#BubbleText[mine="true"] {
+    background: #060f0a;
+    border-color: #1a3e1a;
+    border-radius: 12px 4px 12px 12px;
+    color: #4a8a6a;
+}
+
+#MsgStatus {
+    color: @SIDEBAR_BORDER@;
+    letter-spacing: 1px;
+}
+
+/* ── INPUT BAR ──────────────────────────────────────────── */
+#InputBar {
+    background: @SIDEBAR_BG@;
+    border-top: 1px solid @SIDEBAR_BORDER@;
+}
+
+#ChatInput {
+    background: @INPUT_BG@;
+    color: @TEXT_BODY@;
+    border: 1px solid @INPUT_BORDER@;
+    border-radius: 10px;
+    padding: 0 12px;
+    selection-background-color: @INPUT_SELECTION@;
+}
+
+#ChatInput:focus {
+    border-color: @INPUT_FOCUS@;
+}
+
+#ChatInput::placeholder {
+    color: @NAV_TEXT_IDLE@;
+}
+
+#SendButton {
+    background: transparent;
+    color: @TEXT_TERMINAL@;
+    border: 1px solid @TEXT_TERMINAL@;
+    border-radius: 10px;
+    padding: 0 14px;
+    letter-spacing: 2px;
+}
+
+#SendButton:hover {
+    background: @BTN_PRIMARY_HOVER@;
+}
+
+#SendButton:pressed {
+    background: @BTN_PRIMARY_PRESS@;
+}

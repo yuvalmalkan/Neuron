@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
+from Rooms import RoomsPanel
 
 # ──────────────────────────────────────────
 #  OSINT TAB  (= Main Dashboard)
@@ -217,7 +218,7 @@ class MainWindow(QMainWindow):
 
         nav_items = [
             (">", "OSINT", OsintDashboard()),
-            (">", "ROOMS", PlaceholderPage("◈  ROOMS", "#48CAE4")),
+            (">", "ROOMS", RoomsPanel()),
             (">", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
             (">", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
         ]
