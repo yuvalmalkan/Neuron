@@ -1,106 +1,95 @@
 __author__ = "Yuval Malkan"
 
 from uiConstants import FONT_MONO, FONT_TITLE, load_stylesheet
-from uiElements import NavButton
-from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout, QSplitter,
-    QListWidget, QListWidgetItem, QTextEdit, QLineEdit,
-    QPushButton, QLabel, QFrame, QScrollArea, QSizePolicy,
-    QToolButton, QSpacerItem,
-)
 from uiElements import shadow, Card, GlowInput, CyberButton, NavButton, ResultDisplay
-from PyQt6.QtCore import Qt, QSize, pyqtSignal
-from PyQt6.QtGui import QFont, QCursor, QIcon
+from PyQt6.QtWidgets import (
+    QWidget, QHBoxLayout, QVBoxLayout,
+    QPushButton, QLabel, QFrame, QScrollArea,
+    QToolButton, QSizePolicy,
+)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont, QCursor
 
 
 # ─────────────────────────────────────────────────────────────
-#  MEMBER AVATAR  (small pill shown in chat header)
+#  ROOM TAB BUTTON  (horizontal top bar)
 # ─────────────────────────────────────────────────────────────
-class MemberAvatar(QFrame):
-    """Compact initials badge with online/offline dot."""
-
-    def __init__(self, initials: str, name: str, online: bool = True, parent=None):
-        super().__init__(parent)
-        self.setObjectName("MemberAvatar")
-        self.setProperty("online", online)
-        self.setFixedSize(28, 36)
-        self.setToolTip(name)
-
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(2)
-
-        badge = QLabel(initials)
-        badge.setObjectName("AvatarBadge")
-        badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        badge.setFont(QFont(FONT_MONO, 7))
-        badge.setFixedSize(26, 22)
-
-        dot = QLabel()
-        dot.setObjectName("StatusDot")
-        dot.setProperty("online", online)
-        dot.setFixedSize(6, 6)
-        dot.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        dot_wrap = QHBoxLayout()
-        dot_wrap.setContentsMargins(0, 0, 0, 0)
-        dot_wrap.addStretch()
-        dot_wrap.addWidget(dot)
-        dot_wrap.addStretch()
-
-        lay.addWidget(badge)
-        lay.addLayout(dot_wrap)
-
-
-# ─────────────────────────────────────────────────────────────
-#  ROOM LIST ITEM  (inside rooms sidebar)
-# ─────────────────────────────────────────────────────────────
-class RoomItemWidget(QFrame):
-    clicked = pyqtSignal(str)
-
-    def __init__(self, name: str, preview: str = "", unread: int = 0, parent=None):
+class RoomTabButton(QPushButton):
+    def __init__(self, name: str, unread: int = 0, parent=None):
         super().__init__(parent)
         self.room_name = name
-        self.setObjectName("RoomItem")
+        self.setCheckable(True)
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.setFixedHeight(54)
+        self.setObjectName("RoomTabButton")
+        self.setFont(QFont(FONT_MONO, 9))
+        self.setFixedHeight(36)
 
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(12, 8, 10, 8)
-        lay.setSpacing(3)
-
-        top = QHBoxLayout()
-        top.setContentsMargins(0, 0, 0, 0)
-
-        name_lbl = QLabel(name)
-        name_lbl.setObjectName("RoomName")
-        name_lbl.setFont(QFont(FONT_MONO, 9))
-        top.addWidget(name_lbl)
-        top.addStretch()
-
+        label = f"  {name}  "
         if unread:
-            badge = QLabel(str(unread))
-            badge.setObjectName("UnreadBadge")
-            badge.setFont(QFont(FONT_MONO, 7))
-            badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            badge.setFixedSize(18, 14)
-            top.addWidget(badge)
+            label = f"  {name}  [{unread}]  "
+        self.setText(label)
 
-        preview_lbl = QLabel(preview)
-        preview_lbl.setObjectName("RoomPreview")
-        preview_lbl.setFont(QFont(FONT_MONO, 8))
 
-        lay.addLayout(top)
-        lay.addWidget(preview_lbl)
+# ─────────────────────────────────────────────────────────────
+#  ROOMS TOP BAR
+# ─────────────────────────────────────────────────────────────
+class RoomsTopBar(QFrame):
+    room_selected = pyqtSignal(str)
+    create_room   = pyqtSignal()
 
-    def mousePressEvent(self, event):
-        self.clicked.emit(self.room_name)
-        super().mousePressEvent(event)
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("RoomsTopBar")
+        self.setFixedHeight(48)
+        self._buttons: list[RoomTabButton] = []
 
-    def set_active(self, active: bool):
-        self.setProperty("active", active)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(12, 6, 12, 6)
+        lay.setSpacing(6)
+
+        # scrollable tab strip
+        self._scroll = QScrollArea()
+        self._scroll.setObjectName("TopBarScroll")
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setFixedHeight(40)
+
+        self._tab_container = QWidget()
+        self._tab_container.setObjectName("TabContainer")
+        self._tab_lay = QHBoxLayout(self._tab_container)
+        self._tab_lay.setContentsMargins(0, 0, 0, 0)
+        self._tab_lay.setSpacing(6)
+        self._tab_lay.addStretch()
+
+        self._scroll.setWidget(self._tab_container)
+        lay.addWidget(self._scroll, 1)
+
+        # new room button
+        self._new_btn = QToolButton()
+        self._new_btn.setObjectName("NewRoomBtn")
+        self._new_btn.setText("+  NEW ROOM")
+        self._new_btn.setFont(QFont(FONT_MONO, 8))
+        self._new_btn.setFixedHeight(30)
+        self._new_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self._new_btn.clicked.connect(self.create_room.emit)
+        lay.addWidget(self._new_btn)
+
+    def add_room(self, name: str, unread: int = 0):
+        btn = RoomTabButton(name, unread)
+        btn.clicked.connect(lambda _, n=name: self._on_tab_clicked(n))
+        # insert before the trailing stretch
+        self._tab_lay.insertWidget(self._tab_lay.count() - 1, btn)
+        self._buttons.append(btn)
+
+    def _on_tab_clicked(self, name: str):
+        for btn in self._buttons:
+            btn.setChecked(btn.room_name == name)
+        self.room_selected.emit(name)
+
+    def select_first(self):
+        if self._buttons:
+            self._on_tab_clicked(self._buttons[0].room_name)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -115,29 +104,35 @@ class MessageBubble(QFrame):
 
         outer = QHBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
 
         inner = QVBoxLayout()
-        inner.setSpacing(3)
+        inner.setSpacing(4)
 
+        # sender + time row
         header = QHBoxLayout()
+        header.setSpacing(8)
         sender_lbl = QLabel(sender)
         sender_lbl.setObjectName("MsgSender")
         sender_lbl.setProperty("mine", is_mine)
-        sender_lbl.setFont(QFont(FONT_MONO, 8))
+        sender_lbl.setFont(QFont(FONT_MONO, 9))
+
         time_lbl = QLabel(time)
         time_lbl.setObjectName("MsgTime")
-        time_lbl.setFont(QFont(FONT_MONO, 7))
+        time_lbl.setFont(QFont(FONT_MONO, 8))
+
         header.addWidget(sender_lbl)
-        header.addSpacing(6)
         header.addWidget(time_lbl)
         header.addStretch()
 
+        # bubble text — larger font, generous padding
         bubble = QLabel(text)
         bubble.setObjectName("BubbleText")
         bubble.setProperty("mine", is_mine)
-        bubble.setFont(QFont(FONT_MONO, 10))
+        bubble.setFont(QFont(FONT_MONO, 13))
         bubble.setWordWrap(True)
-        bubble.setMaximumWidth(420)
+        bubble.setMaximumWidth(560)
+        bubble.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
 
         inner.addLayout(header)
         inner.addWidget(bubble)
@@ -145,7 +140,7 @@ class MessageBubble(QFrame):
         if status:
             status_lbl = QLabel(status)
             status_lbl.setObjectName("MsgStatus")
-            status_lbl.setFont(QFont(FONT_MONO, 7))
+            status_lbl.setFont(QFont(FONT_MONO, 8))
             status_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
             inner.addWidget(status_lbl)
 
@@ -154,99 +149,6 @@ class MessageBubble(QFrame):
         outer.addLayout(inner)
         if not is_mine:
             outer.addStretch()
-
-
-# ─────────────────────────────────────────────────────────────
-#  ROOMS SIDEBAR  (collapsible)
-# ─────────────────────────────────────────────────────────────
-class RoomsSidebar(QFrame):
-    room_selected = pyqtSignal(str)
-    create_room   = pyqtSignal()
-    collapse_toggled = pyqtSignal(bool)  # True = collapsed
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setObjectName("RoomsSidebar")
-        self.setFixedWidth(200)
-        self._collapsed = False
-        self._items: list[RoomItemWidget] = []
-
-        root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
-
-        # header row
-        header = QFrame()
-        header.setObjectName("SidebarHeader")
-        header.setFixedHeight(44)
-        h_lay = QHBoxLayout(header)
-        h_lay.setContentsMargins(12, 0, 8, 0)
-
-        title = QLabel("CHANNELS")
-        title.setObjectName("SidebarTitle")
-        title.setFont(QFont(FONT_MONO, 8))
-
-        self._plus_btn = QToolButton()
-        self._plus_btn.setObjectName("SidebarIconBtn")
-        self._plus_btn.setText("+")
-        self._plus_btn.setFont(QFont(FONT_MONO, 13))
-        self._plus_btn.setFixedSize(24, 24)
-        self._plus_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self._plus_btn.clicked.connect(self.create_room.emit)
-
-        self._collapse_btn = QToolButton()
-        self._collapse_btn.setObjectName("SidebarIconBtn")
-        self._collapse_btn.setText("◀")
-        self._collapse_btn.setFont(QFont(FONT_MONO, 9))
-        self._collapse_btn.setFixedSize(24, 24)
-        self._collapse_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self._collapse_btn.clicked.connect(self._toggle_collapse)
-
-        h_lay.addWidget(title)
-        h_lay.addStretch()
-        h_lay.addWidget(self._plus_btn)
-        h_lay.addWidget(self._collapse_btn)
-
-        # scrollable room list
-        self._scroll = QScrollArea()
-        self._scroll.setWidgetResizable(True)
-        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._scroll.setObjectName("RoomsScroll")
-
-        self._list_container = QWidget()
-        self._list_container.setObjectName("RoomsListContainer")
-        self._list_lay = QVBoxLayout(self._list_container)
-        self._list_lay.setContentsMargins(6, 6, 6, 6)
-        self._list_lay.setSpacing(4)
-        self._list_lay.addStretch()
-
-        self._scroll.setWidget(self._list_container)
-
-        root.addWidget(header)
-        root.addWidget(self._scroll)
-
-    def add_room(self, name: str, preview: str = "", unread: int = 0):
-        item = RoomItemWidget(name, preview, unread)
-        item.clicked.connect(self._on_room_clicked)
-        self._list_lay.insertWidget(self._list_lay.count() - 1, item)
-        self._items.append(item)
-
-
-    def _on_room_clicked(self, name: str):
-        for item in self._items:
-            item.set_active(item.room_name == name)
-        self.room_selected.emit(name)
-
-    def _toggle_collapse(self):
-        self._collapsed = not self._collapsed
-        if self._collapsed:
-            self.setFixedWidth(50)
-            self._collapse_btn.setText("▶")
-
-        else:
-            self.setFixedWidth(200)
-            self._collapse_btn.setText("◀")
-        self.collapse_toggled.emit(self._collapsed)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -263,24 +165,32 @@ class ChatView(QFrame):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ── header ──────────────────────────────────────────
+        # ── chat header: room name + members list ────────────
         self._header = QFrame()
         self._header.setObjectName("ChatHeader")
-        self._header.setFixedHeight(52)
+        self._header.setFixedHeight(58)
+
         h_lay = QHBoxLayout(self._header)
-        h_lay.setContentsMargins(16, 0, 16, 0)
-        h_lay.setSpacing(10)
+        h_lay.setContentsMargins(20, 0, 20, 0)
+        h_lay.setSpacing(0)
+
+        name_block = QVBoxLayout()
+        name_block.setSpacing(2)
+        name_block.setContentsMargins(0, 0, 0, 0)
 
         self._room_label = QLabel("// SELECT A ROOM")
         self._room_label.setObjectName("ChatRoomLabel")
-        self._room_label.setFont(QFont(FONT_MONO, 10))
-        h_lay.addWidget(self._room_label)
-        h_lay.addStretch()
+        self._room_label.setFont(QFont(FONT_MONO, 11))
 
-        # members strip
-        self._members_strip = QHBoxLayout()
-        self._members_strip.setSpacing(4)
-        h_lay.addLayout(self._members_strip)
+        self._members_label = QLabel("")
+        self._members_label.setObjectName("MembersLabel")
+        self._members_label.setFont(QFont(FONT_MONO, 8))
+
+        name_block.addWidget(self._room_label)
+        name_block.addWidget(self._members_label)
+
+        h_lay.addLayout(name_block)
+        h_lay.addStretch()
 
         secure_lbl = QLabel("E2E")
         secure_lbl.setObjectName("SecureTag")
@@ -297,8 +207,8 @@ class ChatView(QFrame):
         self._msg_container = QWidget()
         self._msg_container.setObjectName("MsgContainer")
         self._msg_lay = QVBoxLayout(self._msg_container)
-        self._msg_lay.setContentsMargins(16, 12, 16, 12)
-        self._msg_lay.setSpacing(10)
+        self._msg_lay.setContentsMargins(20, 16, 20, 16)
+        self._msg_lay.setSpacing(14)
         self._msg_lay.addStretch()
 
         self._msg_scroll.setWidget(self._msg_container)
@@ -308,19 +218,19 @@ class ChatView(QFrame):
         input_bar.setObjectName("InputBar")
         input_bar.setFixedHeight(70)
         i_lay = QHBoxLayout(input_bar)
-        i_lay.setContentsMargins(14, 8, 14, 8)
-        i_lay.setSpacing(8)
+        i_lay.setContentsMargins(16, 10, 16, 10)
+        i_lay.setSpacing(10)
 
-        self._input = GlowInput("input_bar")
+        self._input = GlowInput("// transmit message...")
         self._input.setObjectName("ChatInput")
-        self._input.setPlaceholderText("// transmit message...")
-        self._input.setFont(QFont(FONT_MONO, 20))
+        self._input.setFont(QFont(FONT_MONO, 13))
         self._input.returnPressed.connect(self._send)
 
         self._send_btn = QPushButton("SEND  ▶")
         self._send_btn.setObjectName("SendButton")
-        self._send_btn.setFont(QFont(FONT_MONO, 9))
-        self._send_btn.setFixedHeight(36)
+        self._send_btn.setFont(QFont(FONT_MONO, 10))
+        self._send_btn.setFixedHeight(44)
+        self._send_btn.setFixedWidth(110)
         self._send_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._send_btn.clicked.connect(self._send)
 
@@ -331,33 +241,24 @@ class ChatView(QFrame):
         root.addWidget(self._msg_scroll)
         root.addWidget(input_bar)
 
-    # public ─────────────────────────────────────────────────
+    # ── public ───────────────────────────────────────────────
     def set_room(self, name: str):
         self._room_label.setText(f"// {name}")
 
     def set_members(self, members: list[dict]):
-        """members = [{"initials": "YM", "name": "Y.Malkan", "online": True}, ...]"""
-        while self._members_strip.count():
-            item = self._members_strip.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-        for m in members:
-            av = MemberAvatar(m["initials"], m["name"], m.get("online", True))
-            self._members_strip.addWidget(av)
-        online = sum(1 for m in members if m.get("online", True))
-        count = QLabel(f"{online}/{len(members)}")
-        count.setObjectName("MembersCount")
-        count.setFont(QFont(FONT_MONO, 7))
-        self._members_strip.addWidget(count)
+        """members = [{"name": "Y.MALKAN"}, ...]  — no online state shown"""
+        names = "  ·  ".join(m["name"] for m in members)
+        self._members_label.setText(names)
 
     def add_message(self, sender: str, text: str, time: str,
                     is_mine: bool = False, status: str = ""):
         bubble = MessageBubble(sender, text, time, is_mine, status)
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, bubble)
-        # scroll to bottom
-        self._msg_scroll.verticalScrollBar().setValue(
+        # scroll to bottom after layout settles
+        from PyQt6.QtCore import QTimer
+        QTimer.singleShot(50, lambda: self._msg_scroll.verticalScrollBar().setValue(
             self._msg_scroll.verticalScrollBar().maximum()
-        )
+        ))
 
     def _send(self):
         text = self._input.text().strip()
@@ -370,66 +271,57 @@ class ChatView(QFrame):
 #  ROOMS PANEL  (top-level, drop into QStackedWidget)
 # ─────────────────────────────────────────────────────────────
 class RoomsPanel(QWidget):
-    """
-    Drop-in panel for the main QStackedWidget.
-    Emits no signals upward — just swap it in as a page.
-    The rooms sidebar is collapsible via the ◀ button.
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("RoomsPanel")
 
-        # load rooms-specific stylesheet on top of global QSS
-        rooms_qss = load_stylesheet("rooms")   # Styles/rooms.qss
+        rooms_qss = load_stylesheet("rooms")
         if rooms_qss:
             self.setStyleSheet(rooms_qss)
 
-        root = QHBoxLayout(self)
+        root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        self._sidebar = RoomsSidebar()
+        self._top_bar = RoomsTopBar()
         self._chat    = ChatView()
 
-        root.addWidget(self._sidebar)
-        root.addWidget(self._chat)
+        root.addWidget(self._top_bar)
+        root.addWidget(self._chat, 1)
 
-        # wire signals
-        self._sidebar.room_selected.connect(self._on_room_selected)
-        self._sidebar.create_room.connect(self._on_create_room)
+        self._top_bar.room_selected.connect(self._on_room_selected)
+        self._top_bar.create_room.connect(self._on_create_room)
         self._chat.message_sent.connect(self._on_message_sent)
 
-        # seed demo data
         self._seed_demo()
 
-    # ── demo seed (remove when wiring real backend) ──────────
+    # ── demo seed ────────────────────────────────────────────
     def _seed_demo(self):
-        self._sidebar.add_room("ALPHA TEAM",     "Running lookup now...", 3)
-        self._sidebar.add_room("SURVEILLANCE",   "Target confirmed at loc B.")
-        self._sidebar.add_room("FIELD DEBRIEF",  "Awaiting full report...", 1)
-        self._sidebar.add_room("INTEL REVIEW",   "Phase 2 complete.")
+        self._top_bar.add_room("ALPHA TEAM", unread=3)
+        self._top_bar.add_room("SURVEILLANCE")
+        self._top_bar.add_room("FIELD DEBRIEF", unread=1)
+        self._top_bar.add_room("INTEL REVIEW")
+        self._top_bar.select_first()
 
-        self._chat.set_room("ALPHA TEAM")
         self._chat.set_members([
-            {"initials": "YM", "name": "Y.MALKAN",  "online": True},
-            {"initials": "RC", "name": "R.COHEN",   "online": True},
-            {"initials": "AL", "name": "A.LEVY",    "online": False},
-            {"initials": "DB", "name": "D.BEN-ARI", "online": True},
+            {"name": "Y.MALKAN"},
+            {"name": "R.COHEN"},
+            {"name": "A.LEVY"},
+            {"name": "D.BEN-ARI"},
         ])
-        self._chat.add_message("Y.MALKAN", "Phone OSINT complete. Target located in TLV district.",
-                               "09:42")
-        self._chat.add_message("R.COHEN",  "Confirmed. Cross-referencing with account scan now.",
-                               "09:45")
-        self._chat.add_message("YOU", "Running username scan across platforms. ETA 2 min.",
-                               "09:51", is_mine=True, status="DELIVERED · READ BY 2")
+        self._chat.add_message(
+            "Y.MALKAN", "Phone OSINT complete. Target located in TLV district.", "09:42")
+        self._chat.add_message(
+            "R.COHEN", "Confirmed. Cross-referencing with account scan now.", "09:45")
+        self._chat.add_message(
+            "YOU", "Running username scan across platforms. ETA 2 min.",
+            "09:51", is_mine=True, status="DELIVERED · READ BY 2")
 
     # ── slots ────────────────────────────────────────────────
     def _on_room_selected(self, name: str):
         self._chat.set_room(name)
 
     def _on_create_room(self):
-        # TODO: open create-room dialog with email invite
         print("[RoomsPanel] Create room triggered")
 
     def _on_message_sent(self, text: str):
