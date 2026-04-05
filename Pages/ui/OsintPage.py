@@ -210,15 +210,15 @@ class MainWindow(QMainWindow):
 
 
 
-        #לוגו גדול בסיידבר
+        #logo in sidebar
         logo_area = QWidget()
-        logo_area.setFixedHeight(80)
+        logo_area.setFixedHeight(400)
         logo_area.setObjectName("logoArea")
 
         # Path to logo
         current_dir = os.path.dirname(os.path.abspath(__file__))
         root_dir = os.path.dirname(os.path.dirname(current_dir))
-        logo_path = os.path.join(root_dir, "Assets", "Photos", "neuronBanner2.png")
+        logo_path = os.path.join(root_dir, "Assets", "Photos", "neuronverticalbanner.png")
 
         logo_layout = QHBoxLayout(logo_area)
         logo_layout.setContentsMargins(16, 0, 16, 0)
@@ -228,7 +228,7 @@ class MainWindow(QMainWindow):
 
         # לסדר איכות תמונה
         ratio = self.devicePixelRatioF()
-        physical_height = int(60 * ratio)
+        physical_height = int(380 * ratio)
         scaled_logo = logo_pixmap.scaledToHeight(physical_height, Qt.TransformationMode.SmoothTransformation)
         scaled_logo.setDevicePixelRatio(ratio)
         logo_label.setPixmap(scaled_logo)
@@ -237,8 +237,6 @@ class MainWindow(QMainWindow):
         logo_layout.addWidget(logo_label)
         logo_layout.addStretch()
         sb_layout.addWidget(logo_area)
-
-
 
         root.addWidget(sidebar)
         root.addWidget(self.pages, 1)
