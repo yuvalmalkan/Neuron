@@ -187,6 +187,30 @@ class MainWindow(QMainWindow):
         sb_layout.setContentsMargins(0, 0, 0, 0)
         sb_layout.setSpacing(10)
 
+
+
+        self.pages = QStackedWidget()
+        self.nav_buttons = []
+
+        nav_items = [
+            (">", "OSINT", OsintDashboard()),
+            (">", "ROOMS", RoomsPanel()),
+            (">", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
+            (">", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
+        ]
+
+        for icon, label, page in nav_items:
+            btn = NavButton(icon, label)
+            btn.clicked.connect(lambda _, b=btn: self._switch_page(b))
+            sb_layout.addWidget(btn)
+            self.pages.addWidget(page)
+            self.nav_buttons.append(btn)
+
+        sb_layout.addStretch()
+
+
+
+        #לוגו גדול בסיידבר
         logo_area = QWidget()
         logo_area.setFixedHeight(80)
         logo_area.setObjectName("logoArea")
@@ -209,28 +233,12 @@ class MainWindow(QMainWindow):
         scaled_logo.setDevicePixelRatio(ratio)
         logo_label.setPixmap(scaled_logo)
 
+
         logo_layout.addWidget(logo_label)
         logo_layout.addStretch()
         sb_layout.addWidget(logo_area)
 
-        self.pages = QStackedWidget()
-        self.nav_buttons = []
 
-        nav_items = [
-            (">", "OSINT", OsintDashboard()),
-            (">", "ROOMS", RoomsPanel()),
-            (">", "NETWORK", PlaceholderPage("◉  NETWORK", "#ff9f1c")),
-            (">", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
-        ]
-
-        for icon, label, page in nav_items:
-            btn = NavButton(icon, label)
-            btn.clicked.connect(lambda _, b=btn: self._switch_page(b))
-            sb_layout.addWidget(btn)
-            self.pages.addWidget(page)
-            self.nav_buttons.append(btn)
-
-        sb_layout.addStretch()
 
         root.addWidget(sidebar)
         root.addWidget(self.pages, 1)

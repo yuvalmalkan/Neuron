@@ -131,7 +131,7 @@
 #BubbleText[mine="true"] {
     background: #060f0a;
     border-color: #1a3e1a;
-    border-radius: 14px 4px 14px 14px;
+    border-radius: 12px 14px;
     color: #4a8a6a;
 }
 
