@@ -113,11 +113,15 @@ class Login(QMainWindow):
         hdr.addStretch()
         card_layout.addLayout(hdr)
 
+
+        """
         sub_lbl = QLabel("GET INTO NEURON")
         sub_lbl.setFont(QFont(FONT_MONO, 10))
         sub_lbl.setStyleSheet(f"color: #EF233C; letter-spacing: 2px;")
         card_layout.addWidget(sub_lbl)
         card_layout.addSpacing(10)
+
+        """
 
         self.stacked_forms = QStackedWidget()
         self.login_form = LoginForm(self.show_signup)
