@@ -115,7 +115,7 @@ class Login(QMainWindow):
 
         sub_lbl = QLabel("GET INTO NEURON")
         sub_lbl.setFont(QFont(FONT_MONO, 10))
-        sub_lbl.setStyleSheet("color: #EF233C; letter-spacing: 2px;")
+        sub_lbl.setStyleSheet(f"color: #EF233C; letter-spacing: 2px;")
         card_layout.addWidget(sub_lbl)
         card_layout.addSpacing(10)
 
@@ -139,6 +139,8 @@ class Login(QMainWindow):
     def show_login(self):
         self.stacked_forms.setCurrentIndex(0)
         self.auth_card.setFixedSize(450, 480)
+
+
 
 
 if __name__ == "__main__":
