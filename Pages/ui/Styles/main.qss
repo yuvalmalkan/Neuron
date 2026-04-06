@@ -42,30 +42,30 @@ GlowInput::placeholder {
     color: @TEXT_PLACEHOLDER@;
 }
 
-/* ── CYBER BUTTON ── */
-CyberButton {
+/* ── Glowing BUTTON ── */
+GlowingButton {
     border-radius: 8px;
     padding: 0 20px;
     letter-spacing: 1px;
 }
 
 /* Primary Variant */
-CyberButton[variant="primary"] {
+GlowingButton[variant="primary"] {
     background: @BTN_PRIMARY_BG@;
     border: 1px solid @BTN_PRIMARY_BORDER@;
     color: @BTN_PRIMARY_TEXT@;
 }
-CyberButton[variant="primary"]:hover { background: @BTN_PRIMARY_HOVER@; }
-CyberButton[variant="primary"]:pressed { background: @BTN_PRIMARY_PRESS@; }
+GlowingButton[variant="primary"]:hover { background: @BTN_PRIMARY_HOVER@; }
+GlowingButton[variant="primary"]:pressed { background: @BTN_PRIMARY_PRESS@; }
 
 /* Danger Variant */
-CyberButton[variant="danger"] {
+GlowingButton[variant="danger"] {
     background: @BTN_DANGER_BG@;
     border: 1px solid @BTN_DANGER_BORDER@;
     color: @BTN_DANGER_TEXT@;
 }
-CyberButton[variant="danger"]:hover { background: @BTN_DANGER_HOVER@; }
-CyberButton[variant="danger"]:pressed { background: @BTN_DANGER_PRESS@; }
+GlowingButton[variant="danger"]:hover { background: @BTN_DANGER_HOVER@; }
+GlowingButton[variant="danger"]:pressed { background: @BTN_DANGER_PRESS@; }
 
 /* ── SIDEBAR NAV BUTTON ── */
 NavButton {

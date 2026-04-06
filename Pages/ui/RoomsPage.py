@@ -1,7 +1,7 @@
 __author__ = "Yuval Malkan"
 
 from uiConstants import FONT_MONO, FONT_TITLE, load_stylesheet
-from uiElements import shadow, Card, GlowInput, CyberButton, NavButton, ResultDisplay
+from uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QLabel, QFrame, QScrollArea,

@@ -9,7 +9,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette, QColor
 
 from uiConstants import *
-from uiElements import Card, GlowInput, CyberButton
+from uiElements import Card, GlowInput, GlowingButton
 from signUp import SignupForm
 
 
@@ -58,8 +58,8 @@ class LoginForm(QWidget):
         self.pass_input = GlowInput("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        self.login_btn = CyberButton("LOGIN INTO NEURON", "primary")
-        self.switch_btn = CyberButton("NEW USER? SIGN UP", "danger")
+        self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
+        self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
         self.switch_btn.clicked.connect(switch_callback)
 
         layout.addWidget(self.user_input)
@@ -93,6 +93,7 @@ class Login(QMainWindow):
         # ── LEFT SIDE (ANIMATION) ─────────────────
         self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan")
         root.addWidget(self.typing_label, 1)
+
 
         # ── RIGHT SIDE (AUTH CARD) ─────────────────
         card_container = QVBoxLayout()

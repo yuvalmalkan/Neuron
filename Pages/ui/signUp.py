@@ -1,7 +1,7 @@
 __author__ = "Yuval Malkan"
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLineEdit
-from uiElements import GlowInput, CyberButton
+from uiElements import GlowInput, GlowingButton
 
 
 class SignupForm(QWidget):
@@ -19,8 +19,8 @@ class SignupForm(QWidget):
         self.pass_confirm = GlowInput("Confirm Password")
         self.pass_confirm.setEchoMode(QLineEdit.EchoMode.Password)
 
-        self.signup_btn = CyberButton("SIGN UP", "primary")
-        self.switch_btn = CyberButton("RETURN TO LOGIN", "danger")
+        self.signup_btn = GlowingButton("SIGN UP", "primary")
+        self.switch_btn = GlowingButton("RETURN TO LOGIN", "danger")
         self.switch_btn.clicked.connect(switch_callback)
 
         layout.addWidget(self.user_input)

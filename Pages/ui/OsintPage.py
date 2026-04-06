@@ -5,7 +5,7 @@ import os
 import time
 
 from uiConstants import *
-from uiElements import shadow, Card, GlowInput, CyberButton, NavButton, ResultDisplay
+from uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -79,9 +79,9 @@ class OsintDashboard(QWidget):
         btn_row.setSpacing(10)
 
         # Use semantic variant tags instead of raw color constants
-        self.scan_btn = CyberButton("▶  SCAN", "primary")
-        self.clear_btn = CyberButton("✕  CLEAR", "danger")
-        self.save_btn = CyberButton("⬇  Save", "primary")
+        self.scan_btn = GlowingButton("▶  SCAN", "primary")
+        self.clear_btn = GlowingButton("✕  CLEAR", "danger")
+        self.save_btn = GlowingButton("⬇  Save", "primary")
 
         self.scan_btn.clicked.connect(self._on_scan)
         self.clear_btn.clicked.connect(self._on_clear)

@@ -40,9 +40,9 @@ class GlowInput(QLineEdit):
         # States (:focus, ::placeholder) handled globally via QSS
 
 # ──────────────────────────────────────────
-#  CYBER BUTTON
+#  GLOW BUTTON
 # ──────────────────────────────────────────
-class CyberButton(QPushButton):
+class GlowingButton(QPushButton):
     def __init__(self, text, variant="primary", parent=None):
         super().__init__(text, parent)
         self.setMinimumHeight(44)
