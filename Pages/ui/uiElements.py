@@ -66,6 +66,10 @@ class NavButton(QPushButton):
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.setText(f"  {icon_text}  {label}")
 
+
+
+
+
 # ──────────────────────────────────────────
 #  RESULT DISPLAY WIDGET
 # ──────────────────────────────────────────

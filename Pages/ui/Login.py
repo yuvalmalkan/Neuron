@@ -42,6 +42,9 @@ class TypingLabel(QLabel):
             # Blinking cursor effect can be added here later
 
 
+
+
+
 # ──────────────────────────────────────────
 #  LOGIN FORM
 # ──────────────────────────────────────────
@@ -110,7 +113,7 @@ class Login(QMainWindow):
         hdr.addStretch()
         card_layout.addLayout(hdr)
 
-        sub_lbl = QLabel("RESTRICTED ACCESS")
+        sub_lbl = QLabel("GET INTO NEURON")
         sub_lbl.setFont(QFont(FONT_MONO, 10))
         sub_lbl.setStyleSheet("color: #EF233C; letter-spacing: 2px;")
         card_layout.addWidget(sub_lbl)
