@@ -107,3 +107,17 @@ ResultDisplay QScrollBar::handle:vertical {
     background: @SCROLLBAR_HANDLE@;
     border-radius: 3px;
 }
+
+
+
+/* HYPER BUTTON */
+HyperButton[variant="primary"] {
+        color: #aaaaaa;
+        background-color: transparent; /* Removes the button background */
+        border: none; /* Removes the button outline */
+        text-decoration: underline; /* Adds the link underline */
+        text-align: left;
+}
+
+HyperButton[variant="primary"]:hover { background: @BTN_PRIMARY_HOVER@; }
+HyperButton[variant="primary"]:pressed { background: @BTN_PRIMARY_PRESS@; }

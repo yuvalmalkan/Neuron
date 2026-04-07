@@ -52,6 +52,22 @@ class GlowingButton(QPushButton):
         # Set property for QSS to target specific variants ("primary" or "danger")
         self.setProperty("variant", variant)
 
+
+
+#hyper link type button
+class HyperButton(QPushButton):
+    def __init__(self, text, variant="primary", parent=None):
+        super().__init__(text, parent)
+        self.setMinimumHeight(12)
+        self.setProperty("variant", variant)
+
+
+
+
+
+
+
+
 # ──────────────────────────────────────────
 #  SIDEBAR NAV BUTTON
 # ──────────────────────────────────────────

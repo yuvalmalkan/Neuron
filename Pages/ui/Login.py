@@ -9,7 +9,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette, QColor
 
 from uiConstants import *
-from uiElements import Card, GlowInput, GlowingButton
+from uiElements import Card, GlowInput, GlowingButton, HyperButton
 from signUp import SignupForm
 
 
@@ -59,7 +59,7 @@ class LoginForm(QWidget):
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         #self.forgot_button = QPushButton("FORGOT PASSWORD? ")
-        self.forgot_button = QPushButton("Forgot password?", self)
+        self.forgot_button = HyperButton("Forgot password?", "primary")
 
         self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
