@@ -112,7 +112,7 @@ ResultDisplay QScrollBar::handle:vertical {
 
 /* HYPER BUTTON */
 HyperButton[variant="primary"] {
-        color: @TEXT_BODY@;
+        color: @NAV_TEXT_IDLE@;
         background-color: transparent;
 
         border: none;
@@ -120,5 +120,5 @@ HyperButton[variant="primary"] {
         text-align: left;
 }
 
-HyperButton[variant="primary"]:hover { background: transparent; color: @NAV_TEXT_IDLE@ }
+HyperButton[variant="primary"]:hover { background: transparent; color: @TEXT_BODY@ }
 HyperButton[variant="primary"]:pressed { background: transparent; }

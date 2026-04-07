@@ -59,7 +59,7 @@ class LoginForm(QWidget):
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
         #self.forgot_button = QPushButton("FORGOT PASSWORD? ")
-        self.forgot_button = HyperButton("Forgot password?", "primary")
+        self.forgot_button = HyperButton("Forgot Password?", "primary")
 
         self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
