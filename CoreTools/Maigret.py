@@ -98,7 +98,7 @@ def Maigret_search_username(username: str) -> dict:
 
 if __name__ == "__main__":
     user = input("Username: ")
-    report = search_username(user)
+    report = Maigret_search_username(user)
     print(f"\n Done in {report['duration']}s — found {report['total']} accounts\n")
     for r in report["accounts"]:
         print(f"  → {r['site']}: {r['url']}")
