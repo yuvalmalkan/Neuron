@@ -3,7 +3,7 @@ __author__ = "Yuval Malkan"
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QStackedWidget, QLineEdit
+    QLabel, QStackedWidget, QLineEdit, QPushButton, QMessageBox
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette, QColor
@@ -49,7 +49,7 @@ class TypingLabel(QLabel):
 #  LOGIN FORM
 # ──────────────────────────────────────────
 class LoginForm(QWidget):
-    def __init__(self, switch_callback, parent=None):
+    def __init__(self, switch_callback , parent=None):
         super().__init__(parent)
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
@@ -58,12 +58,22 @@ class LoginForm(QWidget):
         self.pass_input = GlowInput("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
+        #self.forgot_button = QPushButton("FORGOT PASSWORD? ")
+        self.forgot_button = QPushButton("Forgot password?", self)
+
         self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
+
+
+
+
         self.switch_btn.clicked.connect(switch_callback)
+
+        self.forgot_button.clicked.connect(forgotPassword)
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.pass_input)
+        layout.addWidget(self.forgot_button)
         layout.addSpacing(10)
         layout.addWidget(self.login_btn)
         layout.addWidget(self.switch_btn)
@@ -144,6 +154,16 @@ class Login(QMainWindow):
     def show_login(self):
         self.stacked_forms.setCurrentIndex(0)
         self.auth_card.setFixedSize(450, 480)
+
+
+
+
+
+
+
+def forgotPassword():
+    QMessageBox.information(None, "", "Forgot password clicked")
+
 
 
 
