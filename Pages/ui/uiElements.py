@@ -124,10 +124,13 @@ class StandardAuthButton(QPushButton):
 
 
 
-
+"""
 class LinkButton(QPushButton):
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
         from uiConstants import FONT_MONO
         self.setFont(QFont(FONT_MONO, 9))
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        
+        
+"""
