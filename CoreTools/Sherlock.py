@@ -40,7 +40,7 @@ def search_username(username: str) -> list:
                 })
 
     total_time = round(time.time() - start_time, 1)
-    print(f"✅ Done in {total_time}s — found {len(found)} accounts")
+    print(f"Done in {total_time}s — found {len(found)} accounts")
     return found
 
 
