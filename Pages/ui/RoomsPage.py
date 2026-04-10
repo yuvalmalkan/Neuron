@@ -1,5 +1,7 @@
 __author__ = "Yuval Malkan"
 
+import logging
+
 from uiConstants import FONT_MONO, FONT_TITLE, load_stylesheet
 from uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
 from PyQt6.QtWidgets import (
@@ -322,7 +324,7 @@ class RoomsPanel(QWidget):
         self._chat.set_room(name)
 
     def _on_create_room(self):
-        print("[RoomsPanel] Create room triggered")
+        logging.debug("[RoomsPanel] Create room triggered")
 
     def _on_message_sent(self, text: str):
         from PyQt6.QtCore import QTime
