@@ -5,6 +5,7 @@ import socket
 from Constants import *
 import time
 import threading
+import logging
 
 
 
@@ -18,10 +19,10 @@ def main():
     try:
         server.bind((serverIp, port))
         server.listen(5)
-        print(f"server listening on {serverIp}:{port}")
+        logging.debug(f"server listening on {serverIp}:{port}")
 
     except Exception as e:
-        print(e)
+        logging.debug(e)
         return
 
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -30,14 +31,14 @@ def main():
     while True:
         try:
             clientSocket, addr = server.accept()
-            print(f"New connection from {addr}")
+            logging.debug(f"New connection from {addr}")
 
             t = threading.Thread(target=handle_client, args=(clientSocket, userId))
             t.start()
             userId += 1
 
         except Exception as e:
-            print(f"server error: {e}")
+            logging.debug(f"server error: {e}")
             #server.close()
 
 

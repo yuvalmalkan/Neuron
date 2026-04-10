@@ -118,7 +118,7 @@ def load_stylesheet(filename):
         return qss
 
     except FileNotFoundError:
-        print(f"[-] Error: main.qss not found at {qss_path}")
+        logging.debug(f"Error: main.qss not found at {qss_path}")
         return ""
 
 
@@ -130,11 +130,12 @@ def load_application_font():
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id != -1:
             families = QFontDatabase.applicationFontFamilies(font_id)
+
             logging.debug(f"Loaded custom font families {families}")
         else:
-            print(f"Failed to load font from {font_path}")
+            logging.debug(f"Failed to load font from {font_path}")
     else:
-        print(f"Font file not found at {font_path}")
+        logging.debug(f"Font file not found at {font_path}")
 
 
 
