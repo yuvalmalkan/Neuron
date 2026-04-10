@@ -2,6 +2,13 @@ __author__ = "Yuval Malkan"
 
 import os
 from PyQt6.QtGui import QFontDatabase
+import logging
+from Constants import debug
+
+
+
+
+
 
 # ── SEMANTIC COLORS ───────────────────────
 
@@ -123,7 +130,7 @@ def load_application_font():
         font_id = QFontDatabase.addApplicationFont(font_path)
         if font_id != -1:
             families = QFontDatabase.applicationFontFamilies(font_id)
-            print(f"Loaded custom font families {families}")
+            logging.debug(f"Loaded custom font families {families}")
         else:
             print(f"Failed to load font from {font_path}")
     else:
