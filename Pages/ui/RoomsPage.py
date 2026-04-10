@@ -236,25 +236,7 @@ class ChatView(QFrame):
         self._send_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._send_btn.clicked.connect(self._send)
 
-        i_lay.addWidget(self._input)
-        i_lay.addWidget(self._send_btn)
-
-        root.addWidget(self._header)
-        root.addWidget(self._msg_scroll)
-        root.addWidget(input_bar)
-
-    # ── public ───────────────────────────────────────────────
-    def set_room(self, name: str):
-        self._room_label.setText(f"// {name}")
-
-    def set_members(self, members: list[dict]):
-        """members = [{"name": "Y.MALKAN"}, ...]  — no online state shown"""
-        names = "  ·  ".join(m["name"] for m in members)
-        self._members_label.setText(names)
-
-    def add_message(self, sender: str, text: str, time: str,
-                    is_mine: bool = False, status: str = ""):
-        bubble = MessageBubble(sender, text, time, is_mine, status)
+        i_lay.addWidget(self._input), text, time, is_mine, status)
         self._msg_lay.insertWidget(self._msg_lay.count() - 1, bubble)
         # scroll to bottom after layout settles
         from PyQt6.QtCore import QTimer
