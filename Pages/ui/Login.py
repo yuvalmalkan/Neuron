@@ -8,9 +8,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette, QColor
 
-from uiConstants import *
-from uiElements import Card, GlowInput, GlowingButton, HyperButton
-from signUp import SignupForm
+from Pages.ui.uiConstants import *
+from Pages.ui.uiElements import Card, GlowInput, GlowingButton, HyperButton
+from Pages.ui.signUp import SignupForm
 
 
 # ──────────────────────────────────────────
