@@ -1,11 +1,16 @@
 __author__ = "Yuval Malkan"
 
+
 import sys
 import os
 import time
 
-from uiConstants import *
-from uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
+
+from Pages.ui.uiConstants import *
+from Pages.ui.uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
+from Pages.ui.RoomsPage import RoomsPanel
+from Pages.ui.NetworkPage import NetworkPage
+
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -13,9 +18,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
-from RoomsPage import RoomsPanel
-from NetworkPage import NetworkPage
-
 # ──────────────────────────────────────────
 #  OSINT TAB  (= Main Dashboard)
 # ──────────────────────────────────────────
