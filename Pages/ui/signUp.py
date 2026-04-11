@@ -1,7 +1,11 @@
 __author__ = "Yuval Malkan"
 
+
+
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLineEdit
-from uiElements import GlowInput, GlowingButton
+from Pages.ui.uiElements import GlowInput, GlowingButton
+
+
 
 
 class SignupForm(QWidget):
