@@ -1,15 +1,11 @@
 __author__ = "Yuval Malkan"
 
-
-from uiConstants import *
+from Pages.ui.uiConstants import *
 from PyQt6.QtWidgets import (
     QLineEdit, QPushButton, QFrame, QTextEdit, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QCursor
-
-
-
 
 
 def shadow(widget, color="#00d4ff", blur=20, offset=(0, 0)):
