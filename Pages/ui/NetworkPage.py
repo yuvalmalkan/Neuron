@@ -1,16 +1,9 @@
 __author__ = "Yuval Malkan"
 
-"""
-NetworkPage.py
-UI for the NETWORK mode — a smart terminal:
-  - command input at the bottom
-  - results stream in as formatted blocks above
-  - uses all existing uiConstants / uiElements so it looks native
-"""
 
-from uiConstants import *
-from uiElements import GlowInput, GlowingButton, Card
-from NetworkMain import ScanThread
+from Pages.ui.uiConstants import *
+from Pages.ui.uiElements import GlowInput, GlowingButton, Card
+from Pages.logic.NetworkMain import ScanThread
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -18,6 +11,9 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QColor, QTextCursor, QTextCharFormat
+
+
+
 
 
 # ──────────────────────────────────────────
