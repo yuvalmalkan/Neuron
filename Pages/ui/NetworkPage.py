@@ -268,7 +268,7 @@ class ResultsContainer(QScrollArea):
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setStyleSheet(
-            f"background: {WINDOW_BG}; border: none;"
+            f"QScrollArea {{ background: {WINDOW_BG}; border: none; }}"
             f"QScrollBar:vertical {{ background: {SCROLLBAR_BG}; width: 6px; border-radius: 3px; }}"
             f"QScrollBar::handle:vertical {{ background: {SCROLLBAR_HANDLE}; border-radius: 3px; }}"
         )
