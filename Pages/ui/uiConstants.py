@@ -1,10 +1,10 @@
 __author__ = "Yuval Malkan"
 
+
 import os
 from PyQt6.QtGui import QFontDatabase
 import logging
 from Constants import debug
-
 
 
 
