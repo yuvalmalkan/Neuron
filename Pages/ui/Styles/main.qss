@@ -122,3 +122,9 @@ HyperButton[variant="primary"] {
 
 HyperButton[variant="primary"]:hover { background: transparent; color: @TEXT_BODY@ }
 HyperButton[variant="primary"]:pressed { background: transparent; }
+
+
+
+#networkPage {
+    background: @WINDOW_BG@;
+}
