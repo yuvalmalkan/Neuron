@@ -23,6 +23,7 @@ class SignupForm(QWidget):
         self.pass_confirm = GlowInput("Confirm Password")
         self.pass_confirm.setEchoMode(QLineEdit.EchoMode.Password)
 
+
         self.signup_btn = GlowingButton("SIGN UP", "primary")
         self.switch_btn = GlowingButton("RETURN TO LOGIN", "danger")
         self.switch_btn.clicked.connect(switch_callback)
