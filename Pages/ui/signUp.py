@@ -27,7 +27,10 @@ class SignupForm(QWidget):
 
         self.signup_btn = GlowingButton("SIGN UP", "primary")
         self.switch_btn = GlowingButton("RETURN TO LOGIN", "danger")
+
+
         self.switch_btn.clicked.connect(switch_callback)
+        self.signup_btn.clicked.connect(SignupForm)
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.email_address)
@@ -41,3 +44,4 @@ class SignupForm(QWidget):
 
 def SignupClicked():
     QMessageBox.information(None, "", "Signup clicked")
+    logging.debug("Signup clicked")

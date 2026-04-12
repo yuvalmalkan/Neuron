@@ -169,6 +169,7 @@ class Login(QMainWindow):
 
 def ForgotPasswordClicked():
     QMessageBox.information(None, "", "Forgot password clicked")
+    logging.debug("Forgot password clicked")
 
 
 
@@ -176,7 +177,7 @@ def ForgotPasswordClicked():
 
 def LoginClicked():
     QMessageBox.information(None, "", "Login clicked")
-
+    logging.debug("Login clicked")
 
 
 
