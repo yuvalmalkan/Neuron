@@ -20,6 +20,7 @@ class SignupForm(QWidget):
         self.pass_input = GlowInput("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
+
         self.pass_confirm = GlowInput("Confirm Password")
         self.pass_confirm.setEchoMode(QLineEdit.EchoMode.Password)
 
