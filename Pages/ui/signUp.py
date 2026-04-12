@@ -30,7 +30,7 @@ class SignupForm(QWidget):
 
 
         self.switch_btn.clicked.connect(switch_callback)
-        self.signup_btn.clicked.connect(SignupForm)
+        self.signup_btn.clicked.connect(SignupClicked)
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.email_address)
