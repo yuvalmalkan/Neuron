@@ -70,8 +70,8 @@ class LoginForm(QWidget):
 
 
         self.switch_btn.clicked.connect(switch_callback)
-        self.login_btn.clicked.connect(loginClicked)
-        self.forgot_button.clicked.connect(forgotPasswordClicked)
+        self.login_btn.clicked.connect(LoginClicked)
+        self.forgot_button.clicked.connect(ForgotPasswordClicked)
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.pass_input)
@@ -167,14 +167,14 @@ class Login(QMainWindow):
 
 
 
-def forgotPasswordClicked():
+def ForgotPasswordClicked():
     QMessageBox.information(None, "", "Forgot password clicked")
 
 
 
 
 
-def loginClicked():
+def LoginClicked():
     QMessageBox.information(None, "", "Login clicked")
 
 

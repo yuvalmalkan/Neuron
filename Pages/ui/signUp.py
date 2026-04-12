@@ -2,8 +2,8 @@ __author__ = "Yuval Malkan"
 
 
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLineEdit
-from Pages.ui.uiElements import GlowInput, GlowingButton
+from PyQt6.QtWidgets import *
+from Pages.ui.uiElements import *
 
 
 
@@ -34,3 +34,8 @@ class SignupForm(QWidget):
         layout.addSpacing(10)
         layout.addWidget(self.signup_btn)
         layout.addWidget(self.switch_btn)
+
+
+
+def SignupClicked():
+    QMessageBox.information(None, "", "Signup clicked")
