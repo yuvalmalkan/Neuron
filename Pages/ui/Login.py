@@ -13,6 +13,8 @@ from Pages.ui.uiElements import Card, GlowInput, GlowingButton, HyperButton
 from Pages.ui.signUp import SignupForm
 
 
+
+
 # ──────────────────────────────────────────
 #  TYPING ANIMATION WIDGET
 # ──────────────────────────────────────────
@@ -68,8 +70,8 @@ class LoginForm(QWidget):
 
 
         self.switch_btn.clicked.connect(switch_callback)
-
-        self.forgot_button.clicked.connect(forgotPassword)
+        self.login_btn.clicked.connect(loginClicked)
+        self.forgot_button.clicked.connect(forgotPasswordClicked)
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.pass_input)
@@ -147,9 +149,13 @@ class Login(QMainWindow):
         card_container.addWidget(self.auth_card)
         root.addLayout(card_container, 1)
 
+
+
     def show_signup(self):
         self.stacked_forms.setCurrentIndex(1)
         self.auth_card.setFixedSize(450, 560)
+
+
 
     def show_login(self):
         self.stacked_forms.setCurrentIndex(0)
@@ -161,8 +167,16 @@ class Login(QMainWindow):
 
 
 
-def forgotPassword():
+def forgotPasswordClicked():
     QMessageBox.information(None, "", "Forgot password clicked")
+
+
+
+
+
+def loginClicked():
+    QMessageBox.information(None, "", "Login clicked")
+
 
 
 

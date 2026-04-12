@@ -1,5 +1,7 @@
 __author__ = "Yuval Malkan"
 
+
+
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor
