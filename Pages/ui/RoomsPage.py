@@ -269,6 +269,8 @@ class ChatView(QFrame):
             self._input.clear()
 
 
+
+
 # ─────────────────────────────────────────────────────────────
 #  ROOMS PANEL  (top-level, drop into QStackedWidget)
 # ─────────────────────────────────────────────────────────────
