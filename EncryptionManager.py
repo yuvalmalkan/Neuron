@@ -12,13 +12,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as sym_padding
 from Constants import debug
 
-# Initialize logger
-logger = logging.getLogger(__name__)
-
-
-# ============================================================================
-# DIFFIE-HELLMAN KEY EXCHANGE
-# ============================================================================
 
 def generate_dh_parameters(generator=2, key_size=2048):
     """
@@ -31,7 +24,7 @@ def generate_dh_parameters(generator=2, key_size=2048):
     Returns:
         DHParameterNumbers object containing the parameters
     """
-    logger.debug(f"Generating DH parameters with key_size={key_size}")
+    logging.debug(f"Generating DH parameters with key_size={key_size}")
     return dh.generate_parameters(generator=generator, key_size=key_size)
 
 
@@ -45,7 +38,7 @@ def generate_dh_keypair(parameters):
     Returns:
         Tuple of (private_key, public_key)
     """
-    logger.debug("Generating DH keypair")
+    logging.debug("Generating DH keypair")
     private_key = parameters.generate_private_key()
     public_key = private_key.public_key()
     return private_key, public_key
@@ -62,9 +55,9 @@ def dh_exchange(private_key, peer_public_key):
     Returns:
         Shared secret bytes
     """
-    logger.debug("Performing DH exchange")
+    logging.debug("Performing DH exchange")
     shared_secret = private_key.exchange(peer_public_key)
-    logger.debug(f"DH exchange completed, shared secret length: {len(shared_secret)} bytes")
+    logging.debug(f"DH exchange completed, shared secret length: {len(shared_secret)} bytes")
     return shared_secret
 
 
@@ -75,7 +68,7 @@ def generate_ecc_keypair():
     Returns:
         Tuple of (private_key, public_key)
     """
-    logger.debug("Generating ECC keypair (SECP256R1)")
+    logging.debug("Generating ECC keypair (SECP256R1)")
     private_key = ec.generate_private_key(ec.SECP256R1())
     public_key = private_key.public_key()
     return private_key, public_key
@@ -92,9 +85,9 @@ def ecc_exchange(private_key, peer_public_key):
     Returns:
         Shared secret bytes
     """
-    logger.debug("Performing ECC exchange")
+    logging.debug("Performing ECC exchange")
     shared_secret = private_key.exchange(ec.ECDH(), peer_public_key)
-    logger.debug(f"ECC exchange completed, shared secret length: {len(shared_secret)} bytes")
+    logging.debug(f"ECC exchange completed, shared secret length: {len(shared_secret)} bytes")
     return shared_secret
 
 
@@ -115,7 +108,7 @@ def derive_key_hkdf(shared_key, length=32, info=b'handshake data'):
     Returns:
         Derived key bytes
     """
-    logger.debug(f"Deriving key via HKDF: length={length}, info={info}")
+    logging.debug(f"Deriving key via HKDF: length={length}, info={info}")
     hkdf = HKDF(
         algorithm=hashes.SHA256(),
         length=length,
@@ -123,7 +116,7 @@ def derive_key_hkdf(shared_key, length=32, info=b'handshake data'):
         info=info,
     )
     derived_key = hkdf.derive(shared_key)
-    logger.debug("HKDF key derivation completed")
+    logging.debug("HKDF key derivation completed")
     return derived_key
 
 
@@ -141,7 +134,7 @@ def derive_key_pbkdf2(password: bytes, salt: bytes, length=32, iterations=480000
     Returns:
         Derived key bytes
     """
-    logger.debug(f"Deriving key via PBKDF2: iterations={iterations}, salt_len={len(salt)}")
+    logging.debug(f"Deriving key via PBKDF2: iterations={iterations}, salt_len={len(salt)}")
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=length,
@@ -149,7 +142,7 @@ def derive_key_pbkdf2(password: bytes, salt: bytes, length=32, iterations=480000
         iterations=iterations,
     )
     derived_key = kdf.derive(password)
-    logger.debug("PBKDF2 key derivation completed")
+    logging.debug("PBKDF2 key derivation completed")
     return derived_key
 
 
@@ -166,7 +159,7 @@ def derive_key_argon2(password: bytes, salt: bytes, hash_len=32):
     Returns:
         Derived key bytes
     """
-    logger.debug(f"Deriving key via Argon2: salt_len={len(salt)}, hash_len={hash_len}")
+    logging.debug(f"Deriving key via Argon2: salt_len={len(salt)}, hash_len={hash_len}")
     derived_key = low_level.hash_secret_raw(
         secret=password,
         salt=salt,
@@ -176,7 +169,7 @@ def derive_key_argon2(password: bytes, salt: bytes, hash_len=32):
         hash_len=hash_len,
         type=low_level.Type.ID
     )
-    logger.debug("Argon2 key derivation completed")
+    logging.debug("Argon2 key derivation completed")
     return derived_key
 
 
@@ -195,10 +188,10 @@ def hash_password_argon2(password: str):
     Returns:
         Argon2 hash string (includes salt and parameters)
     """
-    logger.debug("Hashing password with Argon2")
+    logging.debug("Hashing password with Argon2")
     ph = PasswordHasher()
     hash_result = ph.hash(password)
-    logger.debug("Password hashing completed")
+    logging.debug("Password hashing completed")
     return hash_result
 
 
@@ -213,14 +206,14 @@ def verify_password_argon2(hash_str: str, password: str):
     Returns:
         Boolean: True if password matches, False otherwise
     """
-    logger.debug("Verifying password with Argon2")
+    logging.debug("Verifying password with Argon2")
     ph = PasswordHasher()
     try:
         ph.verify(hash_str, password)
-        logger.debug("Password verification successful")
+        logging.debug("Password verification successful")
         return True
     except Exception as e:
-        logger.debug(f"Password verification failed: {e}")
+        logging.debug(f"Password verification failed: {e}")
         return False
 
 
@@ -239,15 +232,15 @@ def generate_rsa_keypair(key_size=2048):
         Tuple of (private_key, public_key)
     """
     if key_size < 2048:
-        logger.warning(f"RSA key_size={key_size} is less than 2048 bits - not recommended!")
+        logging.warning(f"RSA key_size={key_size} is less than 2048 bits - not recommended!")
 
-    logger.debug(f"Generating RSA {key_size}-bit keypair")
+    logging.debug(f"Generating RSA {key_size}-bit keypair")
     private_key = rsa.generate_private_key(
         public_exponent=65537,  # Industry standard exponent
         key_size=key_size,
     )
     public_key = private_key.public_key()
-    logger.debug("RSA keypair generation completed")
+    logging.debug("RSA keypair generation completed")
     return private_key, public_key
 
 
@@ -267,7 +260,7 @@ def save_rsa_keys(private_key, public_key, private_key_password: bytes,
         Private key is encrypted with BestAvailableEncryption (AES-256 in PKCS8 format)
         Public key is stored unencrypted
     """
-    logger.info(f"Saving RSA keys: private={priv_filename}, public={pub_filename}")
+    logging.info(f"Saving RSA keys: private={priv_filename}, public={pub_filename}")
 
     try:
         # Serialize private key with encryption
@@ -279,7 +272,7 @@ def save_rsa_keys(private_key, public_key, private_key_password: bytes,
 
         with open(priv_filename, 'wb') as f:
             f.write(pem_private)
-        logger.debug(f"Private key saved to {priv_filename}")
+        logging.debug(f"Private key saved to {priv_filename}")
 
         # Serialize public key
         pem_public = public_key.public_bytes(
@@ -289,10 +282,10 @@ def save_rsa_keys(private_key, public_key, private_key_password: bytes,
 
         with open(pub_filename, 'wb') as f:
             f.write(pem_public)
-        logger.debug(f"Public key saved to {pub_filename}")
+        logging.debug(f"Public key saved to {pub_filename}")
 
     except Exception as e:
-        logger.error(f"Failed to save RSA keys: {e}")
+        logging.error(f"Failed to save RSA keys: {e}")
         raise
 
 
@@ -312,7 +305,7 @@ def load_rsa_keys(private_key_password: bytes, priv_filename='private_key.pem',
     Raises:
         ValueError: If password is incorrect or file not found
     """
-    logger.info(f"Loading RSA keys from: {priv_filename}, {pub_filename}")
+    logging.info(f"Loading RSA keys from: {priv_filename}, {pub_filename}")
 
     try:
         with open(priv_filename, "rb") as key_file:
@@ -321,19 +314,19 @@ def load_rsa_keys(private_key_password: bytes, priv_filename='private_key.pem',
                 password=private_key_password,
                 backend=default_backend()
             )
-        logger.debug(f"Private key loaded successfully")
+        logging.debug(f"Private key loaded successfully")
 
         with open(pub_filename, "rb") as key_file:
             public_key = serialization.load_pem_public_key(
                 key_file.read(),
                 backend=default_backend()
             )
-        logger.debug(f"Public key loaded successfully")
+        logging.debug(f"Public key loaded successfully")
 
         return private_key, public_key
 
     except Exception as e:
-        logger.error(f"Failed to load RSA keys: {e}")
+        logging.error(f"Failed to load RSA keys: {e}")
         raise
 
 
@@ -359,10 +352,10 @@ def rsaEncrypt(public_key, message: bytes):
     max_msg_size = (key_size // 8) - 66  # OAEP overhead with SHA-256
 
     if len(message) > max_msg_size:
-        logger.error(f"Message too long: {len(message)} > {max_msg_size} bytes")
+        logging.error(f"Message too long: {len(message)} > {max_msg_size} bytes")
         raise ValueError(f"Message too long ({len(message)} > {max_msg_size} bytes). Use hybrid encryption.")
 
-    logger.debug(f"RSA encrypting {len(message)} bytes with {key_size}-bit key")
+    logging.debug(f"RSA encrypting {len(message)} bytes with {key_size}-bit key")
 
     try:
         # OAEP padding is industry standard (PKCS#1 v2.1)
@@ -374,11 +367,11 @@ def rsaEncrypt(public_key, message: bytes):
                 label=None
             )
         )
-        logger.debug(f"RSA encryption successful, ciphertext size: {len(encrypted_message)} bytes")
+        logging.debug(f"RSA encryption successful, ciphertext size: {len(encrypted_message)} bytes")
         return encrypted_message
 
     except Exception as e:
-        logger.error(f"RSA encryption failed: {e}")
+        logging.error(f"RSA encryption failed: {e}")
         raise
 
 
@@ -396,7 +389,7 @@ def rsaDecrypt(private_key, encrypted_message: bytes):
     Raises:
         ValueError: If decryption fails (wrong key, corrupted data, etc.)
     """
-    logger.debug(f"RSA decrypting {len(encrypted_message)} bytes")
+    logging.debug(f"RSA decrypting {len(encrypted_message)} bytes")
 
     try:
         message = private_key.decrypt(
@@ -407,12 +400,12 @@ def rsaDecrypt(private_key, encrypted_message: bytes):
                 label=None
             )
         )
-        logger.debug(f"RSA decryption successful, plaintext size: {len(message)} bytes")
+        logging.debug(f"RSA decryption successful, plaintext size: {len(message)} bytes")
         return message
 
     except ValueError as e:
         # Use proper exception instead of returning error message
-        logger.error(f"RSA decryption failed: Invalid ciphertext or key mismatch")
+        logging.error(f"RSA decryption failed: Invalid ciphertext or key mismatch")
         raise ValueError("RSA decryption failed: Invalid ciphertext or incorrect key") from e
 
 
@@ -433,10 +426,10 @@ def generateAES():
         IV should be unique for each encryption with the same key.
         Both should be transmitted securely to recipient.
     """
-    logger.debug("Generating AES-256 key and IV")
+    logging.debug("Generating AES-256 key and IV")
     key = os.urandom(32)  # 256 bits for AES-256
     iv = os.urandom(16)  # 128 bits for CBC block size
-    logger.debug(f"Generated AES key ({len(key)} bytes) and IV ({len(iv)} bytes)")
+    logging.debug(f"Generated AES key ({len(key)} bytes) and IV ({len(iv)} bytes)")
     return key, iv
 
 
@@ -456,7 +449,7 @@ def aesEncrypt(key: bytes, iv: bytes, plaintext: str) -> bytes:
         IV must be random and unique for each encryption with same key.
         IV can be transmitted in plaintext (it doesn't need to be secret).
     """
-    logger.debug(f"AES encrypting {len(plaintext)} characters")
+    logging.debug(f"AES encrypting {len(plaintext)} characters")
 
     try:
         plaintext_bytes = plaintext.encode('utf-8')
@@ -474,11 +467,11 @@ def aesEncrypt(key: bytes, iv: bytes, plaintext: str) -> bytes:
         encryptor = cipher.encryptor()
         ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
-        logger.debug(f"AES encryption successful, ciphertext size: {len(ciphertext)} bytes")
+        logging.debug(f"AES encryption successful, ciphertext size: {len(ciphertext)} bytes")
         return ciphertext
 
     except Exception as e:
-        logger.error(f"AES encryption failed: {e}")
+        logging.error(f"AES encryption failed: {e}")
         raise
 
 
@@ -497,7 +490,7 @@ def aesDecrypt(key: bytes, iv: bytes, ciphertext: bytes) -> str:
     Raises:
         ValueError: If decryption fails or padding is invalid
     """
-    logger.debug(f"AES decrypting {len(ciphertext)} bytes")
+    logging.debug(f"AES decrypting {len(ciphertext)} bytes")
 
     try:
         cipher = Cipher(
@@ -513,9 +506,9 @@ def aesDecrypt(key: bytes, iv: bytes, ciphertext: bytes) -> str:
         plaintext_bytes = unpadder.update(padded_data) + unpadder.finalize()
 
         plaintext = plaintext_bytes.decode('utf-8')
-        logger.debug(f"AES decryption successful, plaintext size: {len(plaintext)} characters")
+        logging.debug(f"AES decryption successful, plaintext size: {len(plaintext)} characters")
         return plaintext
 
     except Exception as e:
-        logger.error(f"AES decryption failed: {e}")
+        logging.error(f"AES decryption failed: {e}")
         raise
