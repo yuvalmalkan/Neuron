@@ -12,6 +12,7 @@ from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import Card, GlowInput, GlowingButton, HyperButton
 from Pages.ui.signUp import SignupForm
 
+from Pages.logic.LoginLogic import *
 
 
 
@@ -178,6 +179,9 @@ def ForgotPasswordClicked():
 def LoginClicked():
     QMessageBox.information(None, "", "Login clicked")
     logging.debug("Login clicked")
+    #fixme make it run in a thread?
+    loginClicked()
+
 
 
 
