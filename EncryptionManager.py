@@ -3,7 +3,7 @@ __author__ = "Yuval Malkan"
 import os
 import logging
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import dh, ec, rsa, padding
+from cryptography.hazmat.primitives.asymmetric import ec, rsa, padding
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -11,54 +11,6 @@ from argon2 import low_level, PasswordHasher
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as sym_padding
 from Constants import debug
-
-
-def generate_dh_parameters(generator=2, key_size=2048):
-    """
-    Generate Diffie-Hellman parameters for key exchange.
-
-    Args:
-        generator: DH generator (typically 2 or 5)
-        key_size: Key size in bits (2048 or higher recommended)
-
-    Returns:
-        DHParameterNumbers object containing the parameters
-    """
-    logging.debug(f"Generating DH parameters with key_size={key_size}")
-    return dh.generate_parameters(generator=generator, key_size=key_size)
-
-
-def generate_dh_keypair(parameters):
-    """
-    Generate DH keypair from parameters.
-
-    Args:
-        parameters: DHParameterNumbers from generate_dh_parameters()
-
-    Returns:
-        Tuple of (private_key, public_key)
-    """
-    logging.debug("Generating DH keypair")
-    private_key = parameters.generate_private_key()
-    public_key = private_key.public_key()
-    return private_key, public_key
-
-
-def dh_exchange(private_key, peer_public_key):
-    """
-    Perform DH key exchange to derive shared secret.
-
-    Args:
-        private_key: Your DH private key
-        peer_public_key: Peer's DH public key
-
-    Returns:
-        Shared secret bytes
-    """
-    logging.debug("Performing DH exchange")
-    shared_secret = private_key.exchange(peer_public_key)
-    logging.debug(f"DH exchange completed, shared secret length: {len(shared_secret)} bytes")
-    return shared_secret
 
 
 def generate_ecc_keypair():
