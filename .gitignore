@@ -16,6 +16,7 @@ env/
 # Database files
 *.db
 *.sqlite3
+*.pkl
 
 # OS files
 .DS_Store
