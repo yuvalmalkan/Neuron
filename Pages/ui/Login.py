@@ -261,8 +261,12 @@ def LoginClicked(form: LoginForm):
         return
 
     try:
-        # Initialize database connection
-        db = UserDatabase()
+        # Initialize database connection with explicit path
+        import os
+        # Get the root directory (go up 2 levels from Pages/ui/)
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
+        db = UserDatabase(db_path)
 
         # Call login handler
         success, response_code, user = handle_login(username, password, db)
