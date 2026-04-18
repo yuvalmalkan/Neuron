@@ -168,9 +168,8 @@ class Login(QMainWindow):
 
 
 
-def ForgotPasswordClicked():
-    QMessageBox.information(None, "", "Forgot password clicked")
-    logging.debug("Forgot password clicked")
+
+
 
 
 
@@ -204,6 +203,9 @@ class LoginForm(QWidget):
         layout.addWidget(self.switch_btn)
 
 
+
+
+
 def LoginClicked(form: LoginForm):
     """
     Handle login button click event.
@@ -227,6 +229,11 @@ def LoginClicked(form: LoginForm):
         logging.warning("Login attempt with empty credentials")
         QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
         return
+
+
+
+
+
 
 def LoginClicked(form: LoginForm):
     """
@@ -287,6 +294,10 @@ def LoginClicked(form: LoginForm):
     except Exception as e:
         logging.error(f"Unexpected error during login: {e}")
         QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
+
+
+
+
 
 
 def ForgotPasswordClicked():
