@@ -12,7 +12,7 @@ from Pages.logic.LoginLogic import handle_login
 
 
 # Global database instance (shared across all threads)
-user_db = UserDatabase('users.pkl')
+user_db = UserDatabase('Databases/users.pkl')
 
 
 
