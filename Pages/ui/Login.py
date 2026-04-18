@@ -174,14 +174,98 @@ def ForgotPasswordClicked():
 
 
 
+# ──────────────────────────────────────────
+#  LOGIN FORM
+# ──────────────────────────────────────────
+class LoginForm(QWidget):
+    def __init__(self, switch_callback, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+
+        self.user_input = GlowInput("Username")
+        self.pass_input = GlowInput("Password")
+        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.forgot_button = HyperButton("Forgot Password?", "primary")
+        self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
+        self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
+
+        self.switch_btn.clicked.connect(switch_callback)
+        # Pass the form as context so LoginClicked can access input fields
+        self.login_btn.clicked.connect(lambda: LoginClicked(self))
+        self.forgot_button.clicked.connect(ForgotPasswordClicked)
+
+        layout.addWidget(self.user_input)
+        layout.addWidget(self.pass_input)
+        layout.addWidget(self.forgot_button)
+        layout.addSpacing(10)
+        layout.addWidget(self.login_btn)
+        layout.addWidget(self.switch_btn)
 
 
-def LoginClicked():
-    QMessageBox.information(None, "", "Login clicked")
-    logging.debug("Login clicked")
-    #fixme make it run in a thread?
-    loginClicked()
+def LoginClicked(form: LoginForm):
+    """
+    Handle login button click event.
+    Validates credentials and authenticates user.
 
+    Args:
+        form: LoginForm instance to access username and password inputs
+    """
+    import logging
+    from Pages.logic.LoginLogic import handle_login
+    from UserDatabase import UserDatabase
+
+    # Get username and password from input fields
+    username = form.user_input.text().strip()
+    password = form.pass_input.text()
+
+    logging.debug(f"Login clicked for user: {username}")
+
+    # Validate input fields
+    if not username or not password:
+        logging.warning("Login attempt with empty credentials")
+        QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
+        return
+
+    try:
+        # Initialize database connection
+        db = UserDatabase()
+
+        # Call login handler
+        success, response_code, user = handle_login(username, password, db)
+
+        if success:
+            logging.info(f"User {username} logged in successfully")
+            QMessageBox.information(None, "Success", f"Welcome back, {user.username}!")
+            # TODO: Navigate to main application window
+            # Example: window.switch_to_main_app(user)
+        else:
+            # Provide specific error messages based on response code
+            if response_code == "UFND":
+                error_msg = "Username not found"
+                logging.warning(f"Login failed: {error_msg} ({username})")
+            elif response_code == "FLOG":
+                error_msg = "Incorrect password"
+                logging.warning(f"Login failed: {error_msg} ({username})")
+            else:
+                error_msg = "Login failed. Please try again."
+                logging.error(f"Login failed with response code: {response_code}")
+
+            QMessageBox.critical(None, "Login Failed", error_msg)
+            # Clear password field on failed login
+            form.pass_input.clear()
+
+    except Exception as e:
+        logging.error(f"Unexpected error during login: {e}")
+        QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
+
+
+def ForgotPasswordClicked():
+    """Handle forgot password button click."""
+    import logging
+    logging.debug("Forgot password clicked")
+    QMessageBox.information(None, "Forgot Password", "Password recovery feature coming soon")
 
 
 
