@@ -228,6 +228,31 @@ def LoginClicked(form: LoginForm):
         QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
         return
 
+def LoginClicked(form: LoginForm):
+    """
+    Handle login button click event.
+    Validates credentials and authenticates user.
+
+    Args:
+        form: LoginForm instance to access username and password inputs
+    """
+    import logging
+    from Pages.logic.LoginLogic import handle_login
+    from UserDatabase import UserDatabase
+    from Constants import RESP_LOGIN_OK, RESP_LOGIN_FAIL, RESP_LOGIN_USER_NOT_FOUND
+
+    # Get username and password from input fields
+    username = form.user_input.text().strip()
+    password = form.pass_input.text()
+
+    logging.debug(f"Login clicked for user: {username}")
+
+    # Validate input fields
+    if not username or not password:
+        logging.warning("Login attempt with empty credentials")
+        QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
+        return
+
     try:
         # Initialize database connection
         db = UserDatabase()
@@ -241,11 +266,11 @@ def LoginClicked(form: LoginForm):
             # TODO: Navigate to main application window
             # Example: window.switch_to_main_app(user)
         else:
-            # Provide specific error messages based on response code
-            if response_code == "UFND":
+            # Provide specific error messages based on response code using constants
+            if response_code == RESP_LOGIN_USER_NOT_FOUND:
                 error_msg = "Username not found"
                 logging.warning(f"Login failed: {error_msg} ({username})")
-            elif response_code == "FLOG":
+            elif response_code == RESP_LOGIN_FAIL:
                 error_msg = "Incorrect password"
                 logging.warning(f"Login failed: {error_msg} ({username})")
             else:
@@ -256,6 +281,9 @@ def LoginClicked(form: LoginForm):
             # Clear password field on failed login
             form.pass_input.clear()
 
+    except Exception as e:
+        logging.error(f"Unexpected error during login: {e}")
+        QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
     except Exception as e:
         logging.error(f"Unexpected error during login: {e}")
         QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
