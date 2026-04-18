@@ -3,13 +3,12 @@ __author__ = "Yuval Malkan"
 
 import socket
 from Constants import *
-import time
 import threading
 import logging
 import json
 from UserDatabase import UserDatabase
-from SignupLogic import handle_signup
-from LoginLogic import handle_login
+from Pages.logic.SignupLogic import handle_signup
+from Pages.logic.LoginLogic import handle_login
 
 
 # Global database instance (shared across all threads)
