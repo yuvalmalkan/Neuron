@@ -6,6 +6,14 @@ from Constants import *
 import time
 import threading
 import logging
+import json
+from UserDatabase import UserDatabase
+from SignupLogic import handle_signup
+from LoginLogic import handle_login
+
+
+# Global database instance (shared across all threads)
+user_db = UserDatabase('users.pkl')
 
 
 
