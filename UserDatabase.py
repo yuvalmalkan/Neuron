@@ -11,19 +11,25 @@ class UserDatabase:
     """
     User database manager using pickle file persistence.
     
-    Stores all users in a single pickle file (users.pkl) as a dictionary
+    Stores all users in a single pickle file (Databases/users.pkl) as a dictionary
     indexed by username for fast lookups.
     
     Thread-safety: Not thread-safe. For concurrent access, consider adding locks.
     """
     
-    def __init__(self, db_file: str = 'users.pkl'):
+    def __init__(self, db_file: str = 'Databases/users.pkl'):
         """
         Initialize UserDatabase manager.
         
         Args:
-            db_file: Path to pickle database file (default: users.pkl)
+            db_file: Path to pickle database file (default: Databases/users.pkl)
         """
+        # Ensure directory exists
+        db_dir = os.path.dirname(db_file)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+            logging.debug(f"Created directory: {db_dir}")
+        
         self.db_file = db_file
         self.users: Dict[str, User] = {}
         
