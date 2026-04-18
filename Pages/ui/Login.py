@@ -300,11 +300,19 @@ def LoginClicked(form: LoginForm):
 
 
 
+
+
+#todo add email recovery with 6 digit code
 def ForgotPasswordClicked():
     """Handle forgot password button click."""
     import logging
     logging.debug("Forgot password clicked")
     QMessageBox.information(None, "Forgot Password", "Password recovery feature coming soon")
+
+
+
+
+
 
 
 
