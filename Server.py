@@ -91,7 +91,9 @@ def handle_client(client, userId):
                             'code': resp_code,
                             'user_id': user.unique_id if user else None
                         }
-                
+
+
+
                 # Handle LOGIN command
                 elif command == CMD_LOGIN:
                     username = request.get('username')
@@ -99,13 +101,22 @@ def handle_client(client, userId):
                     
                     if not all([username, password]):
                         response = {'status': 'error', 'code': RESP_ERROR, 'message': 'Missing login fields'}
+
+
                     else:
                         success, resp_code, user = handle_login(username, password, user_db)
+
                         response = {
                             'status': 'success' if success else 'error',
                             'code': resp_code,
                             'user_id': user.unique_id if user else None
                         }
+
+                        if success:
+                            #todo send login success message and switch to osintpage window
+                            pass
+
+
                 
                 # Handle EXIT command
                 elif command == CMD_EXIT:
@@ -119,7 +130,10 @@ def handle_client(client, userId):
                 # Send response to client
                 if response:
                     client.send(json.dumps(response).encode('utf-8'))
-            
+
+
+
+
             except json.JSONDecodeError:
                 error_response = {'status': 'error', 'code': RESP_ERROR, 'message': 'Invalid JSON format'}
                 client.send(json.dumps(error_response).encode('utf-8'))
