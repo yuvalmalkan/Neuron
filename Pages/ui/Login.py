@@ -172,6 +172,15 @@ class LoginForm(QWidget):
         layout.addWidget(self.switch_btn)
 
 
+#--------
+#forgot password class
+#--------
+
+class ForgotPasswordForm(QWidget):
+    #todo write forgot password form, with a 5 minute code sent to email and input field to enter code and new password
+    pass
+
+
 
 
 
