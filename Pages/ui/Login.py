@@ -49,38 +49,6 @@ class TypingLabel(QLabel):
 
 
 
-# ──────────────────────────────────────────
-#  LOGIN FORM
-# ──────────────────────────────────────────
-class LoginForm(QWidget):
-    def __init__(self, switch_callback , parent=None):
-        super().__init__(parent)
-        layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-
-        self.user_input = GlowInput("Username")
-        self.pass_input = GlowInput("Password")
-        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-
-        #self.forgot_button = QPushButton("FORGOT PASSWORD? ")
-        self.forgot_button = HyperButton("Forgot Password?", "primary")
-
-        self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
-        self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
-
-
-
-
-        self.switch_btn.clicked.connect(switch_callback)
-        self.login_btn.clicked.connect(LoginClicked)
-        self.forgot_button.clicked.connect(ForgotPasswordClicked)
-
-        layout.addWidget(self.user_input)
-        layout.addWidget(self.pass_input)
-        layout.addWidget(self.forgot_button)
-        layout.addSpacing(10)
-        layout.addWidget(self.login_btn)
-        layout.addWidget(self.switch_btn)
 
 
 # ──────────────────────────────────────────
@@ -320,7 +288,7 @@ def ForgotPasswordClicked():
     import logging
     logging.debug("Forgot password clicked")
     QMessageBox.information(None, "Forgot Password", "Password recovery feature coming soon")
-
+    QMessageBox.inp
 
 
 
