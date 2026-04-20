@@ -11,6 +11,7 @@ from PyQt6.QtGui import QFont, QPalette, QColor
 from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import Card, GlowInput, GlowingButton, HyperButton
 from Pages.ui.signUp import SignupForm
+from Pages.ui.OsintPage import MainWindow
 
 from Pages.logic.LoginLogic import *
 
@@ -274,8 +275,14 @@ def LoginClicked(form: LoginForm):
         if success:
             logging.info(f"User {username} logged in successfully")
             QMessageBox.information(None, "Success", f"Welcome back, {user.username}!")
-            # TODO: Navigate to main application window
-            # Example: window.switch_to_main_app(user)
+            login_window = form.window()
+            login_window.close()
+
+
+            osint_window = MainWindow()
+            osint_window.show()
+
+
         else:
             # Provide specific error messages based on response code using constants
             if response_code == RESP_LOGIN_USER_NOT_FOUND:
