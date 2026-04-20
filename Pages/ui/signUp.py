@@ -85,10 +85,14 @@ def SignupClicked(form: SignupForm):
         # Call signup handler
         success, response_code, user = handle_signup(username, email, password, db)
 
+
+
         if success:
             logging.info(f"User {username} signed up successfully")
             QMessageBox.information(None, "Success", f"Welcome to Neuron, {username}!\nPlease log in with your credentials.")
-            # Clear all fields on successful signup
+
+
+            # Clear fields on signup
             form.user_input.clear()
             form.email_address.clear()
             form.pass_input.clear()
