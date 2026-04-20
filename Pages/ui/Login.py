@@ -274,7 +274,7 @@ def LoginClicked(form: LoginForm):
 
         if success:
             logging.info(f"User {username} logged in successfully")
-            QMessageBox.information(None, "Success", f"Welcome back, {user.username}!")
+            #QMessageBox.information(None, "Success", f"Welcome back, {user.username}!")
             login_window = form.window()
             login_window.close()
 
