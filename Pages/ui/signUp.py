@@ -3,6 +3,7 @@ __author__ = "Yuval Malkan"
 import logging
 from PyQt6.QtWidgets import *
 from Pages.ui.uiElements import *
+#from Pages.ui.Login import Login
 
 
 class SignupForm(QWidget):
@@ -92,9 +93,16 @@ def SignupClicked(form: SignupForm):
             form.email_address.clear()
             form.pass_input.clear()
             form.pass_confirm.clear()
-            # TODO: Navigate back to login form
+
+            login_window = form.window()
+            login_window.show_login()
+            logging.info(f"Switched back to login form after successful signup")
+
+
+
+
         else:
-            # Provide specific error messages based on response code using constants
+            # error messages if credentials are not correct
             if response_code == RESP_SIGNUP_USER_EXISTS:
                 error_msg = "Username already exists. Please choose a different one."
                 logging.warning(f"Signup failed: {error_msg}")
@@ -118,6 +126,9 @@ def SignupClicked(form: SignupForm):
             # Clear sensitive fields on failed signup
             form.pass_input.clear()
             form.pass_confirm.clear()
+
+
+
 
     except Exception as e:
         logging.error(f"Unexpected error during signup: {e}")
