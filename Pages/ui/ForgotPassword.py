@@ -29,5 +29,6 @@ class ForgotPasswordForm(QWidget):
 
         layout.addWidget(self.switch_btn)
 
+
         #todo make it so when the send code is clicked a text will appear saying "Verification code sent to email" and then show the input fields for the code and new password, and a button to submit the new password
 
