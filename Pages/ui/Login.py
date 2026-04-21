@@ -14,6 +14,9 @@ from Pages.ui.signUp import SignupForm
 from Pages.ui.OsintPage import MainWindow
 
 from Pages.logic.LoginLogic import *
+import logging
+from UserDatabase import UserDatabase
+from Constants import *
 
 
 
@@ -109,9 +112,12 @@ class Login(QMainWindow):
         self.stacked_forms = QStackedWidget()
         self.login_form = LoginForm(self.show_signup)
         self.signup_form = SignupForm(self.show_login)
+        self.forgot_password_form = ForgotPasswordForm()
 
         self.stacked_forms.addWidget(self.login_form)
         self.stacked_forms.addWidget(self.signup_form)
+        self.stacked_forms.addWidget(self.forgot_password_form)
+
 
         card_layout.addWidget(self.stacked_forms)
 
@@ -131,6 +137,10 @@ class Login(QMainWindow):
         self.stacked_forms.setCurrentIndex(0)
         self.auth_card.setFixedSize(450, 480)
 
+
+    def show_forgot_password(self):
+        self.stacked_forms.setCurrentIndex(2)
+        self.auth_card.setFixedSize(450, 520)
 
 
 
@@ -162,7 +172,7 @@ class LoginForm(QWidget):
         self.switch_btn.clicked.connect(switch_callback)
         # Pass the form as context so LoginClicked can access input fields
         self.login_btn.clicked.connect(lambda: LoginClicked(self))
-        self.forgot_button.clicked.connect(ForgotPasswordClicked)
+        self.forgot_button.clicked.connect(lambda: ForgotPasswordClicked(self))
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.pass_input)
@@ -178,7 +188,33 @@ class LoginForm(QWidget):
 
 class ForgotPasswordForm(QWidget):
     #todo write forgot password form, with a 5 minute code sent to email and input field to enter code and new password
-    pass
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+
+        self.email_input = GlowInput("Email Address")
+
+        self.sendOTP_btn = GlowingButton("SEND VERIFICATION CODE", "primary")
+
+        self.switch_btn = GlowingButton("SWITCH BACK TO LOGIN", "danger")
+
+        #self.switch_btn.clicked.connect(switch_callback)
+
+        #self.login_btn.clicked.connect(lambda: LoginClicked(self))
+
+        #self.forgot_button.clicked.connect(ForgotPasswordClicked)
+
+        self.switch_btn.clicked.connect(lambda: self.window().show_login())
+
+        layout.addWidget(self.email_input)
+        layout.addWidget(self.sendOTP_btn)
+        layout.addSpacing(10)
+        layout.addWidget(self.switch_btn)
+
+
+
+
 
 
 
@@ -192,39 +228,7 @@ def LoginClicked(form: LoginForm):
     Args:
         form: LoginForm instance to access username and password inputs
     """
-    import logging
-    from Pages.logic.LoginLogic import handle_login
-    from UserDatabase import UserDatabase
 
-    # Get username and password from input fields
-    username = form.user_input.text().strip()
-    password = form.pass_input.text()
-
-    logging.debug(f"Login clicked for user: {username}")
-
-    # Validate input fields
-    if not username or not password:
-        logging.warning("Login attempt with empty credentials")
-        QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
-        return
-
-
-
-
-
-
-def LoginClicked(form: LoginForm):
-    """
-    Handle login button click event.
-    Validates credentials and authenticates user.
-
-    Args:
-        form: LoginForm instance to access username and password inputs
-    """
-    import logging
-    from Pages.logic.LoginLogic import handle_login
-    from UserDatabase import UserDatabase
-    from Constants import RESP_LOGIN_OK, RESP_LOGIN_FAIL, RESP_LOGIN_USER_NOT_FOUND
 
     # Get username and password from input fields
     username = form.user_input.text().strip()
@@ -280,10 +284,6 @@ def LoginClicked(form: LoginForm):
     except Exception as e:
         logging.error(f"Unexpected error during login: {e}")
         QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
-    except Exception as e:
-        logging.error(f"Unexpected error during login: {e}")
-        QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
-
 
 
 
@@ -292,13 +292,13 @@ def LoginClicked(form: LoginForm):
 
 
 #todo add email recovery with 6 digit code
-def ForgotPasswordClicked():
+def ForgotPasswordClicked(form: LoginForm):
     """Handle forgot password button click."""
-    import logging
     logging.debug("Forgot password clicked")
     QMessageBox.information(None, "Forgot Password", "Password recovery feature coming soon")
-    QMessageBox.inp
 
+    login_window = form.window()
+    login_window.show_forgot_password()
 
 
 
