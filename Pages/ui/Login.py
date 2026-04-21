@@ -295,7 +295,7 @@ def LoginClicked(form: LoginForm):
 def ForgotPasswordClicked(form: LoginForm):
     """Handle forgot password button click."""
     logging.debug("Forgot password clicked")
-    QMessageBox.information(None, "Forgot Password", "Password recovery feature coming soon")
+
 
     login_window = form.window()
     login_window.show_forgot_password()
