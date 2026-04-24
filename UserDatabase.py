@@ -95,7 +95,7 @@ class UserDatabase:
         if user.username in self.users:
             raise ValueError(f"Username '{user.username}' already exists")
         
-        if self._email_exists(user.email):
+        if self.is_email_exists(user.email):
             raise ValueError(f"Email '{user.email}' already exists")
         
         self.users[user.username] = user
@@ -170,7 +170,7 @@ class UserDatabase:
 
 
 
-    def _email_exists(self, email: str) -> bool:
+    def is_email_exists(self, email: str) -> bool:
         """
         Check if email exists in database (case-insensitive).
         

@@ -11,8 +11,6 @@ from Pages.logic.SignupLogic import handle_signup
 from Pages.logic.LoginLogic import handle_login
 
 
-# Global database instance (shared across all threads)
-user_db = UserDatabase('Databases/users.pkl')
 
 
 
@@ -126,7 +124,8 @@ def handle_client(client, userId):
                 
                 else:
                     response = {'status': 'error', 'code': RESP_ERROR, 'message': f'Unknown command: {command}'}
-                
+
+
                 # Send response to client
                 if response:
                     client.send(json.dumps(response).encode('utf-8'))

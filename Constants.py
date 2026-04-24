@@ -1,6 +1,7 @@
 import logging
+from UserDatabase import UserDatabase
+import os
 
-#todo DEBUG MODE
 
 debug = True
 
@@ -18,6 +19,9 @@ logging.basicConfig(
 
 
 
+root_dir = os.path.dirname(os.path.abspath(__file__))  # Current directory
+db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
+user_db = UserDatabase(db_path)
 
 port = 34401
 serverIp = "0.0.0.0"
@@ -69,10 +73,14 @@ RESP_LOGIN_USER_NOT_FOUND = "UFND"
 
 
 
+
+
+
 #אימות ושחזור סיסמה
 RESP_OTP_SENT = "OTPOK"
 RESP_VERIFY_OK = "OKVRF"
 RESP_RESET_OK = "OKRST"
+RESP_ERROR_EMAIL_EXISTS = "EREML"
 
 
 

@@ -3,6 +3,10 @@ __author__ = "Yuval Malkan"
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 from Pages.ui.uiElements import GlowInput, GlowingButton
 import logging
+import pickle
+from Constants import *
+from UserDatabase import UserDatabase
+
 
 
 class ForgotPasswordForm(QWidget):
@@ -39,13 +43,39 @@ class ForgotPasswordForm(QWidget):
 
 def SendOTP(form: ForgotPasswordForm):
     """Handle send OTP button click."""
-    #todo add user exists before sending code
+    from PyQt6.QtWidgets import QMessageBox
 
     logging.debug("sendOTP clicked")
+    email = form.email_input.text().strip()
+
+    if not email:
+        QMessageBox.warning(None, "Validation Error", "Please enter an email address")
+        return
+
+    try:
+
+        from Constants import user_db
+
+        isExist = user_db.is_email_exists(email)
+
+        if isExist:
+            logging.debug(f"User exists: {email}")
+            QMessageBox.information(None, "Success", f"Verification code sent to {email}")
+        else:
+            logging.warning(f"User does not exist: {email}")
+            QMessageBox.critical(None, "Error", "Email not found in database")
+
+    except Exception as e:
+        logging.error(f"Error checking email: {e}")
+        QMessageBox.critical(None, "Error", f"An error occurred: {str(e)}")
 
 
+"""
+def IsUserExistByEmail(email):
+#
+    if user_db.get_user_by_email(email):  # User exists
+        return True  
+    else:
+        return False 
 
-def IsUserExist(username):
-    #todo check if user exists in database
-    pass
-
+"""
