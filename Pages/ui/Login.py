@@ -124,6 +124,7 @@ class Login(QMainWindow):
         card_layout.addLayout(hdr)
 
         self.stacked_forms = QStackedWidget()
+        self.stacked_forms.setStyleSheet("background-color: transparent;")
         self.login_form = LoginForm(self.show_signup)
         self.signup_form = SignupForm(self.show_login)
         self.forgot_password_form = ForgotPasswordForm()
@@ -182,8 +183,6 @@ class LoginForm(QWidget):
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
 
         self.switch_btn.clicked.connect(switch_callback)
-
-        #self.forgot_button.setStyleSheet("{background-color: transparent;}")
 
 
 
