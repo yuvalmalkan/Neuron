@@ -39,4 +39,6 @@ class ForgotPasswordForm(QWidget):
 
 def SendOTP(form: ForgotPasswordForm):
     """Handle send OTP button click."""
+    #todo add user exists before sending code
+
     logging.debug("sendOTP clicked")
