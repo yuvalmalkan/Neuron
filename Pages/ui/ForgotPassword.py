@@ -42,3 +42,10 @@ def SendOTP(form: ForgotPasswordForm):
     #todo add user exists before sending code
 
     logging.debug("sendOTP clicked")
+
+
+
+def IsUserExist(username):
+    #todo check if user exists in database
+    pass
+
