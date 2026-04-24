@@ -341,7 +341,7 @@ class SocialMediaAggregator:
         }
         
         for platform, profile in results.get('search_results', {}).items():
-            if profile.get('not_found') or profile.get('error'):
+            if not profile or profile.get('not_found') or profile.get('error'):
                 summary['not_found_platforms'].append(platform)
             else:
                 summary['found_on_platforms'].append(platform)
