@@ -1,7 +1,8 @@
 /* ── loginSignup.qss ── */
 
 QMainWindow {
-    background: @WINDOW_BG@;
+    //background: @WINDOW_BG@;
+    border-image: url(@BwBgNeurons@) 0 0 0 0 stretch stretch;
 }
 
 AuthInput {

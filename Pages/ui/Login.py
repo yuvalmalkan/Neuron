@@ -21,7 +21,7 @@ from Pages.logic.LoginLogic import handle_login
 from Pages.logic.ForgotPasswordLogic import ForgotPasswordClicked
 from UserDatabase import UserDatabase
 from Constants import RESP_LOGIN_USER_NOT_FOUND, RESP_LOGIN_FAIL
-
+from Pages.ui.uiConstants import BwBgNeurons
 
 
 # ──────────────────────────────────────────
@@ -73,6 +73,17 @@ class Login(QMainWindow):
     def _build_layout(self):
         central = QWidget()
         self.setCentralWidget(central)
+
+
+        background_style = f"""
+             QWidget {{
+                 background-image: url({BwBgNeurons});
+                 background-position: center;
+                 background-repeat: no-repeat;
+                 background-attachment: fixed;
+             }}
+         """
+        central.setStyleSheet(background_style)
 
         # Single unified layout for the whole window
         root = QHBoxLayout(central)

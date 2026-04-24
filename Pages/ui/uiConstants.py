@@ -7,6 +7,11 @@ import logging
 from Constants import debug
 
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 
 
 
@@ -68,8 +73,17 @@ FONT_MONO  = "SF Pro"
 FONT_TITLE = "SF Pro"
 
 
+#Assets
+BwBgNeurons = os.path.join(root_dir, "Assets", "Photos", "neuronbgbw.jpg")
+
+
+
+
+
+
+
 def load_stylesheet(filename):
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     qss_path = os.path.join(base_dir, "Styles", f"{filename}.qss")
 
     try:
@@ -110,6 +124,7 @@ def load_stylesheet(filename):
             "@SCROLLBAR_HANDLE@": SCROLLBAR_HANDLE,
             "@FONT_MONO@": FONT_MONO,
             "@FONT_TITLE@": FONT_TITLE,
+            "@BwBgNeurons@": BwBgNeurons,
         }
 
         for key, val in replacements.items():
