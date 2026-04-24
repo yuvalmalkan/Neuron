@@ -12,7 +12,7 @@ def ForgotPasswordClicked(form):
 
 
 
-def SendOTP(form):
+def HandleOTP(form):
     """Handle send OTP button click."""
     from PyQt6.QtWidgets import QMessageBox
 
@@ -44,5 +44,6 @@ def SendOTP(form):
     except Exception as e:
         logging.error(f"Error checking email: {e}")
         QMessageBox.critical(None, "Error", f"An error occurred: {str(e)}")
+
 
 
