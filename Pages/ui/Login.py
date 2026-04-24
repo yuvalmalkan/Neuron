@@ -6,7 +6,7 @@ import logging
 import os
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QStackedWidget, QLineEdit, QPushButton, QMessageBox
+    QLabel, QStackedWidget, QLineEdit, QPushButton, QMessageBox, QGraphicsBlurEffect
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette, QColor
@@ -100,8 +100,15 @@ class Login(QMainWindow):
         card_container = QVBoxLayout()
         card_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+
+
+
+#
+
         self.auth_card = Card()
         self.auth_card.setFixedSize(450, 480)
+        self.auth_card.setStyleSheet("QWidget { background-color: rgba(0, 0, 0, 0.7); }")
+
 
         card_layout = QVBoxLayout(self.auth_card)
         card_layout.setContentsMargins(40, 40, 40, 40)
@@ -113,6 +120,7 @@ class Login(QMainWindow):
         title.setStyleSheet(f"color: {TEXT_TITLE};")
         hdr.addWidget(title)
         hdr.addStretch()
+
         card_layout.addLayout(hdr)
 
         self.stacked_forms = QStackedWidget()
@@ -125,6 +133,7 @@ class Login(QMainWindow):
         self.stacked_forms.addWidget(self.forgot_password_form)
 
         card_layout.addWidget(self.stacked_forms)
+
 
         card_container.addWidget(self.auth_card)
         root.addLayout(card_container, 1)
@@ -162,6 +171,7 @@ class LoginForm(QWidget):
         super().__init__(parent)
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
+
 
         self.user_input = GlowInput("Username")
         self.pass_input = GlowInput("Password")
