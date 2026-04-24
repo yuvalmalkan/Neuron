@@ -182,7 +182,11 @@ class LoginForm(QWidget):
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
 
         self.switch_btn.clicked.connect(switch_callback)
-        # Pass the form as context so LoginClicked can access input fields
+
+        #self.forgot_button.setStyleSheet("{background-color: transparent;}")
+
+
+
         self.login_btn.clicked.connect(lambda: LoginClicked(self))
         self.forgot_button.clicked.connect(lambda: ForgotPasswordClicked(self))
 

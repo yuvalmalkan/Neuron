@@ -56,6 +56,7 @@ class HyperButton(QPushButton):
         super().__init__(text, parent)
         self.setMinimumHeight(12)
         self.setProperty("variant", variant)
+        self.setStyleSheet("background: transparent;")
 
 
 
