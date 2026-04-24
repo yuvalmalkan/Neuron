@@ -2,6 +2,7 @@ __author__ = "Yuval Malkan"
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 from Pages.ui.uiElements import GlowInput, GlowingButton
+import logging
 
 
 class ForgotPasswordForm(QWidget):
@@ -19,6 +20,7 @@ class ForgotPasswordForm(QWidget):
         self.switch_btn = GlowingButton("SWITCH BACK TO LOGIN", "danger")
 
         self.switch_btn.clicked.connect(lambda: self.window().show_login())
+        self.sendOTP_btn.clicked.connect(lambda: SendOTP(self))
 
 
 
@@ -32,3 +34,9 @@ class ForgotPasswordForm(QWidget):
 
         #todo make it so when the send code is clicked a text will appear saying "Verification code sent to email" and then show the input fields for the code and new password, and a button to submit the new password
 
+
+
+
+def SendOTP(form: ForgotPasswordForm):
+    """Handle send OTP button click."""
+    logging.debug("sendOTP clicked")
