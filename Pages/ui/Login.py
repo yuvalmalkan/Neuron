@@ -117,7 +117,7 @@ class Login(QMainWindow):
         hdr = QHBoxLayout()
         title = QLabel("SYSTEM LOGIN")
         title.setFont(QFont(FONT_TITLE, 18, QFont.Weight.Bold))
-        title.setStyleSheet(f"color: {TEXT_TITLE};")
+        title.setStyleSheet(f"color: {TEXT_TITLE}; background-color: transparent;")
         hdr.addWidget(title)
         hdr.addStretch()
 
