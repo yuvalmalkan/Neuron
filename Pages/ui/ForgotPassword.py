@@ -70,12 +70,3 @@ def SendOTP(form: ForgotPasswordForm):
         QMessageBox.critical(None, "Error", f"An error occurred: {str(e)}")
 
 
-"""
-def IsUserExistByEmail(email):
-#
-    if user_db.get_user_by_email(email):  # User exists
-        return True  
-    else:
-        return False 
-
-"""
