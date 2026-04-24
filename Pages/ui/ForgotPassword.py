@@ -6,6 +6,9 @@ import logging
 import pickle
 from Constants import *
 from UserDatabase import UserDatabase
+from Pages.logic.ForgotPasswordLogic import SendOTP
+
+
 
 
 
@@ -39,34 +42,5 @@ class ForgotPasswordForm(QWidget):
         #todo make it so when the send code is clicked a text will appear saying "Verification code sent to email" and then show the input fields for the code and new password, and a button to submit the new password
 
 
-
-
-def SendOTP(form: ForgotPasswordForm):
-    """Handle send OTP button click."""
-    from PyQt6.QtWidgets import QMessageBox
-
-    logging.debug("sendOTP clicked")
-    email = form.email_input.text().strip()
-
-    if not email:
-        QMessageBox.warning(None, "Validation Error", "Please enter an email address")
-        return
-
-    try:
-
-        from Constants import user_db
-
-        isExist = user_db.is_email_exists(email)
-
-        if isExist:
-            logging.debug(f"User exists: {email}")
-            QMessageBox.information(None, "Success", f"Verification code sent to {email}")
-        else:
-            logging.warning(f"User does not exist: {email}")
-            QMessageBox.critical(None, "Error", "Email not found in database")
-
-    except Exception as e:
-        logging.error(f"Error checking email: {e}")
-        QMessageBox.critical(None, "Error", f"An error occurred: {str(e)}")
 
 
