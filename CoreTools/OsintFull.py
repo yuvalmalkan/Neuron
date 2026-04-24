@@ -8,3 +8,6 @@ import Sherlock
 x = Sherlock.search_username("yuvalmalkan")
 
 
+
+
+#todo download html from user profile page and extract information locally
