@@ -188,7 +188,7 @@ class InstagramScraper(ScraperBase):
                 'name': name,
                 'bio': '',  # Not available from meta description
                 'profile_url': f"{self.BASE_URL}/{username}",
-                'profile_picture': '',
+                'profile_picture': data.get('profile_picture', ''),
                 'followers': followers,
                 'following': following,
                 'verified': '✓' in meta_desc or 'verified' in meta_desc.lower(),
