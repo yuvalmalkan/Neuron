@@ -6,7 +6,7 @@ import logging
 import pickle
 from Constants import *
 from UserDatabase import UserDatabase
-from Pages.logic.ForgotPasswordLogic import HandleOTP
+from Pages.logic.ForgotPasswordLogic import HandleForgotPassword
 
 
 
@@ -27,7 +27,7 @@ class ForgotPasswordForm(QWidget):
         self.switch_btn = GlowingButton("SWITCH BACK TO LOGIN", "danger")
 
         self.switch_btn.clicked.connect(lambda: self.window().show_login())
-        self.sendOTP_btn.clicked.connect(lambda: HandleOTP(self))
+        self.sendOTP_btn.clicked.connect(lambda: HandleForgotPassword(self))
 
 
 
