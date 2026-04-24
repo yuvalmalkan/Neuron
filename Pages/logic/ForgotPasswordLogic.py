@@ -12,11 +12,14 @@ def ForgotPasswordClicked(form):
 
 
 
+
+
+
 def HandleForgotPassword(form):
     """Handle send OTP button click."""
     from PyQt6.QtWidgets import QMessageBox
 
-    logging.debug("sendOTP clicked")
+    logging.debug("HandleForgotPassword clicked")
     email = form.email_input.text().strip()
 
     if not email:
@@ -33,6 +36,10 @@ def HandleForgotPassword(form):
             logging.debug(f"User exists: {email}")
             QMessageBox.information(None, "Success", f"Verification code sent to {email}")
             #todo send otp to email
+
+
+
+
 
 
         else:
