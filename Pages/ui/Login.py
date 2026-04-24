@@ -93,7 +93,7 @@ class Login(QMainWindow):
         root.setSpacing(40)
 
         # ── LEFT SIDE (ANIMATION) ─────────────────
-        self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan")
+        self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan" )
         #\n\nOSINT\nNetwork\nCommunication\nPowered By AI! \n
         root.addWidget(self.typing_label, 1)
 
