@@ -94,6 +94,7 @@ class Login(QMainWindow):
 
         # ── LEFT SIDE (ANIMATION) ─────────────────
         self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan")
+        #\n\nOSINT\nNetwork\nCommunication\nPowered By AI! \n
         root.addWidget(self.typing_label, 1)
 
         # ── RIGHT SIDE (AUTH CARD) ─────────────────
