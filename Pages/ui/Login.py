@@ -22,7 +22,7 @@ from Pages.logic.ForgotPasswordLogic import ForgotPasswordClicked
 from UserDatabase import UserDatabase
 from Constants import RESP_LOGIN_USER_NOT_FOUND, RESP_LOGIN_FAIL
 from Pages.ui.uiConstants import BwBgNeurons
-
+from PyQt6.QtGui import QPixmap, QBrush
 
 # ──────────────────────────────────────────
 #  TYPING ANIMATION WIDGET
@@ -71,29 +71,30 @@ class Login(QMainWindow):
         self._build_layout()
 
     def _build_layout(self):
+        # Apply background to main window, not central widget
+        self.setStyleSheet(f"""
+            QMainWindow {{
+                background-image: url({BwBgNeurons});
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-size: cover;
+                background-color: #000000;
+            }}
+        """)
+
         central = QWidget()
+        central.setStyleSheet("QWidget { background-color: transparent; }")
         self.setCentralWidget(central)
-
-
-        background_style = f"""
-             QWidget {{
-                 background-image: url({BwBgNeurons});
-                 background-position: center;
-                 background-repeat: no-repeat;
-                 background-attachment: fixed;
-             }}
-         """
-        central.setStyleSheet(background_style)
 
         # Single unified layout for the whole window
         root = QHBoxLayout(central)
-        root.setContentsMargins(80, 0, 80, 0)  # Margins to keep things away from the screen edges
+        root.setContentsMargins(80, 0, 80, 0)
         root.setSpacing(40)
 
         # ── LEFT SIDE (ANIMATION) ─────────────────
         self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan")
         root.addWidget(self.typing_label, 1)
-
 
         # ── RIGHT SIDE (AUTH CARD) ─────────────────
         card_container = QVBoxLayout()
@@ -114,16 +115,6 @@ class Login(QMainWindow):
         hdr.addStretch()
         card_layout.addLayout(hdr)
 
-
-        """
-        sub_lbl = QLabel("GET INTO NEURON")
-        sub_lbl.setFont(QFont(FONT_MONO, 10))
-        sub_lbl.setStyleSheet(f"color: #EF233C; letter-spacing: 2px;")
-        card_layout.addWidget(sub_lbl)
-        card_layout.addSpacing(10)
-
-        """
-
         self.stacked_forms = QStackedWidget()
         self.login_form = LoginForm(self.show_signup)
         self.signup_form = SignupForm(self.show_login)
@@ -133,14 +124,10 @@ class Login(QMainWindow):
         self.stacked_forms.addWidget(self.signup_form)
         self.stacked_forms.addWidget(self.forgot_password_form)
 
-
         card_layout.addWidget(self.stacked_forms)
 
-        # Add the card container to the right side of the root layout
         card_container.addWidget(self.auth_card)
         root.addLayout(card_container, 1)
-
-
 
     def show_signup(self):
         self.stacked_forms.setCurrentIndex(1)
