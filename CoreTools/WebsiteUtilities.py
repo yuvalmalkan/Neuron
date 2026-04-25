@@ -35,4 +35,4 @@ def downloadHtml(url):
 
 
 if __name__ == "__main__":
-    downloadHtml("https://www.example.com")
+    downloadHtml("https://www.instagram.com/yuvalmalkan_")
