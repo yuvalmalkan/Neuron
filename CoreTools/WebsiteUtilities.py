@@ -1,37 +1,38 @@
 __author__ = "Yuval Malkan"
 
+import os
 import logging
-
 import requests
+from Constants import debug
+
+TEMP_FOLDER_PATH = "temp/"
 
 
 def downloadHtml(url):
-    """
-    downloads a websites source code
-
-    args: url
-
-    """
-
     try:
 
-        response = requests.get(url)
+        filename = url.split("://")[-1].replace("/", "_").replace(".", "_").replace("?", "_")
 
-        # Check if the request was successful (Status Code 200)
+        if not filename:
+            filename = "webpage"
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+
+        logging.info(f"downloading {filename}...")
+
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
 
-        html_content = response.text
+        filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
 
-        logging.debug("Successfully downloaded source code!")
-        # print(html_content)
+        with open(filepath, 'w', encoding='utf-8') as file:
+            file.write(response.text)
 
-        with open('page_source.html', 'w', encoding='utf-8') as file:
-            file.write(html_content)
+        logging.debug(f"Saved to {filepath}")
 
-    except requests.exceptions.RequestException as e:
-        logging.debug(f"An error occurred: {e}")
-
+    except Exception as e:
+        logging.error(f"Error: {e}")
 
 
 if __name__ == "__main__":
-    downloadHtml("https://www.instagram.com")
+    downloadHtml("https://www.example.com")
