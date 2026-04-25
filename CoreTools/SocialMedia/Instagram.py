@@ -37,7 +37,7 @@ def get_info_from_html(filename: str) -> dict:
         data = file.read()
 
 
-        username =  re.search(r"username: (.*)", data)
+        username =  re.search(r"username: (.*)", data) #todo fix search
 
 
         if username:
