@@ -46,6 +46,7 @@ def get_info_from_html(filename: str) -> dict:
 
 
 
+        #fixme remove "See Instagram photos and videos from "
         display_name = re.search(r'Posts\s+-\s+([^(]+?)\s+\(&#064;', data)
         if display_name:
             profile["display_name"] = display_name.group(1).strip()
