@@ -3,7 +3,7 @@ __author__ = 'Yuval Malkan'
 import re
 import json
 import os
-
+import logging
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -37,11 +37,12 @@ def get_info_from_html(filename: str) -> dict:
         data = file.read()
 
 
-        username =  re.search(r"username: (.*)", data) #todo fix search
-
-
+        username = re.search(r'username=([^"]*)', data)
         if username:
             profile["username"] = username.group(1)
+            logging.debug(f"Found username: {username.group(1)}")
+
+
 
         return profile
 
