@@ -5,6 +5,7 @@ import json
 import os
 import logging
 from Constants import debug
+import html
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -12,6 +13,12 @@ TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
 def get_info_from_html(filename: str) -> dict:
+    """
+    args: html filename(from temp folder)
+    returns: profile info in a dict
+    """
+
+
     filePath = os.path.join(TEMP_FOLDER, filename)
 
     profile = {
@@ -66,7 +73,38 @@ def get_info_from_html(filename: str) -> dict:
         if bio:
             profile["bio"] = bio.group(1)
 
+
+
+        profile_picture_url = re.search(r'property="og:image"\s+content="([^"]*)"', data)
+        if profile_picture_url:
+            profile["profile_picture_url"] = fix_profile_pic_url(profile_picture_url.group(1))
+
+
+        profile_url = f"https://www.instagram.com/{profile['username']}/"
+        profile["profile_url"] = profile_url
+
+
+
         return profile
+
+
+def fix_profile_pic_url(url: str) -> str:
+    """
+    Cleans HTML-encoded characters from a URL and removes
+    trailing separators that can cause hash mismatches.
+
+    args: string url
+    returns: string cleaned url
+    """
+
+    fixed_url = html.unescape(url)
+    fixed_url = fixed_url.rstrip('&')
+
+    return fixed_url
+
+
+
+
 
 
 
