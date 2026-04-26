@@ -4,6 +4,7 @@ import re
 import json
 import os
 import logging
+from Constants import debug
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -11,13 +12,6 @@ TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
 def get_info_from_html(filename: str) -> dict:
-    """
-    Get profile info from html file,
-
-    args: html file path
-    return: profile info as dict, e.g. {"username": "yuvalmalkan", "full_name": "Yuval Malkan", "bio": "Software Engineer", ...}
-    """
-
     filePath = os.path.join(TEMP_FOLDER, filename)
 
     profile = {
@@ -25,36 +19,56 @@ def get_info_from_html(filename: str) -> dict:
         "display_name": "",
         "bio": "",
         "profile_picture_url": "",
-        "followers": 0,
-        "following": 0,
+        "followers": "",
+        "following": "",
         "profile_url": "",
         "number_of_posts": 0
     }
 
-
-
     with open(filePath, "r", encoding="utf-8") as file:
         data = file.read()
 
+        followers = re.search(r'(\d+[KM]?)\s+Followers', data)
+        if followers:
+            followers_str = followers.group(1)
+            profile["followers"] = followers_str
 
-        username = re.search(r'username=([^"]*)', data)
+
+        following = re.search(r'(\d+[,\d]*)\s+Following', data)
+        if following:
+            profile["following"] = following.group(1)
+
+
+
+        posts = re.search(r'(\d+)\s+Posts', data)
+        if posts:
+            profile["number_of_posts"] = int(posts.group(1))
+
+
+
+        display_name = re.search(r'Posts\s+-\s+([^(]+?)\s+\(&#064;', data)
+        if display_name:
+            profile["display_name"] = display_name.group(1).strip()
+
+
+
+        username = re.search(r'&#064;([^)]+)\)', data)
         if username:
             profile["username"] = username.group(1)
-            logging.debug(f"Found username: {username.group(1)}")
 
 
+        bio = re.search(r'on Instagram:\s+&quot;([^&]*)', data)
+        if bio:
+            profile["bio"] = bio.group(1)
 
         return profile
 
 
 
 
-
-
-
 if __name__ == "__main__":
 
-    print(get_info_from_html("www_instagram_com_yuvalmalkan_.html"))
+    print(get_info_from_html("www_instagram_com_____darco____.html"))
 
 
 
