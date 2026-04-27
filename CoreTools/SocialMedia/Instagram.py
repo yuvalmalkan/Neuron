@@ -111,7 +111,7 @@ def fix_profile_pic_url(url: str) -> str:
 
 if __name__ == "__main__":
 
-    print(get_info_from_html("www_instagram_com_____darco____.html"))
+    print(get_info_from_html("www_instagram_com_libbysegev_.html"))
 
 
 

@@ -35,4 +35,5 @@ def downloadHtml(url):
 
 
 if __name__ == "__main__":
-    downloadHtml("https://www.instagram.com/____darco____")
+    user = input("insta username: ")
+    downloadHtml(f"https://www.instagram.com/{user}/")
