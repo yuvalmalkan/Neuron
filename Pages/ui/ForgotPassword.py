@@ -24,7 +24,11 @@ class ForgotPasswordForm(QWidget):
 
         self.sendOTP_btn = GlowingButton("SEND VERIFICATION CODE", "primary")
 
+        self.OTP_input = GlowInput("Password Reset Code")
+
         self.switch_btn = GlowingButton("SWITCH BACK TO LOGIN", "danger")
+
+
 
         self.switch_btn.clicked.connect(lambda: self.window().show_login())
         self.sendOTP_btn.clicked.connect(lambda: HandleForgotPassword(self))
@@ -34,12 +38,16 @@ class ForgotPasswordForm(QWidget):
         layout.addWidget(self.email_input)
         layout.addSpacing(30)
         layout.addWidget(self.sendOTP_btn)
+        layout.addWidget(self.OTP_input)
         layout.addStretch()
 
         layout.addWidget(self.switch_btn)
 
 
         #todo make it so when the send code is clicked a text will appear saying "Verification code sent to email" and then show the input fields for the code and new password, and a button to submit the new password
+
+
+
 
 
 
