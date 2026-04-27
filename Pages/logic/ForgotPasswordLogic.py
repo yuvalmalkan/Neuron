@@ -23,6 +23,7 @@ def ForgotPasswordClicked(form):
 
 
 
+
 def HandleForgotPassword(form):
     """Handle send OTP button click."""
     from PyQt6.QtWidgets import QMessageBox
