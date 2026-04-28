@@ -88,6 +88,8 @@ def get_info_from_html(filename: str) -> dict:
         return profile
 
 
+
+
 def fix_profile_pic_url(url: str) -> str:
     """
     Cleans HTML-encoded characters from a URL and removes
