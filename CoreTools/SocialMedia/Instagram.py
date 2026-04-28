@@ -103,7 +103,7 @@ def fix_profile_pic_url(url: str) -> str:
     return fixed_url
 
 
-#todo fix dot in username instagram
+
 
 
 

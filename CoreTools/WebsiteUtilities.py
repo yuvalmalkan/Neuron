@@ -8,7 +8,7 @@ from Constants import debug
 TEMP_FOLDER_PATH = "temp/"
 
 
-def downloadHtml(url):
+def downloadHtml(url): #todo fix dot in username instagram
     try:
 
         filename = url.split("://")[-1].replace("/", "_").replace(".", "_").replace("?", "_")
