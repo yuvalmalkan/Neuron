@@ -13,7 +13,9 @@ from Pages.logic.ForgotPasswordLogic import HandleForgotPassword
 
 
 class ForgotPasswordForm(QWidget):
-    #todo write forgot password form, with a 5 minute code sent to email and input field to enter code and new password
+    #fixme write forgot password form, with a 5 minute code sent to email and input field to enter code and new password
+
+    #todo add new password input and submit button
     def __init__(self, parent=None):
         super().__init__(parent)
         layout = QVBoxLayout(self)
