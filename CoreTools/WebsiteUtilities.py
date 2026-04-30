@@ -8,15 +8,32 @@ from Constants import debug
 TEMP_FOLDER_PATH = "temp/"
 
 
-def downloadHtml(url): #todo fix dot in username instagram
+def downloadHtml(url):
     try:
 
-        filename = url.split("://")[-1].replace("/", "_").replace(".", "_").replace("?", "_")
+        path_part = url.split("://")[-1]  # "www.instagram.com/john.doe/"
+
+        # For Instagram, extract username from URL if possible
+        if "instagram.com/" in path_part:
+
+            username = path_part.split("instagram.com/")[-1].rstrip("/")
+            print(f"1 {username}")
+            filename = f"instagram_{username}"
+
+
+        else:
+            # For other URLs, sanitize but keep dots in the actual content
+            filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
+
+
+        # Remove any remaining problematic characters
+        filename = filename.replace(":", "_")
 
         if not filename:
             filename = "webpage"
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+
 
         logging.info(f"downloading {filename}...")
 
