@@ -57,4 +57,4 @@ def downloadHtml(url):
 if __name__ == "__main__":
     #user = input("insta username: ")
     #downloadHtml(f"https://www.instagram.com/{user}/")
-    downloadHtml("https://www.linkedin.com/in/itay-belogorodsky-9b9a003aa/")
+    downloadHtml("https://www.facebook.com/oshri.bouhnik")
