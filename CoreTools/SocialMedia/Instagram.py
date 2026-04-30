@@ -77,7 +77,9 @@ def get_info_from_html(filename: str) -> dict:
 
         profile_picture_url = re.search(r'property="og:image"\s+content="([^"]*)"', data)
         if profile_picture_url:
-            profile["profile_picture_url"] = fix_profile_pic_url(profile_picture_url.group(1))
+            profile_picture_url = profile_picture_url.group(1)
+            profile["profile_picture_url"] = fix_profile_pic_url(profile_picture_url)
+
 
 
         profile_url = f"https://www.instagram.com/{profile['username']}/"
@@ -103,7 +105,6 @@ def fix_profile_pic_url(url: str) -> str:
     fixed_url = fixed_url.rstrip('&')
 
     return fixed_url
-
 
 
 

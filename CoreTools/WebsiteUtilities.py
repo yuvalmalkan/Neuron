@@ -4,6 +4,7 @@ import os
 import logging
 import requests
 from Constants import debug
+import re
 
 TEMP_FOLDER_PATH = "temp/"
 
@@ -49,6 +50,8 @@ def downloadHtml(url):
 
     except Exception as e:
         logging.error(f"Error: {e}")
+
+
 
 
 if __name__ == "__main__":
