@@ -12,6 +12,11 @@ TEMP_FOLDER_PATH = "temp/"
 
 
 def downloadHtml(url):
+    """
+    args: url
+    returns: void, downloads html into temp folder
+
+    """
     try:
 
         path_part = url.split("://")[-1]  # "www.instagram.com/john.doe/"
