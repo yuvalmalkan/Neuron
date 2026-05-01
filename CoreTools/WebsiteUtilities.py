@@ -117,5 +117,5 @@ def downloadRenderedHtml(url):
 if __name__ == "__main__":
     #user = input("insta username: ")
     #downloadHtml(f"https://www.instagram.com/{user}/")
-    downloadHtml("https://www.facebook.com/oshri.bouhnik")
-    #download_rendered_html("https://www.facebook.com/oshri.bouhnik")
+    #downloadHtml("https://www.facebook.com/oshri.bouhnik")
+    downloadRenderedHtml("https://www.facebook.com/oshri.bouhnik")

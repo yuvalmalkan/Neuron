@@ -12,6 +12,16 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
+
+
+# for facebook profiles use downloadRenderedHtml
+
+
+
+
+
+
+
 def get_info_from_html(filename: str) -> dict: #fixme only pfp works fix fix
     """
     args: html filename(from temp folder)
