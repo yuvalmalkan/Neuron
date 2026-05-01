@@ -58,9 +58,10 @@ def downloadHtml(url):
 
 
 def downloadRenderedHtml(url):
-
-
-
+    """
+    args: website url
+    returns: void, downloads html into temp folder
+    """
     with sync_playwright() as p:
 
         path_part = url.split("://")[-1]
@@ -111,3 +112,5 @@ def downloadRenderedHtml(url):
 if __name__ == "__main__":
     #user = input("insta username: ")
     #downloadHtml(f"https://www.instagram.com/{user}/")
+    downloadHtml("https://www.facebook.com/oshri.bouhnik")
+    #download_rendered_html("https://www.facebook.com/oshri.bouhnik")
