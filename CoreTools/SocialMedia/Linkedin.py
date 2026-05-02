@@ -17,19 +17,23 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
     visible browser
     bypasses cookie walls
 
+    sometimes a captcha will appear, in that case it will prompt the user to solve it manually
+
     """
+
     clean_url = re.sub(r"https?://(www\.)?", "", profile_url).rstrip("/).,?'\"")
-    print(f"🕵️‍♂️ Booting OSINT browser for: {clean_url}...\n")
+    logging.info(f"Booting browser for: {clean_url}...\n")
     search_query = f"site:{clean_url}"
 
     with sync_playwright() as p:
+
         browser = p.chromium.launch(
             headless=False,
             args=["--disable-blink-features=AutomationControlled"]
         )
 
-        # --- THE IDENTITY FORGE ---
-        # Force the deep network headers so Google doesn't fall back to your physical IP's language
+
+        #so the results will be english only
         context = browser.new_context(
             locale="en-US",
             timezone_id="America/New_York",
@@ -41,35 +45,38 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
         page = context.new_page()
 
         try:
-            # We still keep the URL parameters as a second layer of defense
+
             page.goto(f"https://www.google.com/search?q={search_query}&hl=en&gl=us")
 
-            # --- 1. THE CAPTCHA HANDLER ---
+            #if a captcha appeared do this
             if "unusual traffic" in page.content() or "reCAPTCHA" in page.content():
-                print("🛑 GOOGLE CAPTCHA DETECTED!")
-                print("👉 Please look at the Chrome window and solve the CAPTCHA manually.")
-                print("⏳ Waiting for you to solve it (60s timeout)...")
+                logging.warning("GOOGLE CAPTCHA DETECTED!")
+                logging.warning("Please look at the Chrome window and solve the CAPTCHA manually.")
+                logging.warning("Waiting for you to solve it (60s timeout)...")
                 page.wait_for_selector('h3', timeout=60000)
-                print("✅ CAPTCHA solved! Proceeding...\n")
+                logging.warning("CAPTCHA solved! Proceeding...\n")
 
-            # --- 2. THE COOKIE CRUSHER ---
+
+
+            #bypass cookie wall if it appears
             try:
                 reject_button = page.locator("button:has-text('Reject all')")
                 if reject_button.count() > 0:
                     reject_button.first.click()
                     page.wait_for_load_state('networkidle')
+
             except Exception:
                 pass
 
-                # --- 3. EXTRACTION ---
+
+
             page.wait_for_selector('h3', timeout=5000)
+
             html_content = page.content()
 
             if "did not match any documents" in html_content:
-                print("❌ Google has zero records for this exact URL. The profile is hidden from search engines.")
+                logging.info("Google has zero records for this exact URL. The profile is hidden from search engines.")
                 return
-
-
 
 
             title_element = page.locator('h3').first
@@ -80,14 +87,10 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
 
             if snippet_element.count() > 0:
                 snippet = snippet_element.inner_text()
-                print(f"📝 Public Data Snippet:\n{snippet}\n")
-                # --- 4. BILINGUAL SMART METRIC PARSER ---
-                # Search for English OR Hebrew follower/connection keywords using Regex
-                # This ignores invisible Right-To-Left formatting characters
 
+                print(f"Public Data Snippet:\n{snippet}\n")
 
-
-                # We look for a number (with optional K/M or commas) followed by the keyword
+                #look for a number followed by k or m
                 match = re.search(r'([\d\.,]+[KM]?)\s*(?:followers|connections|עוקבים|חיבורים)', snippet, re.IGNORECASE)
 
                 if match:
@@ -106,10 +109,10 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
 
                         # If it found 'חיבורים' or 'connections', label it appropriately
                         label = "Connections" if "חיבורים" in snippet or "connections" in snippet.lower() else "Followers"
-                        print(f"📈 Estimated {label}: {int(number):,}")
+                        print(f"estimated {label}: {int(number):,}")
 
         except Exception as e:
-            print(f"❌ Automation error: {e}")
+            logging.error(f"Automation error: {e}")
 
         finally:
             page.wait_for_timeout(1500)
