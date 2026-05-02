@@ -8,7 +8,7 @@ import logging
 
 
 
-def scrape_linkedin_osint(profile_url):
+def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it better
     """
     args: string profile_url (linkedin profile URL)
     returns: void # todo make it return a dict with the scraped info or something similar
