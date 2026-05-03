@@ -6,11 +6,10 @@ import logging
 
 
 
-def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it better
+def scrape_linkedin_osint(profile_url):
     """
     args: string profile_url (linkedin profile URL)
-    returns: void # todo make it return a dict with the scraped info or something similar
-
+    returns: dict with scraped LinkedIn profile data
 
     visible browser
     bypasses cookie walls
@@ -30,8 +29,7 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
             args=["--disable-blink-features=AutomationControlled"]
         )
 
-
-        #so the results will be english only
+        # so the results will be english only
         context = browser.new_context(
             locale="en-US",
             timezone_id="America/New_York",
@@ -42,11 +40,18 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
         )
         page = context.new_page()
 
+        data = None  # Initialize before try block
+
         try:
+            # Initialize variables with defaults
+            snippet = None
+            label = None
+            number = None
+            match = None
 
             page.goto(f"https://www.google.com/search?q={search_query}&hl=en&gl=us")
 
-            #if a captcha appeared do this
+            # if a captcha appeared do this
             if "unusual traffic" in page.content() or "reCAPTCHA" in page.content():
                 logging.warning("GOOGLE CAPTCHA DETECTED!")
                 logging.warning("Please look at the Chrome window and solve the CAPTCHA manually.")
@@ -54,9 +59,7 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
                 page.wait_for_selector('h3', timeout=60000)
                 logging.warning("CAPTCHA solved! Proceeding...\n")
 
-
-
-            #bypass cookie wall if it appears
+            # bypass cookie wall if it appears
             try:
                 reject_button = page.locator("button:has-text('Reject all')")
                 if reject_button.count() > 0:
@@ -66,16 +69,13 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
             except Exception:
                 pass
 
-
-
             page.wait_for_selector('h3', timeout=5000)
 
             html_content = page.content()
 
             if "did not match any documents" in html_content:
                 logging.info("Google has zero records for this exact URL. The profile is hidden from search engines.")
-                return
-
+                return None
 
             title_element = page.locator('h3').first
             snippet_element = page.locator('.VwiC3b').first
@@ -86,9 +86,9 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
             if snippet_element.count() > 0:
                 snippet = snippet_element.inner_text()
 
-                print(f"Public Data Snippet:\n{snippet}\n") #todo add auto transliation for public data
+                print(f"Public Data Snippet:\n{snippet}\n")  # todo add auto translation for public data
 
-                #look for a number followed by k or m
+                # look for a number followed by k or m
                 match = re.search(r'([\d\.,]+[KM]?)\s*(?:followers|connections|עוקבים|חיבורים)', snippet, re.IGNORECASE)
 
                 if match:
@@ -109,6 +109,15 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
                         label = "Connections" if "חיבורים" in snippet or "connections" in snippet.lower() else "Followers"
                         print(f"estimated {label}: {int(number):,}")
 
+            data = {
+                "profile_url": profile_url,
+                "clean_url": clean_url,
+                "name_headline": title_element.inner_text() if title_element.count() > 0 else None,
+                "public_data_snippet": snippet,
+                "connection_type": label,
+                "count": int(number) if match else None,
+            }
+
         except Exception as e:
             logging.error(f"Automation error: {e}")
 
@@ -116,4 +125,13 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
             page.wait_for_timeout(1500)
             browser.close()
 
+        return data
+
+
+
+
+
+if __name__ == "__main__":
+    dict =scrape_linkedin_osint("https://www.linkedin.com/in/itay-belogorodsky-9b9a003aa/")
+    print(dict)
 
