@@ -6,7 +6,7 @@ import logging
 
 
 
-def scrape_linkedin_osint(profile_url):
+def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated data in the returned dict
     """
     args: string profile_url (linkedin profile URL)
     returns: dict with scraped LinkedIn profile data
