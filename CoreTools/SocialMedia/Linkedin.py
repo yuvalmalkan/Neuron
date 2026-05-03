@@ -88,7 +88,7 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
             if snippet_element.count() > 0:
                 snippet = snippet_element.inner_text()
 
-                print(f"Public Data Snippet:\n{snippet}\n")
+                print(f"Public Data Snippet:\n{snippet}\n") #todo add auto transliation for public data
 
                 #look for a number followed by k or m
                 match = re.search(r'([\d\.,]+[KM]?)\s*(?:followers|connections|עוקבים|חיבורים)', snippet, re.IGNORECASE)
@@ -107,7 +107,7 @@ def scrape_linkedin_osint(profile_url): #fixme add proper logging and make it be
                         elif multiplier == 'M':
                             number *= 1_000_000
 
-                        # If it found 'חיבורים' or 'connections', label it appropriately
+                        # translate
                         label = "Connections" if "חיבורים" in snippet or "connections" in snippet.lower() else "Followers"
                         print(f"estimated {label}: {int(number):,}")
 
