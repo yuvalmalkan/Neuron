@@ -107,6 +107,10 @@ def FacebookDownloadRenderedHtml(url):
         browser.close()
 
 
+
+
+
+
 def close_login_popup(page):
     """
     Detects and closes Facebook login popups by clicking the X button.
@@ -167,6 +171,50 @@ def close_login_popup(page):
     except Exception as e:
         logging.warning(f"Error handling login popup: {e}")
         return False
+
+
+def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
+    """
+    Downloads Facebook profile HTML with retry logic for popup handling.
+
+    Args:
+        url: Facebook profile URL
+        max_retries: Maximum number of retry attempts
+
+    Returns:
+        str: Filename if successful, None if failed
+    """
+    for attempt in range(max_retries):
+        try:
+            logging.info(f"Attempt {attempt + 1}/{max_retries}")
+            FacebookDownloadRenderedHtml(url)
+
+            # Check if the HTML was successfully saved and contains meaningful data
+            path_part = url.split("://")[-1]
+            filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
+            filename = filename.replace(":", "_")
+            filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
+
+            if os.path.exists(filepath):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    # Check for common Facebook profile indicators
+                    if 'og:title' in content or 'profile' in content.lower():
+                        logging.info(f"Successfully downloaded and verified Facebook profile")
+                        return filename
+                    else:
+                        logging.warning(f"HTML downloaded but may contain popup or error page")
+
+        except Exception as e:
+            logging.error(f"Attempt {attempt + 1} failed: {e}")
+
+        if attempt < max_retries - 1:
+            logging.info(f"Retrying in 2 seconds...")
+            time.sleep(2)
+
+    logging.error(f"Failed to download Facebook profile after {max_retries} attempts")
+    return None
+
 
 
 if __name__ == "__main__":
