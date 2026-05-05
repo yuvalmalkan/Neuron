@@ -11,6 +11,9 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
+
+
+#todo maybe add a automatic bypass to login wall by clicking x
 def get_info_from_html(filename: str) -> dict:
     """
     Extracts profile information from a Facebook HTML file.
