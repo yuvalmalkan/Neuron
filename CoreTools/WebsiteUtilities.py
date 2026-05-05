@@ -122,57 +122,51 @@ def close_login_popup(page):
         return False
 
 
-
-
-
 def FacebookDownloadRenderedHtml(url):
     """
-    args: website url
-    returns: void, downloads html into temp folder
-    Automatically handles login popups by closing them
+    Downloads Facebook profile with better popup handling and content loading
     """
     with sync_playwright() as p:
-
         path_part = url.split("://")[-1]
         filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
         filename = filename.replace(":", "_")
 
-        # Launch a headless Chromium browser
         browser = p.chromium.launch(headless=False)
-
-        # Add a normal User-Agent so Facebook doesn't immediately flag you as a bot
         context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
         page = context.new_page()
 
         logging.info(f"Navigating to {url}...")
-
-        # wait_until="networkidle" tells the script to wait until network activity calms down
         try:
             page.goto(url, wait_until="networkidle", timeout=15000)
-
         except Exception as e:
-            logging.error(f"Page loaded, but hit a timeout waiting for network to idle: {e}")
+            logging.error(f"Timeout: {e}")
 
-        # Optional: Wait a couple of extra seconds for React to finish rendering DOM elements
-        time.sleep(2)
+        time.sleep(3)  # Increased from 2 to 3
 
-        # Close any login popups that might appear
+        # Close any login popups
         if close_login_popup(page):
-            logging.info("Login popup was closed, waiting for page to stabilize...")
+            logging.info("Popup closed, waiting for content to load...")
+            time.sleep(5)  # INCREASE THIS - was 2, now 5 seconds
+
+            # Scroll to load dynamic content
+            page.evaluate("window.scrollBy(0, window.innerHeight * 3)")
+            time.sleep(3)
+
+            # Scroll back to top
+            page.evaluate("window.scrollTo(0, 0)")
             time.sleep(2)
-            # Wait for network to settle after closing popup
+
+            # Wait for page to settle
             try:
                 page.wait_for_load_state("networkidle", timeout=5000)
             except:
                 pass
 
-        time.sleep(1)
+        time.sleep(2)
 
-        # Extract the fully rendered HTML
         html_content = page.content()
-
         filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
 
         with open(filepath, "w", encoding="utf-8") as f:
