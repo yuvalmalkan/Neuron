@@ -11,6 +11,9 @@ import time
 TEMP_FOLDER_PATH = "temp/"
 
 
+#fixme make it download all the informatin facebook
+
+
 
 def downloadHtml(url):
     """
@@ -124,7 +127,7 @@ def close_login_popup(page):
 
 def FacebookDownloadRenderedHtml(url):
     """
-    Downloads Facebook profile with better popup handling and content loading
+    Downloads Facebook profile HTML with better popup handling and scrolling for dynamic content
     """
     with sync_playwright() as p:
         path_part = url.split("://")[-1]
@@ -141,24 +144,27 @@ def FacebookDownloadRenderedHtml(url):
         try:
             page.goto(url, wait_until="networkidle", timeout=15000)
         except Exception as e:
-            logging.error(f"Timeout: {e}")
+            logging.error(f"Page loaded, but hit a timeout: {e}")
 
-        time.sleep(3)  # Increased from 2 to 3
+        time.sleep(3)
 
         # Close any login popups
         if close_login_popup(page):
-            logging.info("Popup closed, waiting for content to load...")
-            time.sleep(5)  # INCREASE THIS - was 2, now 5 seconds
+            logging.info("Login popup closed, waiting for content to load...")
+            time.sleep(5)  # IMPORTANT: Wait for content to render
 
-            # Scroll to load dynamic content
-            page.evaluate("window.scrollBy(0, window.innerHeight * 3)")
-            time.sleep(3)
+            # CRUCIAL: Scroll multiple times to trigger lazy-loading of all profile data
+            # Photos, work info, education, and other details load as you scroll
+            logging.info("Scrolling profile to load dynamic content...")
+            for scroll_iter in range(6):  # Scroll 6 times
+                page.evaluate("window.scrollBy(0, window.innerHeight);")
+                time.sleep(1)  # Wait for content to load after each scroll
 
-            # Scroll back to top
-            page.evaluate("window.scrollTo(0, 0)")
+            # Scroll back to top to ensure all visible content is in the DOM
+            page.evaluate("window.scrollTo(0, 0);")
             time.sleep(2)
 
-            # Wait for page to settle
+            # Final wait for network to settle
             try:
                 page.wait_for_load_state("networkidle", timeout=5000)
             except:
@@ -166,6 +172,7 @@ def FacebookDownloadRenderedHtml(url):
 
         time.sleep(2)
 
+        # Extract the fully rendered HTML
         html_content = page.content()
         filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
 
@@ -174,7 +181,6 @@ def FacebookDownloadRenderedHtml(url):
 
         print(f"Successfully saved to {filename}")
         browser.close()
-
 
 
 
