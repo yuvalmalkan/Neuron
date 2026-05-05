@@ -21,7 +21,7 @@ TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
 
-
+#todo refacor function name to facebook_...
 def get_info_from_html(filename: str) -> dict: #fixme only pfp works fix fix
     """
     args: html filename(from temp folder)
