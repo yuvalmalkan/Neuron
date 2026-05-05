@@ -62,7 +62,7 @@ def downloadHtml(url):
 
 
 
-def downloadRenderedHtml(url):
+def FacebookDownloadRenderedHtml(url):
     """
     args: website url
     returns: void, downloads html into temp folder
@@ -75,7 +75,7 @@ def downloadRenderedHtml(url):
 
 
         # Launch a headless Chromium browser
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
 
         # Add a normal User-Agent so Facebook doesn't immediately flag you as a bot
         context = browser.new_context(
@@ -107,19 +107,71 @@ def downloadRenderedHtml(url):
         browser.close()
 
 
+def close_login_popup(page):
+    """
+    Detects and closes Facebook login popups by clicking the X button.
 
+    Args:
+        page: Playwright page object
 
+    Returns:
+        bool: True if popup was closed, False if no popup found
+    """
+    try:
+        # Wait a moment for popup to appear if it exists
+        time.sleep(1)
 
+        # Multiple selectors for the close button across different Facebook layouts
+        close_button_selectors = [
+            'button[aria-label="Close"]',
+            'button[aria-label="close"]',
+            'div[role="button"][aria-label="Close"]',
+            'div[role="button"][aria-label="close"]',
+            'button.x9f619.x1iyjqo2',  # Facebook's X button class
+            '[data-testid="modal_close_button"]',
+            'button[aria-label*="Close"]',
+            'svg[aria-label="Close"] ..',  # SVG close icon
+            '.x1iyjqo2.xs83m0k.x6ikm8r.x10wlt62',  # Another close button variant
+        ]
 
+        popup_selectors = [
+            '[role="dialog"]',
+            '.xw3o3--iframe',
+            '.x9f619',
+        ]
 
+        # Check if a popup/dialog is visible
+        for popup_selector in popup_selectors:
+            try:
+                popups = page.query_selector_all(popup_selector)
+                if popups:
+                    logging.info(f"Found popup with selector: {popup_selector}")
 
+                    # Try to find and click the close button within the popup
+                    for close_selector in close_button_selectors:
+                        try:
+                            close_button = page.query_selector(close_selector)
+                            if close_button:
+                                logging.info(f"Found close button: {close_selector}")
+                                page.click(close_selector)
+                                time.sleep(1)  # Wait for popup to close
+                                logging.info("Successfully closed login popup")
+                                return True
+                        except Exception:
+                            continue
+            except Exception:
+                continue
 
+        return False
 
-
+    except Exception as e:
+        logging.warning(f"Error handling login popup: {e}")
+        return False
 
 
 if __name__ == "__main__":
-    user = input("insta username: ")
-    downloadHtml(f"https://www.instagram.com/{user}/")
+    user = input("username: ")
+    #downloadHtml(f"https://www.instagram.com/{user}/")
     #downloadHtml("https://www.facebook.com/oshri.bouhnik")
-    #downloadRenderedHtml("https://www.facebook.com/oshri.bouhnik")
+    FacebookDownloadRenderedHtml("https://www.facebook.com/wrytrwzn.883988")
+    #downloadRenderedHtml(f"https://www.tiktok.com/@shaniamramm") #not working
