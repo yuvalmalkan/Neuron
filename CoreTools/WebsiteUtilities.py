@@ -11,6 +11,7 @@ import time
 TEMP_FOLDER_PATH = "temp/"
 
 
+
 def downloadHtml(url):
     """
     args: url
@@ -26,13 +27,12 @@ def downloadHtml(url):
 
             username = path_part.split("instagram.com/")[-1].rstrip("/")
             print(f"1 {username}")
-            filename = f"instagram_{username}" # fixme remove hardcoded instagram
+            filename = f"instagram_{username}"  # fixme remove hardcoded instagram
 
 
         else:
             # For other URLs, sanitize but keep dots in the actual content
             filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
-
 
         # Remove any remaining problematic characters
         filename = filename.replace(":", "_")
@@ -41,7 +41,6 @@ def downloadHtml(url):
             filename = "webpage"
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-
 
         logging.info(f"downloading {filename}...")
 
@@ -57,56 +56,6 @@ def downloadHtml(url):
 
     except Exception as e:
         logging.error(f"Error: {e}")
-
-
-
-
-
-def FacebookDownloadRenderedHtml(url):
-    """
-    args: website url
-    returns: void, downloads html into temp folder
-    """
-    with sync_playwright() as p:
-
-        path_part = url.split("://")[-1]
-        filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
-        filename = filename.replace(":", "_")
-
-
-        # Launch a headless Chromium browser
-        browser = p.chromium.launch(headless=False)
-
-        # Add a normal User-Agent so Facebook doesn't immediately flag you as a bot
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        )
-        page = context.new_page()
-
-        logging.info(f"Navigating to {url}...")
-
-        # wait_until="networkidle" tells the script to wait until network activity calms down
-        try:
-            page.goto(url, wait_until="networkidle", timeout=15000)
-
-        except Exception as e:
-            logging.error(f"Page loaded, but hit a timeout waiting for network to idle: {e}")
-
-        # Optional: Wait a couple of extra seconds for React to finish rendering DOM elements
-        time.sleep(3)
-
-        # Extract the fully rendered HTML
-        html_content = page.content()
-
-        filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
-
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        print(f"Successfully saved to {filename}")
-        browser.close()
-
-
 
 
 
@@ -173,6 +122,68 @@ def close_login_popup(page):
         return False
 
 
+
+
+
+def FacebookDownloadRenderedHtml(url):
+    """
+    args: website url
+    returns: void, downloads html into temp folder
+    Automatically handles login popups by closing them
+    """
+    with sync_playwright() as p:
+
+        path_part = url.split("://")[-1]
+        filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
+        filename = filename.replace(":", "_")
+
+        # Launch a headless Chromium browser
+        browser = p.chromium.launch(headless=False)
+
+        # Add a normal User-Agent so Facebook doesn't immediately flag you as a bot
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+
+        logging.info(f"Navigating to {url}...")
+
+        # wait_until="networkidle" tells the script to wait until network activity calms down
+        try:
+            page.goto(url, wait_until="networkidle", timeout=15000)
+
+        except Exception as e:
+            logging.error(f"Page loaded, but hit a timeout waiting for network to idle: {e}")
+
+        # Optional: Wait a couple of extra seconds for React to finish rendering DOM elements
+        time.sleep(2)
+
+        # Close any login popups that might appear
+        if close_login_popup(page):
+            logging.info("Login popup was closed, waiting for page to stabilize...")
+            time.sleep(2)
+            # Wait for network to settle after closing popup
+            try:
+                page.wait_for_load_state("networkidle", timeout=5000)
+            except:
+                pass
+
+        time.sleep(1)
+
+        # Extract the fully rendered HTML
+        html_content = page.content()
+
+        filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        print(f"Successfully saved to {filename}")
+        browser.close()
+
+
+
+
 def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
     """
     Downloads Facebook profile HTML with retry logic for popup handling.
@@ -217,9 +228,10 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 
 
+
+
 if __name__ == "__main__":
     user = input("username: ")
-    #downloadHtml(f"https://www.instagram.com/{user}/")
-    #downloadHtml("https://www.facebook.com/oshri.bouhnik")
-    FacebookDownloadRenderedHtml("https://www.facebook.com/wrytrwzn.883988")
-    #downloadRenderedHtml(f"https://www.tiktok.com/@shaniamramm") #not working
+    # downloadHtml(f"https://www.instagram.com/{user}/")
+    FacebookDownloadRenderedHtmlWithRetry("https://www.facebook.com/wrytrwzn.883988")
+    # downloadRenderedHtml(f"https://www.tiktok.com/@shaniamramm") #not working
