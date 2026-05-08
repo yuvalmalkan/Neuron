@@ -15,7 +15,7 @@ TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 #todo maybe add a automatic bypass to login wall by clicking x
 
-def get_info_from_html(filename: str) -> dict:
+def Facebook_info_from_file(filename: str) -> dict:
     """
     Extracts profile information from a Facebook HTML file.
 
@@ -212,6 +212,6 @@ def fix_profile_pic_url(url: str) -> str:
 
 if __name__ == "__main__":
     filename = input("Enter filename: ")
-    result = get_info_from_html(filename)
+    result = Facebook_info_from_file(filename)
     for key, value in result.items():
         print(f"{key}: {value}")
