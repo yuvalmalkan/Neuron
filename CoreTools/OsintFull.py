@@ -1,8 +1,14 @@
 __author__ = "Yuval Malkan"
 
-
+import threading
 import Maigret
 import Sherlock
+from SocialMedia.Facebook import Facebook_info_from_file
+
+
+
+
+
 
 
 
@@ -16,7 +22,25 @@ including links to their profiles on different platforms, their activity, and an
 """
 
 
-x = Sherlock.search_username("yuvalmalkan")
+#x = Sherlock.search_username("yuvalmalkan")
 
+
+
+#function for every scan by arg, then if else to combine them
+
+
+def OsintByUsername(username: str) -> dict:
+    data = {}
+
+
+    return data
+
+
+
+
+
+
+def main():
+    pass
 
 
