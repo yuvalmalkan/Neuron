@@ -4,6 +4,7 @@ import threading
 import Maigret
 import Sherlock
 from SocialMedia.Facebook import Facebook_info_from_file
+from threading import Lock
 
 
 
@@ -28,12 +29,43 @@ including links to their profiles on different platforms, their activity, and an
 
 #function for every scan by arg, then if else to combine them
 
+def run_function_in_thread(func, results_dict, key, *args, **kwargs):
+    """Helper function to run a function in a thread and store result"""
+    try:
+        result = func(*args, **kwargs)
+        results_dict[key] = result
+    except Exception as e:
+        results_dict[key] = {"error": str(e)}
+
 
 def OsintByUsername(username: str) -> dict:
-    data = {}
+    results = {}
+    threads = []
+    
+    # Define all the functions you want to run
+    functions_to_run = [
+        (Sherlock.search_username, "sherlock", username),
+        (Maigret.Maigret_search_username, "maigret", username),
+        # Add more functions here like:
+        # (Facebook_info_from_file, "facebook", some_arg),
+        # (some_other_function, "key_name", arg1, arg2),
+    ]
+    
+    # Create and start a thread for each function
+    for func, key, *args in functions_to_run:
+        thread = threading.Thread(
+            target=run_function_in_thread,
+            args=(func, results, key, *args)
+        )
+        threads.append(thread)
+        thread.start()
+    
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+    
+    return results
 
-
-    return data
 
 
 
