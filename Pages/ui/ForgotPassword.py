@@ -6,7 +6,7 @@ import logging
 import pickle
 from Constants import *
 from UserDatabase import UserDatabase
-from Pages.logic.ForgotPasswordLogic import HandleForgotPassword
+from Pages.logic.ForgotPasswordLogic import HandleSendOTPClicked
 
 
 
@@ -38,7 +38,7 @@ class ForgotPasswordForm(QWidget):
 
 
         self.switch_btn.clicked.connect(lambda: self.window().show_login())
-        self.sendOTP_btn.clicked.connect(lambda: HandleForgotPassword(self))
+        self.sendOTP_btn.clicked.connect(lambda: HandleSendOTPClicked(self))
         #todo connect Submit_OTP_btn to function
 
 

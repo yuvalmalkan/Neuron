@@ -24,11 +24,11 @@ def ForgotPasswordClicked(form):
 
 
 
-def HandleForgotPassword(form):
+def HandleSendOTPClicked(form):
     """Handle send OTP button click."""
     from PyQt6.QtWidgets import QMessageBox
 
-    logging.debug("HandleForgotPassword clicked")
+    logging.debug("HandleSendOTPClicked clicked")
     email = form.email_input.text().strip()
 
     if not email:
