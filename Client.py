@@ -16,7 +16,8 @@ from Pages.ui.uiConstants import (
     load_application_font, load_stylesheet,
     WINDOW_BG, TEXT_TITLE, CARD_BG, SIDEBAR_BG, INPUT_FOCUS
 )
-from Pages.ui.Login import Login
+
+#from Pages.ui.Login import Login
 
 # Global socket connection
 _socket = None
@@ -24,12 +25,7 @@ _is_connected = False
 
 
 def connect_to_server(host=serverIp, port_num=port):
-    """
-    Connect to the server.
-
-    Returns:
-        bool: True if connection successful, False otherwise
-    """
+    """Connect to the server."""
     global _socket, _is_connected
 
     try:
@@ -114,6 +110,7 @@ def disconnect():
     try:
         if _is_connected:
             send_request(CMD_EXIT)
+            _is_connected = False
     except:
         pass
     finally:
@@ -133,6 +130,8 @@ def is_connected():
 
 def main():
     """Initialize and run the Neuron client GUI."""
+    from Pages.ui.Login import Login  # Import here to avoid circular imports
+
     app = QApplication(sys.argv)
 
     load_application_font()
@@ -151,7 +150,7 @@ def main():
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
     app.setPalette(palette)
 
-    # Start with Login page
+    #Login page
     window = Login()
     window.show()
     sys.exit(app.exec())
