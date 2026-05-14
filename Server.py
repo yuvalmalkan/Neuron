@@ -21,7 +21,7 @@ def main():
 
     try:
         server.bind((serverIp, port))
-        server.listen(5)
+        server.listen(10)
         logging.debug(f"server listening on {serverIp}:{port}")
 
     except Exception as e:
