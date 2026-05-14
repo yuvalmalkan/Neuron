@@ -20,7 +20,7 @@ security_code = security_code[:half_length]
 
 
 #debug
-logging.debug(f"EMAIL_SENDER: {email_sender if email_sender else 'NOT SET'}")
+logging.debug(f"EMAIL_SENDER: {'*' * len(email_sender) if email_sender else 'NOT SET'}")
 logging.debug(f"EMAIL_PASSWORD: {'*' * len(email_password) if email_password else 'NOT SET'}")
 
 
