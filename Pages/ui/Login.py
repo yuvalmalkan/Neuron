@@ -23,6 +23,9 @@ from UserDatabase import UserDatabase
 from Constants import RESP_LOGIN_USER_NOT_FOUND, RESP_LOGIN_FAIL
 from Pages.ui.uiConstants import BwBgNeurons
 from PyQt6.QtGui import QPixmap, QBrush
+import Client
+import SessionManager
+
 
 # ──────────────────────────────────────────
 #  TYPING ANIMATION WIDGET
@@ -234,6 +237,9 @@ def LoginClicked(form: LoginForm):
             logging.info(f"User {username} logged in successfully")
             user_id = response.get('user_id')
 
+            # Store session information
+            SessionManager.set_session(user_id, username, response.get('email', ''))
+
             # Close login window and open OSINT page
             login_window = form.window()
             login_window.close()
@@ -241,6 +247,7 @@ def LoginClicked(form: LoginForm):
             from Pages.ui.OsintPage import MainWindow
             osint_window = MainWindow()
             osint_window.show()
+
 
         else:
             # Provide specific error messages based on response code using constants
