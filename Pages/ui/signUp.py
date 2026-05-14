@@ -39,101 +39,64 @@ class SignupForm(QWidget):
 
 def SignupClicked(form: SignupForm):
     """
-    Handle signup button click event.
-    Validates credentials and creates new user account.
+    Handle signup button click event - SENDS TO SERVER.
 
     Args:
         form: SignupForm instance to access input fields
     """
-    from Pages.logic.SignupLogic import handle_signup, validate_password
-    from UserDatabase import UserDatabase
-    from Constants import (
-        RESP_SIGNUP_OK, RESP_SIGNUP_USER_EXISTS, RESP_SIGNUP_EMAIL_EXISTS,
-        RESP_SIGNUP_INVALID_USERNAME, RESP_SIGNUP_INVALID_EMAIL, RESP_SIGNUP_INVALID_PASSWORD
-    )
+    from Pages.logic.SignupLogic import validate_password
+    from Constants import RESP_SIGNUP_USER_EXISTS, RESP_SIGNUP_EMAIL_EXISTS
+    import Client
 
-    # Get values from input fields
     username = form.user_input.text().strip()
     email = form.email_address.text().strip()
     password = form.pass_input.text()
     password_confirm = form.pass_confirm.text()
 
-    logging.debug(f"Signup clicked for username: {username}, email: {email}")
-
-    # Validate input fields are not empty
-    if not username or not email or not password or not password_confirm:
-        logging.warning("Signup attempt with empty credentials")
+    # Validation
+    if not all([username, email, password, password_confirm]):
         QMessageBox.warning(None, "Validation Error", "Please fill in all fields")
         return
 
-    # Validate passwords match
     if password != password_confirm:
-        logging.warning(f"Signup failed: passwords do not match for {username}")
         QMessageBox.warning(None, "Validation Error", "Passwords do not match")
         form.pass_input.clear()
         form.pass_confirm.clear()
         return
 
+    if not validate_password(password):
+        QMessageBox.warning(None, "Validation Error", "Password must be at least 8 characters")
+        return
+
     try:
-        # Initialize database connection with explicit path
-        import os
-        # Get the root directory (go up 2 levels from Pages/ui/)
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
-        db = UserDatabase(db_path)
+        # Connect to server if not already connected
+        if not Client.is_connected():
+            if not Client.connect_to_server():
+                QMessageBox.critical(None, "Connection Error", "Could not connect to server. Is it running?")
+                return
 
-        # Call signup handler
-        success, response_code, user = handle_signup(username, email, password, db)
+        # Send signup request to server
+        response = Client.signup(username, email, password)
 
-
-
-        if success:
+        # Check response
+        if response.get('status') == 'success':
             logging.info(f"User {username} signed up successfully")
-            QMessageBox.information(None, "Success", f"Welcome to Neuron, {username}!\nPlease log in with your credentials.")
-
-
-            # Clear fields on signup
-            form.user_input.clear()
-            form.email_address.clear()
-            form.pass_input.clear()
-            form.pass_confirm.clear()
-
-            login_window = form.window()
-            login_window.show_login()
-            logging.info(f"Switched back to login form after successful signup")
-
-
-
-
+            QMessageBox.information(None, "Success", "Account created! Please log in.")
+            # Switch back to login form
+            form.window().show_login()
         else:
-            # error messages if credentials are not correct
+            response_code = response.get('code')
+
             if response_code == RESP_SIGNUP_USER_EXISTS:
-                error_msg = "Username already exists. Please choose a different one."
-                logging.warning(f"Signup failed: {error_msg}")
+                error_msg = "Username already exists"
             elif response_code == RESP_SIGNUP_EMAIL_EXISTS:
-                error_msg = "Email address already registered. Please use a different email or log in."
-                logging.warning(f"Signup failed: {error_msg}")
-            elif response_code == RESP_SIGNUP_INVALID_USERNAME:
-                error_msg = "Invalid username format. Username must be 3-20 characters and contain only letters, numbers, and underscores."
-                logging.warning(f"Signup failed: {error_msg}")
-            elif response_code == RESP_SIGNUP_INVALID_EMAIL:
-                error_msg = "Invalid email address format. Please enter a valid email."
-                logging.warning(f"Signup failed: {error_msg}")
-            elif response_code == RESP_SIGNUP_INVALID_PASSWORD:
-                error_msg = "Password must be:\n- At least 8 characters long\n- Contain uppercase and lowercase letters\n- Contain at least one digit"
-                logging.warning(f"Signup failed: {error_msg}")
+                error_msg = "Email already registered"
             else:
-                error_msg = "Signup failed. Please try again."
-                logging.error(f"Signup failed with response code: {response_code}")
+                error_msg = response.get('message', 'Signup failed. Please try again.')
 
             QMessageBox.critical(None, "Signup Failed", error_msg)
-            # Clear sensitive fields on failed signup
-            form.pass_input.clear()
-            form.pass_confirm.clear()
-
-
-
 
     except Exception as e:
         logging.error(f"Unexpected error during signup: {e}")
         QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
+
