@@ -241,6 +241,7 @@ def LoginClicked(form: LoginForm):
             SessionManager.set_session(user_id, username, response.get('email', ''))
 
             # Close login window and open OSINT page
+
             login_window = form.window()
             login_window.close()
 
