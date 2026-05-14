@@ -23,7 +23,6 @@ def ForgotPasswordClicked(form):
 
 
 
-
 def HandleSendOTPClicked(form):
     """Handle send OTP button click."""
     from PyQt6.QtWidgets import QMessageBox
@@ -57,7 +56,7 @@ def HandleSendOTPClicked(form):
 
         else:
             logging.warning(f"User does not exist: {email}")
-            QMessageBox.critical(None, "Error", "Email not found in database")
+            QMessageBox.critical(None, "Error", "User does not exist")
 
 
 
@@ -132,3 +131,15 @@ def VerifyOTP(email, codeAttempt):
     else:
         logging.warning(f"No pending OTP for {email}")
         return (RESP_ERROR, "No pending verification code for this email")
+
+
+
+
+
+
+
+def HandleOTPSubmit(form):
+    # final stage before changing the password.
+    #
+    logging.debug("OTPSubmit clicked")
+
