@@ -4,6 +4,8 @@ import logging
 from PyQt6.QtWidgets import *
 from Pages.ui.uiElements import *
 #from Pages.ui.Login import Login
+import SessionManager
+
 
 
 class SignupForm(QWidget):
@@ -81,9 +83,19 @@ def SignupClicked(form: SignupForm):
         # Check response
         if response.get('status') == 'success':
             logging.info(f"User {username} signed up successfully")
+
+            # Store session for auto-login
+            SessionManager.set_session(
+                response.get('user_id'),
+                response.get('username'),
+                response.get('email')
+            )
+
             QMessageBox.information(None, "Success", "Account created! Please log in.")
             # Switch back to login form
             form.window().show_login()
+
+
         else:
             response_code = response.get('code')
 
