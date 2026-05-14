@@ -11,7 +11,9 @@ import time
 TEMP_FOLDER_PATH = "temp/"
 
 
-#fixme make it download all the informatin facebook
+
+
+
 
 
 
@@ -125,7 +127,7 @@ def close_login_popup(page):
         return False
 
 
-def FacebookDownloadRenderedHtml(url):
+def FacebookDownloadRenderedHtml(url): #fixme make it download all the informatin facebook
     """
     Downloads Facebook profile HTML with better popup handling and scrolling for dynamic content
     """
@@ -232,6 +234,7 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 if __name__ == "__main__":
     user = input("username: ")
-    # downloadHtml(f"https://www.instagram.com/{user}/")
+    #downloadHtml(f"https://www.instagram.com/{user}/")
+    #downloadHtml("https://www.instagram.com/tre6enjoyer/")
     FacebookDownloadRenderedHtmlWithRetry("https://www.facebook.com/wrytrwzn.883988")
     # downloadRenderedHtml(f"https://www.tiktok.com/@shaniamramm") #not working
