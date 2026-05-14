@@ -18,6 +18,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
+import SessionManager
+
+
+
 # ──────────────────────────────────────────
 #  OSINT TAB  (= Main Dashboard)
 # ──────────────────────────────────────────
@@ -34,7 +38,11 @@ class OsintDashboard(QWidget):
 
         # ── HEADER ──────────────────────────────
         hdr = QHBoxLayout()
-        title = QLabel("OSINT ENGINE")
+
+
+        username = SessionManager.get_username()
+        title = QLabel(f"Logged in as: {username} ")
+
         title.setFont(QFont(FONT_TITLE, 20, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {TEXT_TITLE};")
 
