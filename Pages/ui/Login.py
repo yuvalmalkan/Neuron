@@ -198,24 +198,14 @@ class LoginForm(QWidget):
         layout.addWidget(self.switch_btn)
 
 
-
-
-
-
-
-
-
-
-
 def LoginClicked(form: LoginForm):
     """
-    Handle login button click event.
-    Validates credentials and authenticates user.
+    Handle login button click event - SENDS TO SERVER.
 
     Args:
         form: LoginForm instance to access username and password inputs
     """
-
+    import Client
 
     # Get username and password from input fields
     username = form.user_input.text().strip()
@@ -230,30 +220,32 @@ def LoginClicked(form: LoginForm):
         return
 
     try:
-        # Initialize database connection with explicit path
-        import os
-        # Get the root directory (go up 2 levels from Pages/ui/)
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
-        db = UserDatabase(db_path)
+        # Connect to server if not already connected
+        if not Client.is_connected():
+            if not Client.connect_to_server():
+                QMessageBox.critical(None, "Connection Error", "Could not connect to server. Is it running?")
+                return
 
-        # Call login handler
-        success, response_code, user = handle_login(username, password, db)
+        # Send login request to server
+        response = Client.login(username, password)
 
-        if success:
+        # Check response
+        if response.get('status') == 'success':
             logging.info(f"User {username} logged in successfully")
-            #QMessageBox.information(None, "Success", f"Welcome back, {user.username}!")
+            user_id = response.get('user_id')
+
+            # Close login window and open OSINT page
             login_window = form.window()
             login_window.close()
 
-
+            from Pages.ui.OsintPage import MainWindow
             osint_window = MainWindow()
             osint_window.show()
 
-
-
         else:
             # Provide specific error messages based on response code using constants
+            response_code = response.get('code')
+
             if response_code == RESP_LOGIN_USER_NOT_FOUND:
                 error_msg = "Username not found"
                 logging.warning(f"Login failed: {error_msg} ({username})")
@@ -261,8 +253,8 @@ def LoginClicked(form: LoginForm):
                 error_msg = "Incorrect password"
                 logging.warning(f"Login failed: {error_msg} ({username})")
             else:
-                error_msg = "Login failed. Please try again."
-                logging.error(f"Login failed with response code: {response_code}")
+                error_msg = response.get('message', 'Login failed. Please try again.')
+                logging.error(f"Login failed: {error_msg}")
 
             QMessageBox.critical(None, "Login Failed", error_msg)
             # Clear password field on failed login
@@ -271,15 +263,6 @@ def LoginClicked(form: LoginForm):
     except Exception as e:
         logging.error(f"Unexpected error during login: {e}")
         QMessageBox.critical(None, "Error", f"An unexpected error occurred: {str(e)}")
-
-
-
-
-
-
-
-
-
 
 
 
