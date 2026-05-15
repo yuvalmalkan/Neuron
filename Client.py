@@ -20,52 +20,52 @@ from Pages.ui.uiConstants import (
 #from Pages.ui.Login import Login
 
 # Global socket connection
-_socket = None
-_is_connected = False
+ClientSocket = None
+is_connected = False
 
 
 def connect_to_server(host=serverIp, port_num=port):
     """Connect to the server."""
-    global _socket, _is_connected
+    global ClientSocket, is_connected
 
     try:
-        _socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        _socket.connect((host, port_num))
-        _is_connected = True
+        ClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ClientSocket.connect((host, port_num))
+        is_connected = True
         logging.info(f"Connected to server at {host}:{port_num}")
         return True
     except Exception as e:
         logging.error(f"Failed to connect to server: {e}")
-        _is_connected = False
+        is_connected = False
         return False
 
 
 def send_request(command, **data):
     """Send a request to the server."""
-    global _socket, _is_connected
+    global ClientSocket, is_connected
 
-    if not _is_connected:
+    if not is_connected:
         raise ConnectionError("Not connected to server")
 
     request = {"command": command, **data}
     try:
-        send_one_message(_socket, json.dumps(request))
+        send_one_message(ClientSocket, json.dumps(request))
         logging.debug(f"Sent request: {command}")
     except Exception as e:
         logging.error(f"Failed to send request: {e}")
-        _is_connected = False
+        is_connected = False
         raise
 
 
 def receive_response():
     """Receive a response from the server."""
-    global _socket, _is_connected
+    global ClientSocket, is_connected
 
-    if not _is_connected:
+    if not is_connected:
         raise ConnectionError("Not connected to server")
 
     try:
-        response_data = recv_one_message(_socket, return_type="string")
+        response_data = recv_one_message(ClientSocket, return_type="string")
         if not response_data:
             raise ConnectionError("Server disconnected")
 
@@ -74,7 +74,7 @@ def receive_response():
         return response
     except Exception as e:
         logging.error(f"Failed to receive response: {e}")
-        _is_connected = False
+        is_connected = False
         raise
 
 
@@ -105,32 +105,31 @@ def signup(username, email, password):
 
 def disconnect():
     """Disconnect from the server."""
-    global _socket, _is_connected
+    global ClientSocket, is_connected
 
     try:
-        if _is_connected:
+        if is_connected:
             send_request(CMD_EXIT)
-            _is_connected = False
+            is_connected = False
     except:
         pass
     finally:
-        if _socket:
+        if ClientSocket:
             try:
-                _socket.close()
+                ClientSocket.close()
             except:
                 pass
-        _is_connected = False
+        is_connected = False
         logging.info("Disconnected from server")
 
 
-def is_connected():
+def get_is_connected() -> bool:
     """Check if connected to server."""
-    return _is_connected
+    return is_connected
 
 
 def main():
-    """Initialize and run the Neuron client GUI."""
-    from Pages.ui.Login import Login  # Import here to avoid circular imports
+    from Pages.ui.Login import Login
 
     app = QApplication(sys.argv)
 

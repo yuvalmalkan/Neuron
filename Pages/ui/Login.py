@@ -224,7 +224,7 @@ def LoginClicked(form: LoginForm):
 
     try:
         # Connect to server if not already connected
-        if not Client.is_connected():
+        if not Client.get_is_connected():
             if not Client.connect_to_server():
                 QMessageBox.critical(None, "Connection Error", "Could not connect to server. Is it running?")
                 return
