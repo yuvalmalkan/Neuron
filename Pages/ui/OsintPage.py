@@ -1,16 +1,16 @@
 __author__ = "Yuval Malkan"
 
-
 import sys
 import os
 import time
-
 
 from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
 from Pages.ui.RoomsPage import RoomsPanel
 from Pages.ui.NetworkPage import NetworkPage
 
+# --- ADDED: Import the ChatBackend ---
+from Pages.logic.RoomsLogic import ChatBackend
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -19,7 +19,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
 import SessionManager
-
 
 
 # ──────────────────────────────────────────
@@ -38,7 +37,6 @@ class OsintDashboard(QWidget):
 
         # ── HEADER ──────────────────────────────
         hdr = QHBoxLayout()
-
 
         username = SessionManager.get_username()
         title = QLabel(f"Welcome Back {username}!")
@@ -148,6 +146,7 @@ class OsintDashboard(QWidget):
         self.extra_input.clear()
         self.result_box.clear()
 
+
 # ──────────────────────────────────────────
 #  PLACEHOLDER TABS
 # ──────────────────────────────────────────
@@ -171,6 +170,7 @@ class PlaceholderPage(QWidget):
         layout.addWidget(lbl)
         layout.addWidget(sub)
 
+
 # ──────────────────────────────────────────
 #  MAIN WINDOW
 # ──────────────────────────────────────────
@@ -180,6 +180,17 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Project Neuron")
         self.setMinimumSize(1100, 700)
         self.resize(1280, 780)
+
+        # We fetch the username right away to inject into the Chat Backend
+        self.username = SessionManager.get_username()
+
+        # --- INITIALIZE THE CHAT BACKEND ---
+        # Note: IP matches Constants.py default (127.0.0.1 for local testing)
+        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)
+        if self.username:
+            self.chat_backend.connect(self.username)
+        # -----------------------------------
+
         self._build_layout()
 
     def _build_layout(self):
@@ -217,7 +228,7 @@ class MainWindow(QMainWindow):
 
         pages_list = [
             OsintDashboard(),
-            RoomsPanel(),
+            RoomsPanel(backend=self.chat_backend),  # <-- BACKEND PASSED IN HERE
             NetworkPage(),
         ]
 
@@ -235,8 +246,7 @@ class MainWindow(QMainWindow):
         topbar_layout.addSpacing(30)
 
         # Right: User name - Same style as left
-        username = SessionManager.get_username()
-        user_label = QLabel(f"{username.upper()}" if username else "USER")
+        user_label = QLabel(f"{self.username.upper()}" if self.username else "USER")
         user_label.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
         user_label.setStyleSheet(f"color: {TEXT_TITLE}; padding-right: 10px;")
         topbar_layout.addWidget(user_label)
@@ -247,13 +257,18 @@ class MainWindow(QMainWindow):
         # Select first tab
         self._switch_page(self.nav_buttons[0])
 
-
     def _switch_page(self, clicked_btn: NavButton):
         for i, btn in enumerate(self.nav_buttons):
             is_active = btn is clicked_btn
             btn.setChecked(is_active)
             if is_active:
                 self.pages.setCurrentIndex(i)
+
+    # Clean up socket threads safely when closing the window
+    def closeEvent(self, event):
+        if hasattr(self, 'chat_backend'):
+            self.chat_backend.disconnect()
+        super().closeEvent(event)
 
 
 # ──────────────────────────────────────────
