@@ -82,7 +82,7 @@ FONT_TITLE = "SF Pro"
 
 # Assets
 BwBgNeurons = os.path.join(root_dir, "Assets", "Photos", "neuronbgbw.jpg")
-
+BlueBgNeurons = os.path.join(root_dir, "Assets", "Photos", "neuronbgblue.jpg")
 
 def load_stylesheet(filename):
     qss_path = os.path.join(base_dir, "Styles", f"{filename}.qss")
