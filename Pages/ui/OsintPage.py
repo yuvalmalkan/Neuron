@@ -41,9 +41,9 @@ class OsintDashboard(QWidget):
 
 
         username = SessionManager.get_username()
-        title = QLabel(f"Logged in as: {username} ")
+        title = QLabel(f"Welcome Back {username}!")
 
-        title.setFont(QFont(FONT_TITLE, 20, QFont.Weight.Bold))
+        title.setFont(QFont(FONT_TITLE, 30, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {TEXT_TITLE};")
 
         hdr.addWidget(title)
@@ -191,12 +191,20 @@ class MainWindow(QMainWindow):
 
         # ── TOPBAR ──────────────────────────────
         topbar = QWidget()
-        topbar.setFixedHeight(60)
+        topbar.setFixedHeight(70)
         topbar.setObjectName("topbar")
 
         topbar_layout = QHBoxLayout(topbar)
-        topbar_layout.setContentsMargins(20, 0, 20, 0)
-        topbar_layout.setSpacing(10)
+        topbar_layout.setContentsMargins(30, 0, 30, 0)
+        topbar_layout.setSpacing(15)
+
+        # Left: Logo/Title
+        logo_label = QLabel("PROJECT NEURON")
+        logo_label.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
+        logo_label.setStyleSheet(f"color: {TEXT_TITLE};")
+        topbar_layout.addWidget(logo_label)
+
+        topbar_layout.addSpacing(30)
 
         self.pages = QStackedWidget()
         self.nav_buttons = []
@@ -213,6 +221,8 @@ class MainWindow(QMainWindow):
             NetworkPage(),
         ]
 
+        # Center: Navigation buttons
+        topbar_layout.addStretch()
 
         for (icon, label), page in zip(nav_items, pages_list):
             btn = NavButton(icon, label)
@@ -220,13 +230,23 @@ class MainWindow(QMainWindow):
             topbar_layout.addWidget(btn)
             self.pages.addWidget(page)
             self.nav_buttons.append(btn)
+            topbar_layout.addStretch()
 
-        topbar_layout.addStretch()
+        topbar_layout.addSpacing(30)
+
+        # Right: User name - Same style as left
+        username = SessionManager.get_username()
+        user_label = QLabel(f"{username.upper()}" if username else "USER")
+        user_label.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
+        user_label.setStyleSheet(f"color: {TEXT_TITLE}; padding-right: 10px;")
+        topbar_layout.addWidget(user_label)
+
         root.addWidget(topbar)
         root.addWidget(self.pages, 1)
 
         # Select first tab
         self._switch_page(self.nav_buttons[0])
+
 
     def _switch_page(self, clicked_btn: NavButton):
         for i, btn in enumerate(self.nav_buttons):
