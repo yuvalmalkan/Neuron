@@ -85,6 +85,7 @@ NavButton:checked {
     background: transparent;
     color: @NAV_TEXT_ACTIVE@;
     font-weight: bold;
+
 }
 
 
