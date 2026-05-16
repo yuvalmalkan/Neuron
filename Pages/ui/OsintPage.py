@@ -191,11 +191,11 @@ class MainWindow(QMainWindow):
 
         # ── TOPBAR ──────────────────────────────
         topbar = QWidget()
-        topbar.setFixedHeight(70)
+        topbar.setFixedHeight(50)
         topbar.setObjectName("topbar")
 
         topbar_layout = QHBoxLayout(topbar)
-        topbar_layout.setContentsMargins(30, 0, 30, 0)
+        topbar_layout.setContentsMargins(20, 0, 20, 0)
         topbar_layout.setSpacing(15)
 
         # Left: Logo/Title
