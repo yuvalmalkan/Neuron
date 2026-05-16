@@ -1,7 +1,6 @@
 /* ── loginSignup.qss ── */
 
 QMainWindow {
-    //background: @WINDOW_BG@;
     border-image: url(@BwBgNeurons@) 0 0 0 0 stretch stretch;
 }
 
@@ -10,11 +9,16 @@ AuthInput {
     border: 1px solid @INPUT_BORDER@;
     border-radius: 4px;
     color: @TEXT_BODY@;
+    selection-background-color: @INPUT_SELECTION@;
 }
 
 AuthInput:focus {
     border: 1px solid @INPUT_FOCUS@;
     background: @WINDOW_BG@;
+}
+
+AuthInput::placeholder {
+    color: @TEXT_PLACEHOLDER@;
 }
 
 StandardAuthButton {
@@ -44,5 +48,17 @@ LinkButton:hover {
     text-decoration: underline;
 }
 
+/* ── LOGIN TITLE / ERROR LABELS ── */
+QLabel[role="title"] {
+    color: @TEXT_TITLE@;
+}
 
+QLabel[role="error"] {
+    color: @TEXT_ALERT@;
+    font-family: '@FONT_MONO@';
+}
 
+QLabel[role="muted"] {
+    color: @TEXT_MUTED@;
+    font-family: '@FONT_MONO@';
+}
