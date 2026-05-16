@@ -205,15 +205,14 @@ class MainWindow(QMainWindow):
             ("", "OSINT"),
             ("", "ROOMS"),
             ("", "NETWORK"),
-            ("", "SETTINGS"),
         ]
 
         pages_list = [
             OsintDashboard(),
             RoomsPanel(),
             NetworkPage(),
-            PlaceholderPage("◎  SETTINGS", "#8892a0"),
         ]
+
 
         for (icon, label), page in zip(nav_items, pages_list):
             btn = NavButton(icon, label)
