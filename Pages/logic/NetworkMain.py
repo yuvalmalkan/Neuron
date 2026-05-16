@@ -111,6 +111,10 @@ class PortScanWorker(QObject):
             self.error.emit(str(e))
 
 
+
+
+
+
 class WhoisWorker(QObject):
     """Runs system whois and returns raw cleaned text."""
     finished = pyqtSignal(str)
@@ -135,6 +139,11 @@ class WhoisWorker(QObject):
             self.finished.emit("\n".join(lines[:40]))  # cap at 40 lines
         except Exception as e:
             self.error.emit(str(e))
+
+
+
+
+
 
 
 class SubdomainWorker(QObject):
@@ -170,9 +179,10 @@ class SubdomainWorker(QObject):
         self.finished.emit(found)
 
 
-# ──────────────────────────────────────────
-#  MASTER SCAN THREAD
-# ──────────────────────────────────────────
+
+
+
+
 
 class ScanThread(QThread):
     """
