@@ -54,6 +54,15 @@ NAV_BG_HOVER       = SIDEBAR_BG
 NAV_TEXT_ACTIVE    = "#D4D4D4"
 NAV_BORDER_ACTIVE  = "#EEEEEE"
 
+
+
+# Login/Auth Pages
+LOGIN_WINDOW_BG    = "#000000"
+LOGIN_CARD_BG      = "rgba(0, 0, 0, 0.7)"
+LOGIN_TEXT_TITLE   = "#DDDDDD"
+LOGIN_TEXT_INPUT   = "#E8E8E8"
+
+
 # Typography
 TEXT_TITLE       = "#DDDDDD"
 TEXT_BODY        = "#DDDDDD"

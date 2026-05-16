@@ -82,9 +82,10 @@ class Login(QMainWindow):
                 background-repeat: no-repeat;
                 background-attachment: fixed;
                 background-size: cover;
-                background-color: #000000;
+                background-color: {LOGIN_WINDOW_BG};
             }}
         """)
+
 
         central = QWidget()
         central.setStyleSheet("QWidget { background-color: transparent; }")
@@ -111,7 +112,7 @@ class Login(QMainWindow):
 
         self.auth_card = Card()
         self.auth_card.setFixedSize(450, 480)
-        self.auth_card.setStyleSheet("QWidget { background-color: rgba(0, 0, 0, 0.7); }")
+        self.auth_card.setStyleSheet(f"QWidget {{ background-color: {LOGIN_CARD_BG}; }}")
 
 
         card_layout = QVBoxLayout(self.auth_card)
@@ -121,7 +122,7 @@ class Login(QMainWindow):
         hdr = QHBoxLayout()
         title = QLabel("SYSTEM LOGIN")
         title.setFont(QFont(FONT_TITLE, 18, QFont.Weight.Bold))
-        title.setStyleSheet(f"color: {TEXT_TITLE}; background-color: transparent;")
+        title.setStyleSheet(f"color: {LOGIN_TEXT_TITLE}; background-color: transparent;")
         hdr.addWidget(title)
         hdr.addStretch()
 
