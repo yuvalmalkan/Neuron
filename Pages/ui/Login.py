@@ -21,7 +21,7 @@ from Pages.logic.LoginLogic import handle_login
 from Pages.logic.ForgotPasswordLogic import ForgotPasswordClicked
 from UserDatabase import UserDatabase
 from Constants import RESP_LOGIN_USER_NOT_FOUND, RESP_LOGIN_FAIL
-from Pages.ui.uiConstants import BwBgNeurons
+from Pages.ui.uiConstants import BwBgNeurons, BlueBgNeurons
 from PyQt6.QtGui import QPixmap, QBrush
 import Client
 import SessionManager
@@ -77,7 +77,7 @@ class Login(QMainWindow):
         # Apply background to main window, not central widget
         self.setStyleSheet(f"""
             QMainWindow {{
-                background-image: url({BwBgNeurons});
+                background-image: url({BlueBgNeurons});
                 background-position: center;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
