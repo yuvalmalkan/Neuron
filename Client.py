@@ -19,9 +19,16 @@ from Pages.ui.uiConstants import (
 
 #from Pages.ui.Login import Login
 
+
+
+
+
 # Global socket connection
 ClientSocket = None
 is_connected = False
+
+
+
 
 
 def connect_to_server(host=serverIp, port_num=port):
@@ -40,6 +47,9 @@ def connect_to_server(host=serverIp, port_num=port):
         return False
 
 
+
+
+
 def send_request(command, **data):
     """Send a request to the server."""
     global ClientSocket, is_connected
@@ -48,13 +58,18 @@ def send_request(command, **data):
         raise ConnectionError("Not connected to server")
 
     request = {"command": command, **data}
+
+
     try:
         send_one_message(ClientSocket, json.dumps(request))
         logging.debug(f"Sent request: {command}")
+
     except Exception as e:
         logging.error(f"Failed to send request: {e}")
         is_connected = False
         raise
+
+
 
 
 def receive_response():
