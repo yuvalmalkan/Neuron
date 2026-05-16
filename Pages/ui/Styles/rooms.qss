@@ -74,8 +74,8 @@
 }
 
 #SecureTag {
-    color: #2a6e2a;
-    border: 1px solid #1a4e1a;
+    color: @TEXT_OK@;
+    border: 1px solid @SIDEBAR_BORDER@;
     border-radius: 5px;
     padding: 2px 8px;
     letter-spacing: 2px;
@@ -113,11 +113,11 @@
 }
 
 #MsgSender[mine="true"] {
-    color: #3a7a5a;
+    color: @TEXT_OK@;
 }
 
 #MsgTime {
-    color: @SIDEBAR_BORDER@;
+    color: @TEXT_MUTED@;
 }
 
 #BubbleText {
@@ -129,14 +129,14 @@
 }
 
 #BubbleText[mine="true"] {
-    background: #060f0a;
-    border-color: #1a3e1a;
+    background: @WINDOW_BG@;
+    border-color: @SIDEBAR_BORDER@;
     border-radius: 12px 14px;
-    color: #4a8a6a;
+    color: @TEXT_OK@;
 }
 
 #MsgStatus {
-    color: @SIDEBAR_BORDER@;
+    color: @TEXT_MUTED@;
     letter-spacing: 1px;
 }
 
@@ -171,10 +171,5 @@
     letter-spacing: 2px;
 }
 
-#SendButton:hover {
-    background: @BTN_PRIMARY_HOVER@;
-}
-
-#SendButton:pressed {
-    background: @BTN_PRIMARY_PRESS@;
-}
+#SendButton:hover   { background: @BTN_PRIMARY_HOVER@; }
+#SendButton:pressed { background: @BTN_PRIMARY_PRESS@; }
