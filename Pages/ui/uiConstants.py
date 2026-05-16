@@ -1,4 +1,5 @@
 __author__ = "Yuval Malkan"
+# THEME: Iceberg — desaturated blue, submarine cold, everything muted
 
 import os
 from PyQt6.QtGui import QFontDatabase
@@ -61,13 +62,15 @@ TEXT_BODY        = "#C6C8D1"
 TEXT_PLACEHOLDER = "#6B7394"
 
 # ── DATA TYPE COLORS (multi-color terminal output) ─────────────────
-TEXT_IP          = "#89B8C2"   # IP addresses / hostnames
-TEXT_PORT        = "#A093C7"   # ports / numeric IDs
-TEXT_OK          = "#84A0C6"   # success / resolved
-TEXT_ALERT       = "#E27878"   # critical / errors
-TEXT_HANDLE      = "#84A0C6"   # usernames / handles
-TEXT_MUTED       = "#2E3347"   # timestamps / secondary info
-TEXT_TERMINAL    = "#84A0C6"   # general terminal output accent
+# Use these to color-code different data types in ResultDisplay / terminal output.
+# Apply via QLabel property or rich text: label.setProperty("dataType", "ip")
+TEXT_IP          = "#89B8C2"   # IP addresses, hostnames
+TEXT_PORT        = "#A093C7"   # port numbers, numeric IDs
+TEXT_OK          = "#84A0C6"   # success, resolved, online
+TEXT_ALERT       = "#E27878"   # critical errors, warnings
+TEXT_HANDLE      = "#84A0C6"   # usernames, @handles, social
+TEXT_MUTED       = "#2E3347"   # timestamps, secondary metadata
+TEXT_TERMINAL    = "#84A0C6"   # general terminal accent / prompt
 
 # Misc
 SCROLLBAR_BG     = "#090B11"
@@ -88,37 +91,53 @@ def load_stylesheet(filename):
             qss = f.read()
 
         replacements = {
+            # Layout
             "@WINDOW_BG@":          WINDOW_BG,
             "@SIDEBAR_BG@":         SIDEBAR_BG,
             "@SIDEBAR_BORDER@":     SIDEBAR_BORDER,
+            # Cards
             "@CARD_BG@":            CARD_BG,
             "@CARD_BORDER@":        CARD_BORDER,
+            # Inputs
             "@INPUT_BG@":           INPUT_BG,
             "@INPUT_BORDER@":       INPUT_BORDER,
             "@INPUT_FOCUS@":        INPUT_FOCUS,
             "@INPUT_SELECTION@":    INPUT_SELECTION,
+            # Buttons primary
             "@BTN_PRIMARY_BG@":     BTN_PRIMARY_BG,
             "@BTN_PRIMARY_BORDER@": BTN_PRIMARY_BORDER,
             "@BTN_PRIMARY_TEXT@":   BTN_PRIMARY_TEXT,
             "@BTN_PRIMARY_HOVER@":  BTN_PRIMARY_HOVER,
             "@BTN_PRIMARY_PRESS@":  BTN_PRIMARY_PRESS,
+            # Buttons danger
             "@BTN_DANGER_BG@":      BTN_DANGER_BG,
             "@BTN_DANGER_BORDER@":  BTN_DANGER_BORDER,
             "@BTN_DANGER_TEXT@":    BTN_DANGER_TEXT,
             "@BTN_DANGER_HOVER@":   BTN_DANGER_HOVER,
             "@BTN_DANGER_PRESS@":   BTN_DANGER_PRESS,
+            # Nav
             "@NAV_TEXT_IDLE@":      NAV_TEXT_IDLE,
             "@NAV_TEXT_HOVER@":     NAV_TEXT_HOVER,
             "@NAV_BG_HOVER@":       NAV_BG_HOVER,
             "@NAV_TEXT_ACTIVE@":    NAV_TEXT_ACTIVE,
             "@NAV_BG_ACTIVE@":      NAV_BG_ACTIVE,
             "@NAV_BORDER_ACTIVE@":  NAV_BORDER_ACTIVE,
+            # Typography
             "@TEXT_TITLE@":         TEXT_TITLE,
             "@TEXT_BODY@":          TEXT_BODY,
             "@TEXT_PLACEHOLDER@":   TEXT_PLACEHOLDER,
             "@TEXT_TERMINAL@":      TEXT_TERMINAL,
+            # Data type colors
+            "@TEXT_IP@":            TEXT_IP,
+            "@TEXT_PORT@":          TEXT_PORT,
+            "@TEXT_OK@":            TEXT_OK,
+            "@TEXT_ALERT@":         TEXT_ALERT,
+            "@TEXT_HANDLE@":        TEXT_HANDLE,
+            "@TEXT_MUTED@":         TEXT_MUTED,
+            # Scrollbar
             "@SCROLLBAR_BG@":       SCROLLBAR_BG,
             "@SCROLLBAR_HANDLE@":   SCROLLBAR_HANDLE,
+            # Fonts & assets
             "@FONT_MONO@":          FONT_MONO,
             "@FONT_TITLE@":         FONT_TITLE,
             "@BwBgNeurons@":        BwBgNeurons,
