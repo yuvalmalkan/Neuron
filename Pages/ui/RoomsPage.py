@@ -143,7 +143,7 @@ class DiscoveryView(QWidget):
         card_lay.setContentsMargins(30, 30, 30, 30)
         card_lay.setSpacing(20)
 
-        header = QLabel("Search Active Users")
+        header = QLabel("SEARCH ACTIVE USERS")
         header.setFont(QFont(FONT_TITLE, 12, QFont.Weight.Bold))
         header.setStyleSheet(f"color: {TEXT_BODY}; letter-spacing: 2px; border: none;")
         card_lay.addWidget(header)
@@ -239,11 +239,9 @@ class EphemeralChatView(QFrame):
         self._peer_label.setFont(QFont(FONT_MONO, 12, QFont.Weight.Bold))
         self._peer_label.setStyleSheet(f"color: {TEXT_BODY}; border: none;")
 
-        secure_lbl = QLabel(" E2E SECURE ")
-        secure_lbl.setFont(QFont(FONT_MONO, 8))
-        secure_lbl.setStyleSheet(f"color: {TEXT_OK}; border: 1px solid {TEXT_OK}; border-radius: 4px;")
 
-        self._end_btn = QPushButton("END SESSION ✕")
+
+        self._end_btn = QPushButton("END SESSION")
         self._end_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self._end_btn.setStyleSheet(
             f"QPushButton {{ background: transparent; color: {TEXT_ALERT}; border: 1px solid {TEXT_ALERT}; border-radius: 6px; padding: 6px 12px; font-weight: bold; }}")
@@ -251,7 +249,6 @@ class EphemeralChatView(QFrame):
 
         h_lay.addWidget(self._peer_label)
         h_lay.addSpacing(15)
-        h_lay.addWidget(secure_lbl)
         h_lay.addStretch()
         h_lay.addWidget(self._end_btn)
 
@@ -275,10 +272,10 @@ class EphemeralChatView(QFrame):
         i_lay.setContentsMargins(20, 15, 20, 15)
         i_lay.setSpacing(15)
 
-        self._input = GlowInput("// Encrypting payload...")
+        self._input = GlowInput("")
         self._input.returnPressed.connect(self._send)
 
-        self._send_btn = GlowingButton("TRANSMIT ▶", variant="primary")
+        self._send_btn = GlowingButton("SEND", variant="primary")
         self._send_btn.setFixedWidth(130)
         self._send_btn.clicked.connect(self._send)
 
@@ -290,7 +287,7 @@ class EphemeralChatView(QFrame):
         root.addWidget(input_bar)
 
     def set_peer(self, username: str):
-        self._peer_label.setText(f"// {username.upper()}")
+        self._peer_label.setText(f"CHATTING WITH {username.upper()}")
 
     def clear_chat(self):
         while self._msg_lay.count() > 1:
