@@ -129,6 +129,8 @@ class DiscoveryView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.all_online_users = []  # Cache to hold all online users from the server
+
         main_layout = QVBoxLayout(self)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -141,12 +143,13 @@ class DiscoveryView(QWidget):
         card_lay.setContentsMargins(30, 30, 30, 30)
         card_lay.setSpacing(20)
 
-        header = QLabel("// SECURE DIRECTORY")
+        header = QLabel("Search Active Users")
         header.setFont(QFont(FONT_TITLE, 12, QFont.Weight.Bold))
         header.setStyleSheet(f"color: {TEXT_BODY}; letter-spacing: 2px; border: none;")
         card_lay.addWidget(header)
 
-        self.search_input = GlowInput("Search active nodes...")
+        self.search_input = GlowInput("Search...")
+        self.search_input.textChanged.connect(self._render_users) # Trigger visual update on typing
         card_lay.addWidget(self.search_input)
 
         self.scroll = QScrollArea()
@@ -164,21 +167,39 @@ class DiscoveryView(QWidget):
         main_layout.addWidget(self.card)
 
     def update_users(self, online_users: list):
+        # Update the master list only if the server sent something different
+        if self.all_online_users == online_users:
+            return
+
+        self.all_online_users = online_users
+        self._render_users()
+
+    def _render_users(self):
+        """Filters the cached users and updates the UI."""
+        # 1. Get the current search text (lowercased for case-insensitive matching)
+        query = self.search_input.text().strip().lower()
+
+        # 2. Filter: keep user if the query string is anywhere inside the username
+        display_users = [u for u in self.all_online_users if query in u.lower()]
+
+        # 3. Check what's currently rendered to prevent UI flickering
         current_users = []
         for i in range(self.user_layout.count()):
             widget = self.user_layout.itemAt(i).widget()
             if isinstance(widget, UserSearchItem):
                 current_users.append(widget.username)
 
-        if current_users == online_users:
+        if current_users == display_users:
             return
 
+        # 4. Safely clear the layout
         while self.user_layout.count():
             item = self.user_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
-        for u in online_users:
+        # 5. Populate with the newly filtered list
+        for u in display_users:
             item = UserSearchItem(u)
             item.user_clicked.connect(self._on_user_clicked)
             self.user_layout.addWidget(item)
