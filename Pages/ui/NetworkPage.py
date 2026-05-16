@@ -320,13 +320,10 @@ class NetworkPage(QWidget):
         title.setFont(QFont(FONT_TITLE, 20, QFont.Weight.Bold))
         title.setStyleSheet(f"color: {TEXT_TITLE};")
 
-        self._status_lbl = QLabel("STANDBY")
-        self._status_lbl.setFont(QFont(FONT_MONO, 9))
-        self._status_lbl.setStyleSheet(f"color: {TEXT_PLACEHOLDER}; letter-spacing: 2px;")
+
 
         hdr.addWidget(title)
         hdr.addStretch()
-        hdr.addWidget(self._status_lbl)
         root.addLayout(hdr)
 
         # ── TARGET + SCAN BTN ────────────────────
@@ -424,9 +421,8 @@ class NetworkPage(QWidget):
 
     def _set_scanning(self, active: bool):
         self._scan_btn.setEnabled(not active)
-        self._status_lbl.setText("SCANNING..." if active else "STANDBY")
         color = "#BB0000" if active else TEXT_PLACEHOLDER
-        self._status_lbl.setStyleSheet(f"color: {color}; letter-spacing: 2px;")
+
 
     # ── SIGNAL HANDLERS ──────────────────────
     def _on_log(self, line: str):
