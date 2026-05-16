@@ -42,7 +42,7 @@ GlowInput::placeholder {
     color: @TEXT_PLACEHOLDER@;
 }
 
-/* ── Glowing BUTTON ── */
+/* ── GLOWING BUTTON ── */
 GlowingButton {
     border-radius: 8px;
     padding: 0 20px;
@@ -55,7 +55,7 @@ GlowingButton[variant="primary"] {
     border: 1px solid @BTN_PRIMARY_BORDER@;
     color: @BTN_PRIMARY_TEXT@;
 }
-GlowingButton[variant="primary"]:hover { background: @BTN_PRIMARY_HOVER@; }
+GlowingButton[variant="primary"]:hover   { background: @BTN_PRIMARY_HOVER@; }
 GlowingButton[variant="primary"]:pressed { background: @BTN_PRIMARY_PRESS@; }
 
 /* Danger Variant */
@@ -64,7 +64,7 @@ GlowingButton[variant="danger"] {
     border: 1px solid @BTN_DANGER_BORDER@;
     color: @BTN_DANGER_TEXT@;
 }
-GlowingButton[variant="danger"]:hover { background: @BTN_DANGER_HOVER@; }
+GlowingButton[variant="danger"]:hover   { background: @BTN_DANGER_HOVER@; }
 GlowingButton[variant="danger"]:pressed { background: @BTN_DANGER_PRESS@; }
 
 /* ── TOPBAR NAV BUTTON ── */
@@ -85,11 +85,7 @@ NavButton:checked {
     background: transparent;
     color: @NAV_TEXT_ACTIVE@;
     font-weight: bold;
-
 }
-
-
-
 
 /* ── RESULT DISPLAY ── */
 ResultDisplay {
@@ -110,23 +106,35 @@ ResultDisplay QScrollBar::handle:vertical {
     border-radius: 3px;
 }
 
+/* ── DATA TYPE LABELS ───────────────────────────────────────────────
+   Usage in Python:
+       label.setProperty("dataType", "ip")      → TEXT_IP
+       label.setProperty("dataType", "port")    → TEXT_PORT
+       label.setProperty("dataType", "ok")      → TEXT_OK
+       label.setProperty("dataType", "alert")   → TEXT_ALERT
+       label.setProperty("dataType", "handle")  → TEXT_HANDLE
+       label.setProperty("dataType", "muted")   → TEXT_MUTED
+   After setting property call: label.style().unpolish(label); label.style().polish(label)
+── */
+QLabel[dataType="ip"]     { color: @TEXT_IP@;     font-family: '@FONT_MONO@'; }
+QLabel[dataType="port"]   { color: @TEXT_PORT@;   font-family: '@FONT_MONO@'; }
+QLabel[dataType="ok"]     { color: @TEXT_OK@;     font-family: '@FONT_MONO@'; }
+QLabel[dataType="alert"]  { color: @TEXT_ALERT@;  font-family: '@FONT_MONO@'; }
+QLabel[dataType="handle"] { color: @TEXT_HANDLE@; font-family: '@FONT_MONO@'; }
+QLabel[dataType="muted"]  { color: @TEXT_MUTED@;  font-family: '@FONT_MONO@'; }
 
-
-/* HYPER BUTTON */
+/* ── HYPER BUTTON ── */
 HyperButton[variant="primary"] {
-        color: @NAV_TEXT_IDLE@;
-        background-color: transparent;
-
-        border: none;
-        text-decoration: underline;
-        text-align: left;
+    color: @NAV_TEXT_IDLE@;
+    background-color: transparent;
+    border: none;
+    text-decoration: underline;
+    text-align: left;
 }
-
-HyperButton[variant="primary"]:hover { background: transparent; color: @TEXT_BODY@ }
+HyperButton[variant="primary"]:hover   { background: transparent; color: @TEXT_BODY@; }
 HyperButton[variant="primary"]:pressed { background: transparent; }
 
-
-
+/* ── NETWORK PAGE ── */
 #networkPage {
     background: @WINDOW_BG@;
 }
