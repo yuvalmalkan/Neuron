@@ -10,22 +10,20 @@ from UserDatabase import UserDatabase
 from Pages.logic.SignupLogic import handle_signup
 from Pages.logic.LoginLogic import handle_login
 
-
-
-
+# Global dictionary to map online usernames to their socket objects
+# Format: { "username": client_socket }
+active_connections = {}
+connections_lock = threading.Lock()
 
 
 def main():
-
     server = socket.socket()
-
     try:
         server.bind((serverIp, port))
         server.listen(10)
-        logging.debug(f"server listening on {serverIp}:{port}")
-
+        logging.info(f"Server listening natively on {serverIp}:{port}")
     except Exception as e:
-        logging.debug(e)
+        logging.error(f"Server bind error: {e}")
         return
 
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -39,105 +37,127 @@ def main():
             t = threading.Thread(target=handle_client, args=(clientSocket, userId))
             t.start()
             userId += 1
-
         except Exception as e:
-            logging.debug(f"server error: {e}")
-            #server.close()
+            logging.error(f"Server accept error: {e}")
 
 
 def handle_client(client, userId):
-    """
-    Handle individual client connections.
+    current_username = None
 
-    Receives commands from client and processes them:
-    - CMD_SIGNUP: Handle user registration
-    - CMD_LOGIN: Handle user login
-    - Other commands: Can be extended in future
-    """
     try:
         while True:
-            # Receive data from client using size-prefixed protocol
             data = recv_one_message(client, return_type="string")
-
             if not data:
-                logging.debug(f"Client {userId} disconnected")
                 break
 
             try:
-                # Parse incoming JSON request
                 request = json.loads(data)
                 command = request.get('command')
-
                 response = None
 
-                # Handle SIGNUP command
+                # ── AUTHENTICATION ──
                 if command == CMD_SIGNUP:
-                    username = request.get('username')
-                    email = request.get('email')
-                    password = request.get('password')
-
-                    if not all([username, email, password]):
-                        response = {'status': 'error', 'code': RESP_ERROR, 'message': 'Missing signup fields'}
-                    else:
-                        success, resp_code, user = handle_signup(username, email, password, user_db)
-                        response = {
-                            'status': 'success' if success else 'error',
-                            'code': resp_code,
-                            'user_id': user.unique_id if user else None
-                        }
-
-                # Handle LOGIN command
-                elif command == CMD_LOGIN:
-                    username = request.get('username')
-                    password = request.get('password')
-
-                    if not all([username, password]):
-                        response = {'status': 'error', 'code': RESP_ERROR, 'message': 'Missing login fields'}
-                    else:
-                        success, resp_code, user = handle_login(username, password, user_db)
-                        response = {
-                            'status': 'success' if success else 'error',
-                            'code': resp_code,
-                            'user_id': user.unique_id if user else None
-                        }
-
-                # Handle EXIT command
-                elif command == CMD_EXIT:
-                    response = {'status': 'success', 'code': 'EXIT'}
+                    username, email, password = request.get('username'), request.get('email'), request.get('password')
+                    success, resp_code, user = handle_signup(username, email, password, user_db)
+                    response = {'status': 'success' if success else 'error', 'code': resp_code}
                     send_one_message(client, json.dumps(response))
+
+                elif command == CMD_LOGIN:
+                    username, password = request.get('username'), request.get('password')
+                    success, resp_code, user = handle_login(username, password, user_db)
+                    response = {'status': 'success' if success else 'error', 'code': resp_code}
+                    send_one_message(client, json.dumps(response))
+
+                # ── P2P CHAT ROUTING LOGIC ──
+                elif command == CMD_CHAT_INIT:
+                    current_username = request.get('username')
+                    if current_username:
+                        with connections_lock:
+                            active_connections[current_username] = client
+                        logging.info(f"[{current_username}] registered for P2P chat.")
+
+                elif command == CMD_FETCH_USERS:
+                    with connections_lock:
+                        online = list(active_connections.keys())
+                    send_one_message(client, json.dumps({'type': 'ONLINE_USERS', 'users': online}))
+
+                elif command == CMD_CHAT_REQUEST:
+                    target = request.get('target')
+                    with connections_lock:
+                        target_sock = active_connections.get(target)
+
+                    if target_sock:
+                        send_one_message(target_sock, json.dumps({
+                            'type': 'INCOMING_REQUEST', 'sender': current_username
+                        }))
+                    else:
+                        send_one_message(client, json.dumps({
+                            'type': 'ERROR', 'message': f"Target {target} is offline."
+                        }))
+
+                elif command == CMD_CHAT_ACCEPT:
+                    target = request.get('target')
+                    with connections_lock:
+                        target_sock = active_connections.get(target)
+                    if target_sock:
+                        send_one_message(target_sock, json.dumps({
+                            'type': 'REQUEST_ACCEPTED', 'peer': current_username
+                        }))
+
+                elif command == CMD_CHAT_DECLINE:
+                    target = request.get('target')
+                    with connections_lock:
+                        target_sock = active_connections.get(target)
+                    if target_sock:
+                        send_one_message(target_sock, json.dumps({
+                            'type': 'REQUEST_DECLINED', 'peer': current_username
+                        }))
+
+                elif command == CMD_DIRECT_MSG:
+                    target = request.get('target')
+                    text = request.get('text')
+                    timestamp = request.get('timestamp')
+
+                    with connections_lock:
+                        target_sock = active_connections.get(target)
+
+                    if target_sock:
+                        send_one_message(target_sock, json.dumps({
+                            'type': 'DIRECT_MESSAGE',
+                            'sender': current_username,
+                            'text': text,
+                            'timestamp': timestamp
+                        }))
+
+                elif command == CMD_END_SESSION:
+                    target = request.get('target')
+                    with connections_lock:
+                        target_sock = active_connections.get(target)
+                    if target_sock:
+                        send_one_message(target_sock, json.dumps({
+                            'type': 'SESSION_ENDED', 'peer': current_username
+                        }))
+
+                elif command == CMD_EXIT:
                     break
 
-                else:
-                    response = {'status': 'error', 'code': RESP_ERROR, 'message': f'Unknown command: {command}'}
-
-                # Send response to client using size-prefixed protocol
-                if response:
-                    send_one_message(client, json.dumps(response))
-
             except json.JSONDecodeError:
-                error_response = {'status': 'error', 'code': RESP_ERROR, 'message': 'Invalid JSON format'}
-                send_one_message(client, json.dumps(error_response))
-
+                send_one_message(client, json.dumps({'type': 'ERROR', 'message': 'Invalid JSON format'}))
             except Exception as e:
-                logging.error(f"Error processing request from client {userId}: {e}")
-                error_response = {'status': 'error', 'code': RESP_ERROR, 'message': str(e)}
-                try:
-                    send_one_message(client, json.dumps(error_response))
-                except:
-                    pass
+                logging.error(f"Error processing command: {e}")
 
     except Exception as e:
-        logging.error(f"Error in handle_client for user {userId}: {e}")
-
+        logging.error(f"Client handler error: {e}")
     finally:
+        if current_username:
+            with connections_lock:
+                if current_username in active_connections:
+                    del active_connections[current_username]
+            logging.info(f"[{current_username}] disconnected.")
         try:
             client.close()
         except:
             pass
-        logging.debug(f"Client {userId} connection closed")
-
-
-
 
 
 if __name__ == '__main__':
