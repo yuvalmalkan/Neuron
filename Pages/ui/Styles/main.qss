@@ -67,27 +67,28 @@ GlowingButton[variant="danger"] {
 GlowingButton[variant="danger"]:hover { background: @BTN_DANGER_HOVER@; }
 GlowingButton[variant="danger"]:pressed { background: @BTN_DANGER_PRESS@; }
 
-/* ── SIDEBAR NAV BUTTON ── */
+/* ── TOPBAR NAV BUTTON ── */
 NavButton {
     background: transparent;
     border: none;
-    border-left: 3px solid transparent;
     border-radius: 0px;
     color: @NAV_TEXT_IDLE@;
-    text-align: left;
-    padding-left: 16px;
+    text-align: center;
+    padding: 8px;
     font-size: 14px;
 }
 NavButton:hover {
-    background: @NAV_BG_HOVER@;
+    background: transparent;
     color: @NAV_TEXT_HOVER@;
 }
 NavButton:checked {
-    background: @NAV_BG_ACTIVE@;
-    border-left: 3px solid @NAV_BORDER_ACTIVE@;
+    background: transparent;
     color: @NAV_TEXT_ACTIVE@;
     font-weight: bold;
 }
+
+
+
 
 /* ── RESULT DISPLAY ── */
 ResultDisplay {
