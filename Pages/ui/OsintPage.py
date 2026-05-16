@@ -185,71 +185,45 @@ class MainWindow(QMainWindow):
     def _build_layout(self):
         central = QWidget()
         self.setCentralWidget(central)
-        root = QHBoxLayout(central)
+        root = QVBoxLayout(central)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ── SIDEBAR ──────────────────────────────
-        sidebar = QWidget()
-        sidebar.setFixedWidth(180)
-        sidebar.setObjectName("sidebar")
+        # ── TOPBAR ──────────────────────────────
+        topbar = QWidget()
+        topbar.setFixedHeight(60)
+        topbar.setObjectName("topbar")
 
-        sb_layout = QVBoxLayout(sidebar)
-        sb_layout.setContentsMargins(0, 0, 0, 0)
-        sb_layout.setSpacing(10)
-
-
+        topbar_layout = QHBoxLayout(topbar)
+        topbar_layout.setContentsMargins(20, 0, 20, 0)
+        topbar_layout.setSpacing(10)
 
         self.pages = QStackedWidget()
         self.nav_buttons = []
 
         nav_items = [
-            (">", "OSINT", OsintDashboard()),
-            (">", "ROOMS", RoomsPanel()),
-            (">", "NETWORK", NetworkPage()),
-            (">", "SETTINGS", PlaceholderPage("◎  SETTINGS", "#8892a0")),
+            ("", "OSINT"),
+            ("", "ROOMS"),
+            ("", "NETWORK"),
+            ("", "SETTINGS"),
         ]
 
-        for icon, label, page in nav_items:
+        pages_list = [
+            OsintDashboard(),
+            RoomsPanel(),
+            NetworkPage(),
+            PlaceholderPage("◎  SETTINGS", "#8892a0"),
+        ]
+
+        for (icon, label), page in zip(nav_items, pages_list):
             btn = NavButton(icon, label)
             btn.clicked.connect(lambda _, b=btn: self._switch_page(b))
-            sb_layout.addWidget(btn)
+            topbar_layout.addWidget(btn)
             self.pages.addWidget(page)
             self.nav_buttons.append(btn)
 
-        sb_layout.addStretch()
-
-
-
-        #logo in sidebar
-        logo_area = QWidget()
-        logo_area.setFixedHeight(400)
-        logo_area.setObjectName("logoArea")
-
-        # Path to logo
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        root_dir = os.path.dirname(os.path.dirname(current_dir))
-        logo_path = os.path.join(root_dir, "Assets", "Photos", "neuronverticalbanner.png")
-
-        logo_layout = QHBoxLayout(logo_area)
-        logo_layout.setContentsMargins(16, 0, 16, 0)
-
-        logo_label = QLabel()
-        logo_pixmap = QPixmap(logo_path)
-
-        # לסדר איכות תמונה
-        ratio = self.devicePixelRatioF()
-        physical_height = int(380 * ratio)
-        scaled_logo = logo_pixmap.scaledToHeight(physical_height, Qt.TransformationMode.SmoothTransformation)
-        scaled_logo.setDevicePixelRatio(ratio)
-        logo_label.setPixmap(scaled_logo)
-
-
-        logo_layout.addWidget(logo_label)
-        logo_layout.addStretch()
-        sb_layout.addWidget(logo_area)
-
-        root.addWidget(sidebar)
+        topbar_layout.addStretch()
+        root.addWidget(topbar)
         root.addWidget(self.pages, 1)
 
         # Select first tab
@@ -261,6 +235,7 @@ class MainWindow(QMainWindow):
             btn.setChecked(is_active)
             if is_active:
                 self.pages.setCurrentIndex(i)
+
 
 # ──────────────────────────────────────────
 #  ENTRY POINT
