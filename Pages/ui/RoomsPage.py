@@ -16,6 +16,10 @@ from Pages.ui.uiElements import GlowInput, GlowingButton
 from Pages.logic.RoomsLogic import ChatBackend
 
 
+
+
+
+
 class UserSearchItem(QPushButton):
     user_clicked = pyqtSignal(str)
 
@@ -62,6 +66,9 @@ class UserSearchItem(QPushButton):
         self.user_clicked.emit(self.username)
 
 
+
+
+
 class BaseModal(QDialog):
     def __init__(self, title: str, message: str, parent=None):
         super().__init__(parent)
@@ -100,9 +107,11 @@ class BaseModal(QDialog):
         self.lay.addLayout(self.btn_layout)
 
 
+
+
 class RequestModal(BaseModal):
     def __init__(self, target_user: str, parent=None):
-        super().__init__("Initiate Link", f"Request a secure 1-on-1 session with {target_user}?", parent)
+        super().__init__("Initiate Link", f"Request a chat session with {target_user}?", parent)
         cancel_btn = GlowingButton("CANCEL", variant="danger")
         cancel_btn.clicked.connect(self.reject)
         send_btn = GlowingButton("SEND REQUEST", variant="primary")
@@ -111,15 +120,24 @@ class RequestModal(BaseModal):
         self.btn_layout.addWidget(send_btn)
 
 
+
+
+
 class IncomingModal(BaseModal):
     def __init__(self, sender_user: str, parent=None):
-        super().__init__("Incoming Transmission", f"Incoming secure chat request from {sender_user}.", parent)
+        super().__init__("Incoming Chat Request", f"Incoming chat request from {sender_user}.", parent)
         decline_btn = GlowingButton("DECLINE", variant="danger")
         decline_btn.clicked.connect(self.reject)
         accept_btn = GlowingButton("APPROVE", variant="primary")
         accept_btn.clicked.connect(self.accept)
         self.btn_layout.addWidget(decline_btn)
         self.btn_layout.addWidget(accept_btn)
+
+
+
+
+
+
 
 
 class DiscoveryView(QWidget):
@@ -341,6 +359,12 @@ class EphemeralChatView(QFrame):
             self._input.clear()
 
 
+
+
+
+
+
+
 class RoomsPanel(QWidget):
     def __init__(self, backend: ChatBackend, parent=None):
         super().__init__(parent)
@@ -412,7 +436,7 @@ class RoomsPanel(QWidget):
     def _start_session_ui(self, peer: str):
         self.chat_view.clear_chat()
         self.chat_view.set_peer(peer)
-        self.chat_view.add_message("SYSTEM", f"Encrypted 1-on-1 session established with {peer}.", is_mine=False)
+        self.chat_view.add_message("SYSTEM", f"Chat established with {peer}.", is_mine=False)
         self.stack.setCurrentIndex(1)
         self._pause_polling()
 
@@ -422,7 +446,7 @@ class RoomsPanel(QWidget):
 
     def _on_peer_ended_session(self, peer: str):
         if self.stack.currentIndex() == 1:
-            self.chat_view.add_message("SYSTEM", f"Peer terminated the connection.", is_mine=False)
+            self.chat_view.add_message("SYSTEM", f"{peer} has left the chat.", is_mine=False)
 
     def _end_session(self):
         self.backend.end_session()
