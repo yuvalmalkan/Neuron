@@ -325,6 +325,7 @@ class EphemeralChatView(QFrame):
         header.setFont(QFont(FONT_MONO, 8))
         header.setStyleSheet(f"color: {TEXT_OK if is_mine else TEXT_MUTED};")
 
+
         msg = QLabel(text)
         msg.setFont(QFont(FONT_MONO, 12))
         msg.setWordWrap(True)
