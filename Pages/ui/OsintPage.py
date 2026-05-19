@@ -128,7 +128,7 @@ class TerminalBubble(QWidget):
 
 
 class AnimatedSystemBubble(QWidget):
-    """System response with typing animation — Gemini/Claude style."""
+    """System response with typing animation"""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -175,9 +175,8 @@ class AnimatedSystemBubble(QWidget):
 
 
 
-# ──────────────────────────────────────────
+
 #  INPUT BAR
-# ──────────────────────────────────────────
 
 class _TextEdit(QPlainTextEdit):
     """Enter = submit, Shift+Enter = newline."""
@@ -267,9 +266,6 @@ class OsintDashboard(QWidget):
         self._typing: TypingIndicator | None = None
         self._build_ui()
 
-
-
-
     def _build_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -279,22 +275,13 @@ class OsintDashboard(QWidget):
         main_wrapper = QHBoxLayout()
         main_wrapper.addStretch()
 
-        # 700px wide centered container
+        #centered container
         content_container = QWidget()
-        content_container.setFixedWidth(800)
+        content_container.setFixedWidth(1000)
         content_container.setStyleSheet("background: transparent;")
         content_layout = QVBoxLayout(content_container)
-        content_layout.setContentsMargins(0, 40, 0, 0)
+        content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
-
-        # Welcome headline
-        username = SessionManager.get_username()
-        welcome_label = QLabel(f"Welcome Back {username}!")
-        welcome_label.setFont(QFont(FONT_TITLE, 36, QFont.Weight.Bold))
-        welcome_label.setStyleSheet(f"color: {TEXT_TITLE};")
-        welcome_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        content_layout.addWidget(welcome_label)
-        content_layout.addSpacing(30)
 
         # Scroll area for messages
         self._scroll = QScrollArea()
@@ -321,6 +308,11 @@ class OsintDashboard(QWidget):
         self._mlayout.setContentsMargins(0, 16, 0, 8)
         self._mlayout.setSpacing(8)
         self._mlayout.addStretch()
+
+        # Add welcome message as first bubble in chat
+        username = SessionManager.get_username()
+        welcome_text = f"Welcome Back {username}!"
+        self._add(TerminalBubble(welcome_text))
 
         self._scroll.setWidget(self._container)
         content_layout.addWidget(self._scroll, 1)
@@ -351,6 +343,9 @@ class OsintDashboard(QWidget):
         floating_layout.addSpacing(50)
 
         root.addWidget(floating_container, 0)
+
+
+
 
     # ── SUBMIT ───────────────────────────────
 
