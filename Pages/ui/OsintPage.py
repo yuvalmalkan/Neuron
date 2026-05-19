@@ -99,6 +99,34 @@ class TypingIndicator(QWidget):
         self._timer.stop()
 
 
+
+
+class TerminalBubble(QWidget):
+    """Plain terminal text — no bubble styling."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setFont(QFont(FONT_MONO, 12))
+        lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        lbl.setStyleSheet(f"""
+            background: transparent;
+            color: {TEXT_TERMINAL};
+            border: none;
+            padding: 0px;
+        """)
+        lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        row.addWidget(lbl)
+        row.addStretch()
+
+
+
+
+
+
 class AnimatedSystemBubble(QWidget):
     """System response with typing animation — Gemini/Claude style."""
     def __init__(self, text: str, parent=None):
@@ -332,9 +360,11 @@ class OsintDashboard(QWidget):
         self._add(AnimatedSystemBubble(self._build_summary(fields)))
         self._show_typing()
 
-        # Placeholder until worker is connected:
-        QTimer.singleShot(1800, lambda: self.show_results(
-            "Waiting for server results..."
+        # Placeholder - shows as terminal text instead of bubble:
+        QTimer.singleShot(1800, lambda: (
+            self._hide_typing(),
+            self._add(TerminalBubble("Waiting for server results...")),
+            self._bar.set_enabled(True)
         ))
 
     def _build_summary(self, fields: dict) -> str:
