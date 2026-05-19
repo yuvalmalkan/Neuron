@@ -270,6 +270,15 @@ class OsintDashboard(QWidget):
         self._typing: TypingIndicator | None = None
         self._build_ui()
 
+        # Show welcome message
+        QTimer.singleShot(100, self._show_welcome)
+
+    def _show_welcome(self):
+        """Display welcome message on first load."""
+        username = SessionManager.get_username()
+        welcome_msg = f"Welcome Back {username}!"
+        self._add(TerminalBubble(welcome_msg))
+
     def _build_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
