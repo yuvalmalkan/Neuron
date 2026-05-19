@@ -111,7 +111,7 @@ class BaseModal(QDialog):
 
 class RequestModal(BaseModal):
     def __init__(self, target_user: str, parent=None):
-        super().__init__("Initiate Link", f"Request a chat session with {target_user}?", parent)
+        super().__init__("Request Chat", f"Request a chat session with {target_user}?", parent)
         cancel_btn = GlowingButton("CANCEL", variant="danger")
         cancel_btn.clicked.connect(self.reject)
         send_btn = GlowingButton("SEND REQUEST", variant="primary")
@@ -231,6 +231,14 @@ class DiscoveryView(QWidget):
 
         self._req_modal.deleteLater()
         self.modal_closed.emit()
+
+
+
+
+
+
+
+
 
 
 class EphemeralChatView(QFrame):
