@@ -245,6 +245,7 @@ class OsintDashboard(QWidget):
 
         root.addLayout(main_wrapper, 1)
 
+
         # Floating input bar - bottom center
         floating_container = QWidget()
         floating_container.setStyleSheet("background: transparent;")
