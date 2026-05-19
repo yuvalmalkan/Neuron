@@ -259,6 +259,37 @@ class InputBar(QWidget):
 
 
 
+
+
+
+class WelcomeBubble(QWidget):
+    """Welcome message bubble with large font."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setFont(QFont(FONT_MONO, 28))
+        lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        lbl.setStyleSheet(f"""
+            background: transparent;
+            color: {TEXT_TITLE};
+            border: none;
+            padding: 0px;
+        """)
+        lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        row.addWidget(lbl)
+        row.addStretch()
+
+
+
+
+
+
+
+
 class OsintDashboard(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -309,10 +340,10 @@ class OsintDashboard(QWidget):
         self._mlayout.setSpacing(8)
         self._mlayout.addStretch()
 
-        # Add welcome message as first bubble in chat
+        #Add welcome message
         username = SessionManager.get_username()
         welcome_text = f"Welcome Back {username}!"
-        self._add(TerminalBubble(welcome_text))
+        self._add( WelcomeBubble(welcome_text))
 
         self._scroll.setWidget(self._container)
         content_layout.addWidget(self._scroll, 1)
