@@ -208,7 +208,7 @@ class InputBar(QWidget):
             QFrame {{
                 background: {INPUT_BG};
                 border: 1px solid {INPUT_BORDER};
-                border-radius: 20px;
+                border-radius: 30px;
             }}
         """)
         inner = QHBoxLayout(wrap)
