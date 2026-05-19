@@ -124,7 +124,7 @@ class InputBar(QWidget):
         super().__init__(parent)
         self.setFixedHeight(140)
         outer = QHBoxLayout(self)
-        outer.setContentsMargins(16, 10, 16, 14)
+        outer.setContentsMargins(16, 0, 16, 14)
         outer.setSpacing(8)
 
         wrap = QFrame()
@@ -154,7 +154,7 @@ class InputBar(QWidget):
 
         self.btn = QPushButton("▶")
         self.btn.setFixedSize(32, 32)
-        self.btn.setFont(QFont(FONT_MONO, 10))
+        self.btn.setFont(QFont(FONT_MONO, 12))
         self.btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn.setStyleSheet(f"""
             QPushButton {{
@@ -199,7 +199,19 @@ class OsintDashboard(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Scroll area (full screen behind everything)
+        # Main container centered on screen
+        main_wrapper = QHBoxLayout()
+        main_wrapper.addStretch()
+
+        # 700px wide centered container
+        content_container = QWidget()
+        content_container.setFixedWidth(700)
+        content_container.setStyleSheet("background: transparent;")
+        content_layout = QVBoxLayout(content_container)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+
+        # Scroll area for messages
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -226,30 +238,34 @@ class OsintDashboard(QWidget):
         self._mlayout.addStretch()
 
         self._scroll.setWidget(self._container)
-        root.addWidget(self._scroll, 1)
+        content_layout.addWidget(self._scroll, 1)
 
-        # Floating input bar - centered
+        main_wrapper.addWidget(content_container)
+        main_wrapper.addStretch()
+
+        root.addLayout(main_wrapper, 1)
+
+        # Floating input bar - bottom center
         floating_container = QWidget()
         floating_container.setStyleSheet("background: transparent;")
         floating_layout = QVBoxLayout(floating_container)
         floating_layout.setContentsMargins(0, 0, 0, 0)
         floating_layout.addStretch()
 
-        # Center horizontally and vertically
         input_wrapper = QHBoxLayout()
         input_wrapper.addStretch()
 
         self._bar = InputBar()
         self._bar.submitted.connect(self._on_submit)
-        self._bar.setFixedWidth(700)  # Fixed width for bubble effect
+        self._bar.setFixedWidth(700)
 
         input_wrapper.addWidget(self._bar)
         input_wrapper.addStretch()
 
         floating_layout.addLayout(input_wrapper)
-        floating_layout.addStretch()
+        floating_layout.addSpacing(30)  # Space from bottom
 
-        root.addWidget(floating_container, 1)
+        root.addWidget(floating_container, 0)
 
     # ── SUBMIT ───────────────────────────────
 
