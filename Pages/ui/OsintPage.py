@@ -33,7 +33,7 @@ class UserBubble(QWidget):
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
-        lbl.setFont(QFont(FONT_MONO, 10))
+        lbl.setFont(QFont(FONT_MONO, 15))
         lbl.setStyleSheet(f"""
             background: {INPUT_BG};
             color: {TEXT_BODY};
@@ -54,7 +54,7 @@ class SystemBubble(QWidget):
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
-        lbl.setFont(QFont(FONT_MONO, 10))
+        lbl.setFont(QFont(FONT_MONO, 15))
         lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lbl.setStyleSheet(f"""
             background: {CARD_BG};
@@ -205,7 +205,7 @@ class OsintDashboard(QWidget):
 
         # 700px wide centered container
         content_container = QWidget()
-        content_container.setFixedWidth(700)
+        content_container.setFixedWidth(800)
         content_container.setStyleSheet("background: transparent;")
         content_layout = QVBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
@@ -258,13 +258,13 @@ class OsintDashboard(QWidget):
 
         self._bar = InputBar()
         self._bar.submitted.connect(self._on_submit)
-        self._bar.setFixedWidth(700)
+        self._bar.setFixedWidth(800)
 
         input_wrapper.addWidget(self._bar)
         input_wrapper.addStretch()
 
         floating_layout.addLayout(input_wrapper)
-        floating_layout.addSpacing(30)  # Space from bottom
+        floating_layout.addSpacing(50)  # Space from bottom
 
         root.addWidget(floating_container, 0)
 
@@ -277,10 +277,7 @@ class OsintDashboard(QWidget):
         fields = parse_target_input(raw)
 
         if not any(fields.get(k) for k in ("phone", "email", "username", "name")):
-            self._add(SystemBubble(
-                "No recognizable target fields found.\n"
-                "Try: +972-54-000-0000  ·  user@email.com  ·  @handle"
-            ))
+            self._add(SystemBubble("Please enter at least one of: phone, email, @username, or name."))
             self._bar.set_enabled(True)
             return
 
