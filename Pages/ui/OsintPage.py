@@ -215,7 +215,7 @@ class InputBar(QWidget):
         inner.setSpacing(6)
 
         self.field = _TextEdit()
-        self.field.setPlaceholderText("phone, email, @username...")
+        self.field.setPlaceholderText("Enter Phone, Email, @Username...")
         self.field.setFont(QFont(FONT_MONO, 15))
         self.field.setFixedHeight(80)
         self.field.setStyleSheet(f"""
@@ -263,7 +263,7 @@ class InputBar(QWidget):
 
 
 class WelcomeBubble(QWidget):
-    """Welcome message bubble with large font."""
+    """Welcome message"""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -271,7 +271,7 @@ class WelcomeBubble(QWidget):
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
-        lbl.setFont(QFont(FONT_MONO, 28))
+        lbl.setFont(QFont(FONT_MONO, 28, QFont.Weight.Bold))
         lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lbl.setStyleSheet(f"""
             background: transparent;
@@ -378,8 +378,7 @@ class OsintDashboard(QWidget):
 
 
 
-    # ── SUBMIT ───────────────────────────────
-
+    #SUBMIT
     def _on_submit(self, raw: str):
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
@@ -408,6 +407,13 @@ class OsintDashboard(QWidget):
         if fields.get("email"):    lines.append(f"  email     {fields['email']}")
         if fields.get("username"): lines.append(f"  username  @{fields['username']}")
         return "\n".join(lines)
+
+
+
+
+
+
+
 
     # ── PUBLIC — called by OsintWorker when results arrive ────────────
 
@@ -441,10 +447,12 @@ class OsintDashboard(QWidget):
             self._typing = None
 
 
-# ──────────────────────────────────────────
-#  MAIN WINDOW
-# ──────────────────────────────────────────
 
+
+
+
+
+#MAIN WINDOW
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
