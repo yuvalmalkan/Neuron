@@ -1,179 +1,332 @@
 __author__ = "Yuval Malkan"
 
 import sys
-import os
-import time
 
 from Pages.ui.uiConstants import *
-from Pages.ui.uiElements import shadow, Card, GlowInput, GlowingButton, NavButton, ResultDisplay
+from Pages.ui.uiElements import NavButton
 from Pages.ui.RoomsPage import RoomsPanel
 from Pages.ui.NetworkPage import NetworkPage
-
-# --- ADDED: Import the ChatBackend ---
 from Pages.logic.RoomsLogic import ChatBackend
+from Pages.logic.OsintLogic import parse_target_input
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QScrollArea, QStackedWidget, QSizePolicy
+    QLabel, QScrollArea, QStackedWidget, QSizePolicy, QPlainTextEdit,
+    QPushButton, QFrame
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui import QFont, QColor, QPalette, QKeyEvent
 import SessionManager
 
 
 # ──────────────────────────────────────────
-#  OSINT TAB  (= Main Dashboard)
+#  MESSAGE WIDGETS
 # ──────────────────────────────────────────
+
+class UserBubble(QWidget):
+    """Right-aligned bubble — what the user typed."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(80, 2, 12, 2)
+        row.addStretch()
+
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setFont(QFont(FONT_MONO, 10))
+        lbl.setStyleSheet(f"""
+            background: {INPUT_BG};
+            color: {TEXT_BODY};
+            border: 1px solid {INPUT_BORDER};
+            border-radius: 10px;
+            padding: 8px 12px;
+        """)
+        lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        row.addWidget(lbl)
+
+
+class SystemBubble(QWidget):
+    """Left-aligned system result — plain terminal text."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        lbl = QLabel(text)
+        lbl.setWordWrap(True)
+        lbl.setFont(QFont(FONT_MONO, 10))
+        lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        lbl.setStyleSheet(f"""
+            background: {CARD_BG};
+            color: {TEXT_TERMINAL};
+            border: 1px solid {CARD_BORDER};
+            border-radius: 10px;
+            padding: 10px 14px;
+        """)
+        lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        row.addWidget(lbl)
+        row.addStretch()
+
+
+class TypingIndicator(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        self._lbl = QLabel("scanning")
+        self._lbl.setFont(QFont(FONT_MONO, 10))
+        self._lbl.setStyleSheet(f"""
+            background: {CARD_BG};
+            color: {TEXT_PLACEHOLDER};
+            border: 1px solid {CARD_BORDER};
+            border-radius: 10px;
+            padding: 10px 14px;
+        """)
+        row.addWidget(self._lbl)
+        row.addStretch()
+
+        self._dots = 0
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(400)
+
+    def _tick(self):
+        self._dots = (self._dots + 1) % 4
+        self._lbl.setText("scanning" + "." * self._dots)
+
+    def stop(self):
+        self._timer.stop()
+
+
+# ──────────────────────────────────────────
+#  INPUT BAR
+# ──────────────────────────────────────────
+
+class _TextEdit(QPlainTextEdit):
+    """Enter = submit, Shift+Enter = newline."""
+    enter_pressed = pyqtSignal()
+
+    def keyPressEvent(self, e: QKeyEvent):
+        if e.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                super().keyPressEvent(e)
+            else:
+                self.enter_pressed.emit()
+        else:
+            super().keyPressEvent(e)
+
+
+class InputBar(QWidget):
+    submitted = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(140)
+        outer = QHBoxLayout(self)
+        outer.setContentsMargins(16, 10, 16, 14)
+        outer.setSpacing(8)
+
+        wrap = QFrame()
+        wrap.setStyleSheet(f"""
+            QFrame {{
+                background: {INPUT_BG};
+                border: 1px solid {INPUT_BORDER};
+                border-radius: 20px;
+            }}
+        """)
+        inner = QHBoxLayout(wrap)
+        inner.setContentsMargins(14, 6, 6, 6)
+        inner.setSpacing(6)
+
+        self.field = _TextEdit()
+        self.field.setPlaceholderText("phone, email, @username...")
+        self.field.setFont(QFont(FONT_MONO, 15))
+        self.field.setFixedHeight(80)
+        self.field.setStyleSheet(f"""
+            QPlainTextEdit {{
+                background: transparent;
+                border: none;
+                color: {TEXT_BODY};
+            }}
+        """)
+        self.field.enter_pressed.connect(self._submit)
+
+        self.btn = QPushButton("▶")
+        self.btn.setFixedSize(32, 32)
+        self.btn.setFont(QFont(FONT_MONO, 10))
+        self.btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                color: {INPUT_FOCUS};
+                border: 1px solid {INPUT_FOCUS};
+                border-radius: 16px;
+            }}
+            QPushButton:hover   {{ background: {BTN_PRIMARY_HOVER}; }}
+            QPushButton:pressed {{ background: {BTN_PRIMARY_PRESS}; }}
+        """)
+        self.btn.clicked.connect(self._submit)
+
+        inner.addWidget(self.field)
+        inner.addWidget(self.btn, 0, Qt.AlignmentFlag.AlignVCenter)
+        outer.addWidget(wrap)
+
+    def _submit(self):
+        text = self.field.toPlainText().strip()
+        if text:
+            self.field.clear()
+            self.submitted.emit(text)
+
+    def set_enabled(self, v: bool):
+        self.field.setEnabled(v)
+        self.btn.setEnabled(v)
+
+
+# ──────────────────────────────────────────
+#  OSINT DASHBOARD
+# ──────────────────────────────────────────
+
 class OsintDashboard(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("osintDashboard")
+        self._typing: TypingIndicator | None = None
         self._build_ui()
 
     def _build_ui(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(28, 24, 28, 24)
-        root.setSpacing(20)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        # ── HEADER ──────────────────────────────
-        hdr = QHBoxLayout()
+        # Scroll area (full screen behind everything)
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll.setStyleSheet(f"""
+            QScrollArea {{ border: none; background: transparent; }}
+            QScrollBar:vertical {{
+                background: {SCROLLBAR_BG};
+                width: 5px;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {SCROLLBAR_HANDLE};
+                border-radius: 2px;
+                min-height: 24px;
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{ height: 0; }}
+        """)
 
-        username = SessionManager.get_username()
-        title = QLabel(f"Welcome Back {username}!")
+        self._container = QWidget()
+        self._container.setStyleSheet("background: transparent;")
+        self._mlayout = QVBoxLayout(self._container)
+        self._mlayout.setContentsMargins(0, 16, 0, 8)
+        self._mlayout.setSpacing(8)
+        self._mlayout.addStretch()
 
-        title.setFont(QFont(FONT_TITLE, 30, QFont.Weight.Bold))
-        title.setStyleSheet(f"color: {TEXT_TITLE};")
+        self._scroll.setWidget(self._container)
+        root.addWidget(self._scroll, 1)
 
-        hdr.addWidget(title)
-        hdr.addStretch()
-        root.addLayout(hdr)
+        # Floating input bar - centered
+        floating_container = QWidget()
+        floating_container.setStyleSheet("background: transparent;")
+        floating_layout = QVBoxLayout(floating_container)
+        floating_layout.setContentsMargins(0, 0, 0, 0)
+        floating_layout.addStretch()
 
-        # ── SEARCH CARD ──────────────────────────
-        search_card = Card()
-        sc_layout = QVBoxLayout(search_card)
-        sc_layout.setContentsMargins(20, 16, 20, 16)
-        sc_layout.setSpacing(14)
+        # Center horizontally and vertically
+        input_wrapper = QHBoxLayout()
+        input_wrapper.addStretch()
 
-        search_title = QLabel("Find Target")
-        search_title.setFont(QFont(FONT_TITLE, 11, QFont.Weight.Bold))
-        search_title.setStyleSheet(f"color: {TEXT_TITLE}; background: transparent; border: none;")
-        sc_layout.addWidget(search_title)
+        self._bar = InputBar()
+        self._bar.submitted.connect(self._on_submit)
+        self._bar.setFixedWidth(700)  # Fixed width for bubble effect
 
-        # Input row
-        input_row = QHBoxLayout()
-        input_row.setSpacing(10)
+        input_wrapper.addWidget(self._bar)
+        input_wrapper.addStretch()
 
-        self.name_input = GlowInput("Full Name")
-        self.phone_input = GlowInput("Phone Number")
-        self.email_input = GlowInput("Email Address")
+        floating_layout.addLayout(input_wrapper)
+        floating_layout.addStretch()
 
-        input_row.addWidget(self.name_input, 2)
-        input_row.addWidget(self.phone_input, 1)
-        input_row.addWidget(self.email_input, 2)
-        sc_layout.addLayout(input_row)
+        root.addWidget(floating_container, 1)
 
-        # Second row
-        input_row2 = QHBoxLayout()
-        input_row2.setSpacing(10)
+    # ── SUBMIT ───────────────────────────────
 
-        self.address_input = GlowInput("Home Address")
-        self.extra_input = GlowInput("Additional information (social networks, nickname...)")
+    def _on_submit(self, raw: str):
+        self._add(UserBubble(raw))
+        self._bar.set_enabled(False)
 
-        input_row2.addWidget(self.address_input, 1)
-        input_row2.addWidget(self.extra_input, 2)
-        sc_layout.addLayout(input_row2)
+        fields = parse_target_input(raw)
 
-        # Buttons row
-        btn_row = QHBoxLayout()
-        btn_row.setSpacing(10)
-
-        # Use semantic variant tags instead of raw color constants
-        self.scan_btn = GlowingButton("▶  SCAN", "primary")
-        self.clear_btn = GlowingButton("✕  CLEAR", "danger")
-        self.save_btn = GlowingButton("⬇  Save", "primary")
-
-        self.scan_btn.clicked.connect(self._on_scan)
-        self.clear_btn.clicked.connect(self._on_clear)
-
-        btn_row.addWidget(self.scan_btn)
-        btn_row.addWidget(self.clear_btn)
-        btn_row.addStretch()
-        btn_row.addWidget(self.save_btn)
-        sc_layout.addLayout(btn_row)
-
-        root.addWidget(search_card)
-
-        # ── RESULTS ──────────────────────────────
-        result_label = QLabel("SCAN RESULTS")
-        result_label.setFont(QFont(FONT_TITLE, 15))
-        result_label.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
-        root.addWidget(result_label)
-
-        self.result_box = ResultDisplay()
-        root.addWidget(self.result_box, 1)
-
-    # ── SLOTS ────────────────────────────────
-    def _on_scan(self):
-        name = self.name_input.text().strip()
-        phone = self.phone_input.text().strip()
-        email = self.email_input.text().strip()
-        address = self.address_input.text().strip()
-        extra = self.extra_input.text().strip()
-
-        if not any([name, phone, email, address]):
-            self.result_box.setPlainText("Error - Please enter at least one field")
+        if not any(fields.get(k) for k in ("phone", "email", "username", "name")):
+            self._add(SystemBubble(
+                "No recognizable target fields found.\n"
+                "Try: +972-54-000-0000  ·  user@email.com  ·  @handle"
+            ))
+            self._bar.set_enabled(True)
             return
 
-        lines = []
-        lines.append("=" * 56)
+        self._add(SystemBubble(self._build_summary(fields)))
+        self._show_typing()
 
-        lines.append("  PROJECT NEURON  |  OSINT SCAN INITIATED")
+        # ── Wire your worker here ─────────────────────────────────────────
+        # Once the server-side scan completes, call self.show_results(text).
+        #
+        #   worker = OsintWorker(fields)
+        #   worker.results_ready.connect(self.show_results)
+        #   worker.error.connect(lambda msg: self.show_results(f"Error: {msg}"))
+        #   worker.start()
+        #
+        # Placeholder until worker is connected:
+        QTimer.singleShot(1800, lambda: self.show_results(
+            "Waiting for server results..."
+        ))
 
-        lines.append("=" * 56)
-        if name:    lines.append(f"  NAME    : {name}")
-        if phone:   lines.append(f"  PHONE   : {phone}")
-        if email:   lines.append(f"  EMAIL   : {email}")
-        if address: lines.append(f"  ADDRESS : {address}")
-        if extra:   lines.append(f"  EXTRA   : {extra}")
+    def _build_summary(self, fields: dict) -> str:
+        lines = ["TARGET QUEUED", "─" * 28]
+        if fields.get("name"):     lines.append(f"  name      {fields['name']}")
+        if fields.get("phone"):    lines.append(f"  phone     {fields['phone']}")
+        if fields.get("email"):    lines.append(f"  email     {fields['email']}")
+        if fields.get("username"): lines.append(f"  username  @{fields['username']}")
+        return "\n".join(lines)
 
-        self.result_box.setPlainText("\n".join(lines))
+    # ── PUBLIC — called by OsintWorker when results arrive ────────────
 
-    def _on_clear(self):
-        self.name_input.clear()
-        self.phone_input.clear()
-        self.email_input.clear()
-        self.address_input.clear()
-        self.extra_input.clear()
-        self.result_box.clear()
+    def show_results(self, text: str):
+        """
+        Call this from your worker signal when the server returns the full result.
+        text: plain string (formatted however OsintLogic produces it).
+        """
+        self._hide_typing()
+        self._add(SystemBubble(text))
+        self._bar.set_enabled(True)
 
+    # ── HELPERS ──────────────────────────────
 
-# ──────────────────────────────────────────
-#  PLACEHOLDER TABS
-# ──────────────────────────────────────────
-class PlaceholderPage(QWidget):
-    def __init__(self, title, hex_color="#4ADE80", parent=None):
-        super().__init__(parent)
-        self.setObjectName("placeholderPage")
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    def _add(self, widget: QWidget):
+        self._mlayout.insertWidget(self._mlayout.count() - 1, widget)
+        QTimer.singleShot(30, lambda: self._scroll.verticalScrollBar().setValue(
+            self._scroll.verticalScrollBar().maximum()
+        ))
 
-        lbl = QLabel(title)
-        lbl.setFont(QFont(FONT_MONO, 18))
-        lbl.setStyleSheet(f"color: {hex_color}44;")
-        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    def _show_typing(self):
+        self._hide_typing()
+        self._typing = TypingIndicator()
+        self._add(self._typing)
 
-        sub = QLabel("SOON...")
-        sub.setFont(QFont(FONT_MONO, 11))
-        sub.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
-        sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        layout.addWidget(lbl)
-        layout.addWidget(sub)
+    def _hide_typing(self):
+        if self._typing:
+            self._typing.stop()
+            self._mlayout.removeWidget(self._typing)
+            self._typing.deleteLater()
+            self._typing = None
 
 
 # ──────────────────────────────────────────
 #  MAIN WINDOW
 # ──────────────────────────────────────────
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -181,15 +334,11 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1100, 700)
         self.resize(1280, 780)
 
-        # We fetch the username right away to inject into the Chat Backend
         self.username = SessionManager.get_username()
 
-        # --- INITIALIZE THE CHAT BACKEND ---
-        # Note: IP matches Constants.py default (127.0.0.1 for local testing)
-        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401) #fixme use the clients actual ip
+        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)
         if self.username:
             self.chat_backend.connect(self.username)
-
 
         self._build_layout()
 
@@ -200,73 +349,58 @@ class MainWindow(QMainWindow):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ── TOPBAR ──────────────────────────────
         topbar = QWidget()
         topbar.setFixedHeight(50)
         topbar.setObjectName("topbar")
+        tl = QHBoxLayout(topbar)
+        tl.setContentsMargins(20, 0, 20, 0)
+        tl.setSpacing(15)
 
-        topbar_layout = QHBoxLayout(topbar)
-        topbar_layout.setContentsMargins(20, 0, 20, 0)
-        topbar_layout.setSpacing(15)
-
-        # Left: Logo/Title
-        logo_label = QLabel("PROJECT NEURON")
-        logo_label.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
-        logo_label.setStyleSheet(f"color: {TEXT_TITLE};")
-        topbar_layout.addWidget(logo_label)
-
-        topbar_layout.addSpacing(30)
+        logo = QLabel("PROJECT NEURON")
+        logo.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
+        logo.setStyleSheet(f"color: {TEXT_TITLE};")
+        tl.addWidget(logo)
+        tl.addSpacing(30)
 
         self.pages = QStackedWidget()
         self.nav_buttons = []
 
-        nav_items = [
-            ("", "OSINT"),
-            ("", "ROOMS"),
-            ("", "NETWORK"),
-        ]
-
+        nav_items  = [("", "OSINT"), ("", "ROOMS"), ("", "NETWORK")]
         pages_list = [
             OsintDashboard(),
-            RoomsPanel(backend=self.chat_backend),  # <-- BACKEND PASSED IN HERE
+            RoomsPanel(backend=self.chat_backend),
             NetworkPage(),
         ]
 
-        # Center: Navigation buttons
-        topbar_layout.addStretch()
-
+        tl.addStretch()
         for (icon, label), page in zip(nav_items, pages_list):
             btn = NavButton(icon, label)
             btn.clicked.connect(lambda _, b=btn: self._switch_page(b))
-            topbar_layout.addWidget(btn)
+            tl.addWidget(btn)
             self.pages.addWidget(page)
             self.nav_buttons.append(btn)
-            topbar_layout.addStretch()
+            tl.addStretch()
 
-        topbar_layout.addSpacing(30)
+        tl.addSpacing(30)
 
-        # Right: User name - Same style as left
-        user_label = QLabel(f"{self.username.upper()}" if self.username else "USER")
-        user_label.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
-        user_label.setStyleSheet(f"color: {TEXT_TITLE}; padding-right: 10px;")
-        topbar_layout.addWidget(user_label)
+        user_lbl = QLabel(self.username.upper() if self.username else "USER")
+        user_lbl.setFont(QFont(FONT_TITLE, 14, QFont.Weight.Bold))
+        user_lbl.setStyleSheet(f"color: {TEXT_TITLE}; padding-right: 10px;")
+        tl.addWidget(user_lbl)
 
         root.addWidget(topbar)
         root.addWidget(self.pages, 1)
-
-        # Select first tab
         self._switch_page(self.nav_buttons[0])
 
     def _switch_page(self, clicked_btn: NavButton):
         for i, btn in enumerate(self.nav_buttons):
-            is_active = btn is clicked_btn
-            btn.setChecked(is_active)
-            if is_active:
+            active = btn is clicked_btn
+            btn.setChecked(active)
+            if active:
                 self.pages.setCurrentIndex(i)
 
-    # Clean up socket threads safely when closing the window
     def closeEvent(self, event):
-        if hasattr(self, 'chat_backend'):
+        if hasattr(self, "chat_backend"):
             self.chat_backend.disconnect()
         super().closeEvent(event)
 
@@ -274,22 +408,19 @@ class MainWindow(QMainWindow):
 # ──────────────────────────────────────────
 #  ENTRY POINT
 # ──────────────────────────────────────────
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
     load_application_font()
     app.setStyle("Fusion")
-
-    # Apply the global QSS!
     app.setStyleSheet(load_stylesheet("main"))
 
-    # Dark palette for native widgets using semantic variables
     palette = QPalette()
-    palette.setColor(QPalette.ColorRole.Window, QColor(WINDOW_BG))
-    palette.setColor(QPalette.ColorRole.WindowText, QColor(TEXT_TITLE))
-    palette.setColor(QPalette.ColorRole.Base, QColor(CARD_BG))
-    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(SIDEBAR_BG))
-    palette.setColor(QPalette.ColorRole.Highlight, QColor(INPUT_FOCUS))
+    palette.setColor(QPalette.ColorRole.Window,          QColor(WINDOW_BG))
+    palette.setColor(QPalette.ColorRole.WindowText,      QColor(TEXT_TITLE))
+    palette.setColor(QPalette.ColorRole.Base,            QColor(CARD_BG))
+    palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(SIDEBAR_BG))
+    palette.setColor(QPalette.ColorRole.Highlight,       QColor(INPUT_FOCUS))
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
     app.setPalette(palette)
 
