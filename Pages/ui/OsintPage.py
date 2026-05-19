@@ -186,10 +186,10 @@ class MainWindow(QMainWindow):
 
         # --- INITIALIZE THE CHAT BACKEND ---
         # Note: IP matches Constants.py default (127.0.0.1 for local testing)
-        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)
+        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401) #fixme use the clients actual ip
         if self.username:
             self.chat_backend.connect(self.username)
-        # -----------------------------------
+
 
         self._build_layout()
 
