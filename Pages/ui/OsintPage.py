@@ -99,6 +99,54 @@ class TypingIndicator(QWidget):
         self._timer.stop()
 
 
+class AnimatedSystemBubble(QWidget):
+    """System response with typing animation — Gemini/Claude style."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        self._lbl = QLabel()
+        self._lbl.setWordWrap(True)
+        self._lbl.setFont(QFont(FONT_MONO, 15))
+        self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self._lbl.setStyleSheet(f"""
+            background: {CARD_BG};
+            color: {TEXT_TERMINAL};
+            border: 1px solid {CARD_BORDER};
+            border-radius: 10px;
+            padding: 10px 14px;
+        """)
+        self._lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        row.addWidget(self._lbl)
+        row.addStretch()
+
+        # Typing animation
+        self._full_text = text
+        self._current_text = ""
+        self._index = 0
+
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._type_next_char)
+        self._timer.start(20)  # Speed in milliseconds per character
+
+    def _type_next_char(self):
+        if self._index < len(self._full_text):
+            self._current_text += self._full_text[self._index]
+            self._lbl.setText(self._current_text)
+            self._index += 1
+        else:
+            self._timer.stop()
+
+    def stop(self):
+        """Stop animation and show full text."""
+        self._timer.stop()
+        self._lbl.setText(self._full_text)
+
+
+
+
+
 # ──────────────────────────────────────────
 #  INPUT BAR
 # ──────────────────────────────────────────
@@ -277,21 +325,13 @@ class OsintDashboard(QWidget):
         fields = parse_target_input(raw)
 
         if not any(fields.get(k) for k in ("phone", "email", "username", "name")):
-            self._add(SystemBubble("Please enter at least one of: phone, email, @username, or name."))
+            self._add(AnimatedSystemBubble("Please enter at least one of: phone, email, @username, or name."))
             self._bar.set_enabled(True)
             return
 
-        self._add(SystemBubble(self._build_summary(fields)))
+        self._add(AnimatedSystemBubble(self._build_summary(fields)))
         self._show_typing()
 
-        # ── Wire your worker here ─────────────────────────────────────────
-        # Once the server-side scan completes, call self.show_results(text).
-        #
-        #   worker = OsintWorker(fields)
-        #   worker.results_ready.connect(self.show_results)
-        #   worker.error.connect(lambda msg: self.show_results(f"Error: {msg}"))
-        #   worker.start()
-        #
         # Placeholder until worker is connected:
         QTimer.singleShot(1800, lambda: self.show_results(
             "Waiting for server results..."
@@ -313,7 +353,7 @@ class OsintDashboard(QWidget):
         text: plain string (formatted however OsintLogic produces it).
         """
         self._hide_typing()
-        self._add(SystemBubble(text))
+        self._add(AnimatedSystemBubble(text))
         self._bar.set_enabled(True)
 
     # ── HELPERS ──────────────────────────────
