@@ -259,9 +259,6 @@ class InputBar(QWidget):
         self.btn.setEnabled(v)
 
 
-# ──────────────────────────────────────────
-#  OSINT DASHBOARD
-# ──────────────────────────────────────────
 
 class OsintDashboard(QWidget):
     def __init__(self, parent=None):
@@ -270,14 +267,8 @@ class OsintDashboard(QWidget):
         self._typing: TypingIndicator | None = None
         self._build_ui()
 
-        # Show welcome message
-        QTimer.singleShot(100, self._show_welcome)
 
-    def _show_welcome(self):
-        """Display welcome message on first load."""
-        username = SessionManager.get_username()
-        welcome_msg = f"Welcome Back {username}!"
-        self._add(TerminalBubble(welcome_msg))
+
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -293,8 +284,17 @@ class OsintDashboard(QWidget):
         content_container.setFixedWidth(800)
         content_container.setStyleSheet("background: transparent;")
         content_layout = QVBoxLayout(content_container)
-        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setContentsMargins(0, 40, 0, 0)
         content_layout.setSpacing(0)
+
+        # Welcome headline
+        username = SessionManager.get_username()
+        welcome_label = QLabel(f"Welcome Back {username}!")
+        welcome_label.setFont(QFont(FONT_TITLE, 36, QFont.Weight.Bold))
+        welcome_label.setStyleSheet(f"color: {TEXT_TITLE};")
+        welcome_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        content_layout.addWidget(welcome_label)
+        content_layout.addSpacing(30)
 
         # Scroll area for messages
         self._scroll = QScrollArea()
@@ -330,7 +330,6 @@ class OsintDashboard(QWidget):
 
         root.addLayout(main_wrapper, 1)
 
-
         # Floating input bar - bottom center
         floating_container = QWidget()
         floating_container.setStyleSheet("background: transparent;")
@@ -349,7 +348,7 @@ class OsintDashboard(QWidget):
         input_wrapper.addStretch()
 
         floating_layout.addLayout(input_wrapper)
-        floating_layout.addSpacing(50)  # Space from bottom
+        floating_layout.addSpacing(50)
 
         root.addWidget(floating_container, 0)
 
