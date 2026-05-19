@@ -420,7 +420,7 @@ class MainWindow(QMainWindow):
 
         self.username = SessionManager.get_username()
 
-        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)
+        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)#todo change it later to other ip
         if self.username:
             self.chat_backend.connect(self.username)
 
