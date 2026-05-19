@@ -227,24 +227,9 @@ class InputBar(QWidget):
         """)
         self.field.enter_pressed.connect(self._submit)
 
-        self.btn = QPushButton("▶")
-        self.btn.setFixedSize(32, 32)
-        self.btn.setFont(QFont(FONT_MONO, 12))
-        self.btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn.setStyleSheet(f"""
-            QPushButton {{
-                background: transparent;
-                color: {INPUT_FOCUS};
-                border: 1px solid {INPUT_FOCUS};
-                border-radius: 16px;
-            }}
-            QPushButton:hover   {{ background: {BTN_PRIMARY_HOVER}; }}
-            QPushButton:pressed {{ background: {BTN_PRIMARY_PRESS}; }}
-        """)
-        self.btn.clicked.connect(self._submit)
+
 
         inner.addWidget(self.field)
-        inner.addWidget(self.btn, 0, Qt.AlignmentFlag.AlignVCenter)
         outer.addWidget(wrap)
 
     def _submit(self):
@@ -255,7 +240,7 @@ class InputBar(QWidget):
 
     def set_enabled(self, v: bool):
         self.field.setEnabled(v)
-        self.btn.setEnabled(v)
+
 
 
 
@@ -271,7 +256,7 @@ class WelcomeBubble(QWidget):
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
-        lbl.setFont(QFont(FONT_MONO, 28, QFont.Weight.Bold))
+        lbl.setFont(QFont(FONT_MONO, 40, QFont.Weight.Bold))
         lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lbl.setStyleSheet(f"""
             background: transparent;
