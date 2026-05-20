@@ -3,10 +3,10 @@ __author__ = "Yuval Malkan"
 import threading
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from Maigret import Maigret_search_username
-from Sherlock import sherlock_search_username
-from accountFinder import findByUsername
-from SocialMedia.Telegram import lookup_username_sync
+from CoreTools.Maigret import Maigret_search_username
+from CoreTools.Sherlock import sherlock_search_username
+from CoreTools.accountFinder import findByUsername
+from CoreTools.SocialMedia.Telegram import lookup_username_sync
 
 """
 Complete OSINT scan for a username across all available sources in parallel.
@@ -168,14 +168,14 @@ def print_username_report(report: dict):
         tg = summary["telegram"]
         print("\n[TELEGRAM]")
         if tg.get("found"):
-            print(f"  ✓ Found")
+            print(f"    Found")
             print(f"    ID: {tg.get('user_id')}")
             print(f"    Name: {tg.get('name') or 'N/A'}")
             print(f"    Bio: {tg.get('bio') or 'N/A'}")
             print(f"    Verified: {'Yes' if tg.get('is_verified') else 'No'}")
             print(f"    Premium: {'Yes' if tg.get('is_premium') else 'No'}")
-            print(f"    Scam flag: {'⚠ YES' if tg.get('is_scam') else 'No'}")
-            print(f"    Fake flag: {'⚠ YES' if tg.get('is_fake') else 'No'}")
+            print(f"    Scam flag: {'YES' if tg.get('is_scam') else 'No'}")
+            print(f"    Fake flag: {'YES' if tg.get('is_fake') else 'No'}")
             if tg.get("profile_photo"):
                 print(f"    Photo: {tg['profile_photo']}")
             if tg.get("profile_url"):
@@ -225,10 +225,10 @@ if __name__ == "__main__":
         print("No username provided!")
         exit(1)
 
-    print(f"\n🔍 Searching for @{username}...")
+    print(f"\nSearching for @{username}...")
     report = search_username_complete(username)
 
     print_username_report(report)
 
     filepath = save_username_report(report)
-    print(f"✓ Report saved to: {filepath}\n")
+    print(f"Report saved to: {filepath}\n")
