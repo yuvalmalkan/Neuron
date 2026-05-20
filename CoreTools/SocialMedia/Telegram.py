@@ -346,10 +346,10 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python3 telegram_lookup.py phone +972501234567")
-        print("  python3 telegram_lookup.py username @someone")
-        print("  python3 telegram_lookup.py name 'Ophir Shavit'")
-        print("  python3 telegram_lookup.py findphone @someone")
+        print("  python3 Telegram.py phone +972501234567")
+        print("  python3 Telegram.py username @someone")
+        print("  python3 Telegram.py name 'Ophir Shavit'")
+        print("  python3 Telegram.py findphone @someone")
         sys.exit(0)
 
     mode = sys.argv[1]

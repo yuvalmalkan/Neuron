@@ -11,8 +11,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
-from PhoneOsint      import full_phone_osint, get_country_from_dialcode
-from telegram_lookup import telegram_lookup_phone
+from PhoneOsint      import full_phone_osint
+from CoreTools.SocialMedia.Telegram import telegram_lookup_phone
 
 load_dotenv()
 
