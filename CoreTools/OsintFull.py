@@ -2,7 +2,7 @@ __author__ = "Yuval Malkan"
 
 import threading
 from Maigret import Maigret_search_username
-from Sherlock import search_username
+from Sherlock import sherlock_search_username
 from accountFinder import findByUsername
 from ByPhone.telegram_lookup import lookup_username_sync
 from SocialMedia.Instagram import get_info_from_html as instagram_search
@@ -37,7 +37,7 @@ def OsintByUsername(username: str) -> dict:
 
     # Define all the functions you want to run
     functions_to_run = [
-        (search_username, "sherlock", username),
+        (sherlock_search_username, "sherlock", username),
         (Maigret_search_username, "maigret", username),
         (findByUsername, "accountFinder", username),
         (lookup_username_sync, "telegram", username),

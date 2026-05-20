@@ -4,7 +4,7 @@ import subprocess
 import threading
 import time
 
-def search_username(username: str) -> list:
+def sherlock_search_username(username: str) -> list:
     # Timer that prints elapsed time every second
     start_time = time.time()
     stop_timer = threading.Event()
@@ -46,7 +46,7 @@ def search_username(username: str) -> list:
 
 if __name__ == "__main__":
     user =input("username: ")
-    results = search_username(user)
+    results = sherlock_search_username(user)
     print()
     for r in results:
         print(f"  → {r['site']}: {r['url']}")
