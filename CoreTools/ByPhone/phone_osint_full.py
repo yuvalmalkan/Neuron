@@ -1,9 +1,5 @@
 __author__ = "Yuval Malkan"
 
-
-#pip install requests telethon python-dotenv certifi
-
-
 import json
 import asyncio
 import os
@@ -11,8 +7,12 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
-from PhoneOsint      import full_phone_osint
-from CoreTools.SocialMedia.Telegram import telegram_lookup_phone
+from PhoneOsint import full_phone_osint
+# Remove or fix this import - it's asking for auth
+# from CoreTools.SocialMedia.Telegram import telegram_lookup_phone
+
+# Instead, import from the correct location with proper session handling
+from CoreTools.SocialMedia.Telegram import lookup_phone_sync  # Use sync version instead of async
 
 load_dotenv()
 
@@ -32,18 +32,22 @@ async def _run_all(phone: str, config: dict) -> dict:
         future_basic = loop.run_in_executor(
             pool, lambda: full_phone_osint(phone, abstract_key=config.get("abstract_key"))
         )
-        # Telegram runs as async task
-        tg_task = asyncio.create_task(telegram_lookup_phone(phone))
+
+        # Telegram runs in thread pool (no auth prompt if session exists)
+        future_tg = loop.run_in_executor(
+            pool, lambda: lookup_phone_sync(phone)
+        )
 
         # Both run simultaneously
         basic_result, tg_result = await asyncio.gather(
             future_basic,
-            tg_task,
+            future_tg,
             return_exceptions=True
         )
 
-    report["sources"]["basic"]    = basic_result if not isinstance(basic_result, Exception) else {"error": str(basic_result)}
-    report["sources"]["telegram"] = tg_result    if not isinstance(tg_result,    Exception) else {"error": str(tg_result)}
+    report["sources"]["basic"] = basic_result if not isinstance(basic_result, Exception) else {
+        "error": str(basic_result)}
+    report["sources"]["telegram"] = tg_result if not isinstance(tg_result, Exception) else {"error": str(tg_result)}
 
     report["elapsed_seconds"] = round(time.time() - start, 2)
     report["summary"] = _build_summary(report["sources"])
@@ -51,11 +55,11 @@ async def _run_all(phone: str, config: dict) -> dict:
 
 
 def _build_summary(sources: dict) -> dict:
-    tg     = sources.get("telegram", {})
-    basic  = sources.get("basic",    {})
-    ab     = basic.get("abstract",   {})
-    co     = basic.get("country_offline", {})
-    parsed = basic.get("parsed",     {})
+    tg = sources.get("telegram", {})
+    basic = sources.get("basic", {})
+    ab = basic.get("abstract", {})
+    co = basic.get("country_offline", {})
+    parsed = basic.get("parsed", {})
 
     # Clean name — ignore "." style placeholder names
     name = tg.get("full_name")
@@ -64,26 +68,26 @@ def _build_summary(sources: dict) -> dict:
 
     return {
         # Identity
-        "name":                   name,
-        "telegram_id":            tg.get("telegram_id"),
-        "telegram_username":      tg.get("username"),
-        "telegram_registered":    tg.get("registered", False),
-        "telegram_premium":       tg.get("is_premium", False),
-        "telegram_scam":          tg.get("is_scam", False),
-        "telegram_fake":          tg.get("is_fake", False),
-        "telegram_verified":      tg.get("is_verified", False),
-        "telegram_has_photo":     tg.get("has_profile_photo", False),
-        "telegram_photo_saved":   tg.get("profile_photo_saved"),
+        "name": name,
+        "telegram_id": tg.get("telegram_id"),
+        "telegram_username": tg.get("username"),
+        "telegram_registered": tg.get("registered", False),
+        "telegram_premium": tg.get("is_premium", False),
+        "telegram_scam": tg.get("is_scam", False),
+        "telegram_fake": tg.get("is_fake", False),
+        "telegram_verified": tg.get("is_verified", False),
+        "telegram_has_photo": tg.get("has_profile_photo", False),
+        "telegram_photo_saved": tg.get("profile_photo_saved"),
         "telegram_photo_size_kb": tg.get("profile_photo_size_kb"),
-        "telegram_photo_base64":  tg.get("profile_photo_base64"),
-        "telegram_profile_url":   tg.get("profile_url"),
+        "telegram_photo_base64": tg.get("profile_photo_base64"),
+        "telegram_profile_url": tg.get("profile_url"),
 
         # Line info
-        "phone_e164":   parsed.get("e164"),
-        "country":      ab.get("country") or co.get("country"),
+        "phone_e164": parsed.get("e164"),
+        "country": ab.get("country") or co.get("country"),
         "country_flag": co.get("flag"),
-        "line_type":    ab.get("type"),
-        "location":     ab.get("location"),
+        "line_type": ab.get("type"),
+        "location": ab.get("location"),
 
         # Google dorks
         "google_dork_urls": basic.get("google_dorks", []),
@@ -101,18 +105,19 @@ def print_report(report: dict):
     print(f"  NEURON PHONE OSINT — {report['query']}  ({elapsed}s)")
     print("═" * 55)
     print(f"  Phone        : {s.get('phone_e164') or report['query']}")
-    print(f"  Country      : {s.get('country_flag','')} {s.get('country') or '—'}")
+    print(f"  Country      : {s.get('country_flag', '')} {s.get('country') or '—'}")
     print(f"  Line type    : {s.get('line_type') or '—'}")
     print(f"  Location     : {s.get('location') or '—'}")
     print("─" * 55)
     tg_id = s.get('telegram_username') or str(s.get('telegram_id')) if s.get('telegram_registered') else None
-    print(f"  Telegram     : {'✓ ' + tg_id if tg_id else ('✓ (no username)' if s.get('telegram_registered') else '✗ Not found')}")
+    print(
+        f"  Telegram     : {'✓ ' + tg_id if tg_id else ('✓ (no username)' if s.get('telegram_registered') else '✗ Not found')}")
     if s.get('telegram_registered'):
         print(f"  TG Name      : {s.get('name') or '—'}")
         print(f"  TG Premium   : {'Yes' if s.get('telegram_premium') else 'No'}")
         print(f"  TG Scam flag : {'⚠ YES' if s.get('telegram_scam') else 'No'}")
         if s.get('telegram_photo_saved'):
-            print(f"  TG Photo     : ✓ {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb','?')} KB)")
+            print(f"  TG Photo     : ✓ {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb', '?')} KB)")
         elif s.get('telegram_has_photo'):
             print(f"  TG Photo     : exists (download failed)")
         else:
@@ -163,15 +168,12 @@ if __name__ == "__main__":
     report = run_full_osint(PHONE)
     print_report(report)
 
-
     # Save JSON without base64 blob
     report_clean = json.loads(json.dumps(report))
     report_clean.get("summary", {}).pop("telegram_photo_base64", None)
     report_clean.get("sources", {}).get("telegram", {}).pop("profile_photo_base64", None)
 
-
-
-    filename = f"report_{PHONE.replace('+','')}.json"
+    filename = f"report_{PHONE.replace('+', '')}.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(report_clean, f, indent=2, ensure_ascii=False)
     print(f"Report saved to {filename}")
