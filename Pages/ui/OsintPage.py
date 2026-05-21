@@ -490,40 +490,61 @@ class OsintDashboard(QWidget):
         listener_thread.start()
 
     def _format_results(self, report: dict) -> str:
-        """Format OSINT report into readable text."""
+        """Format OSINT report into readable text with all results and links."""
         username = report.get('query', '?')
         elapsed = report.get('elapsed_seconds', '?')
         summary = report.get('summary', {})
 
         lines = [
             f"OSINT SCAN COMPLETE — @{username}  ({elapsed}s)",
-            "─" * 50,
+            "─" * 70,
         ]
 
         # Telegram section
         tg = summary.get('telegram', {})
         if tg.get('found'):
             lines.append("\n[TELEGRAM]")
+            lines.append(f"  ✓ Found")
             lines.append(f"  ID: {tg.get('user_id')}")
             lines.append(f"  Name: {tg.get('name') or 'N/A'}")
-            lines.append(f"  Verified: {'Yes' if tg.get('is_verified') else 'No'}")
-            lines.append(f"  Premium: {'Yes' if tg.get('is_premium') else 'No'}")
+            if tg.get('bio'):
+                lines.append(f"  Bio: {tg.get('bio')}")
+            lines.append(f"  Verified: {'✓ Yes' if tg.get('is_verified') else '✗ No'}")
+            lines.append(f"  Premium: {'✓ Yes' if tg.get('is_premium') else '✗ No'}")
+            if tg.get('is_scam'):
+                lines.append(f"  ⚠ SCAM FLAG")
+            if tg.get('is_fake'):
+                lines.append(f"  ⚠ FAKE FLAG")
             if tg.get('profile_url'):
                 lines.append(f"  Profile: {tg['profile_url']}")
         else:
-            lines.append("\n[TELEGRAM] ✗ Not found")
+            lines.append("\n[TELEGRAM]\n  ✗ Not found")
 
-        # Platforms
+        # All platforms - show EVERY account with link
         platforms = summary.get('platforms', [])
         if platforms:
-            lines.append(f"\n[PLATFORMS] ({len(platforms)} accounts found)")
-            for i, platform in enumerate(platforms[:10], 1):
-                lines.append(f"  {i}. {platform.get('site')}")
+            lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
+            lines.append("─" * 70)
 
-        if len(platforms) > 10:
-            lines.append(f"  ... and {len(platforms) - 10} more")
+            for i, platform in enumerate(platforms, 1):
+                site = platform.get('site', 'Unknown')
+                url = platform.get('url', 'No URL')
+                source = platform.get('source', '?')
+
+                lines.append(f"\n  {i}. {site}")
+                lines.append(f"     🔗 {url}")
+
+                # Show details if available
+                if platform.get('details'):
+                    for key, val in list(platform['details'].items())[:3]:
+                        lines.append(f"     • {key}: {val}")
+        else:
+            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  No accounts found")
+
+        lines.append("\n" + "─" * 70)
 
         return "\n".join(lines)
+
 
 
 #MAIN WINDOW
