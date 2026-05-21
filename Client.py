@@ -16,6 +16,7 @@ from Pages.ui.uiConstants import (
     load_application_font, load_stylesheet,
     WINDOW_BG, TEXT_TITLE, CARD_BG, SIDEBAR_BG, INPUT_FOCUS
 )
+import threading
 
 #from Pages.ui.Login import Login
 
@@ -26,7 +27,7 @@ from Pages.ui.uiConstants import (
 # Global socket connection
 ClientSocket = None
 is_connected = False
-
+socket_lock = threading.Lock()
 
 
 
@@ -72,14 +73,17 @@ def send_request(command, **data):
 
 
 
-def receive_response():
-    """Receive a response from the server."""
+def receive_response(timeout=120):
+    """Receive a response from the server with timeout."""
     global ClientSocket, is_connected
 
     if not is_connected:
         raise ConnectionError("Not connected to server")
 
     try:
+        # Set socket timeout
+        ClientSocket.settimeout(timeout)
+
         response_data = recv_one_message(ClientSocket, return_type="string")
         if not response_data:
             raise ConnectionError("Server disconnected")
@@ -87,10 +91,20 @@ def receive_response():
         response = json.loads(response_data)
         logging.debug(f"Received response: {response.get('response', response.get('status'))}")
         return response
+    except socket.timeout:
+        logging.error(f"Socket timeout waiting for response after {timeout}s")
+        is_connected = False
+        raise TimeoutError(f"No response from server after {timeout}s")
     except Exception as e:
         logging.error(f"Failed to receive response: {e}")
         is_connected = False
         raise
+    finally:
+        # Reset timeout to None (blocking mode)
+        try:
+            ClientSocket.settimeout(None)
+        except:
+            pass
 
 
 def request_response(command, **data):
