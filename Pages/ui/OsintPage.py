@@ -312,6 +312,7 @@ class OsintDashboard(QWidget):
         #centered container
         content_container = QWidget()
         content_container.setFixedWidth(1000)
+        content_container.setMaximumWidth(1000)
         content_container.setStyleSheet("background: transparent;")
         content_layout = QVBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
