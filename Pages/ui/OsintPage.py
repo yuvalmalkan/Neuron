@@ -468,19 +468,27 @@ class OsintDashboard(QWidget):
         def listen():
             try:
                 logging.info("Listening thread started...")
-                response = Client.receive_response()
-                logging.info(f"Received response: {response}")
 
-                if response.get('response') == RESP_OSINT_RESULT:
-                    report = response.get('report', {})
-                    result_text = self._format_results(report)
-                    self.results_ready.emit(result_text)
-                elif response.get('response') == RESP_OSINT_ERROR:
-                    error_msg = response.get('message', 'Unknown error')
-                    self.error_occurred.emit(error_msg)
-                else:
-                    logging.warning(f"Unexpected response type: {response.get('response')}")
-                    self.error_occurred.emit("Unexpected response from server")
+                # Keep reading responses until we get the OSINT result
+                while True:
+                    response = Client.receive_response()
+                    logging.info(f"Received response: {response}")
+
+                    if response.get('response') == RESP_OSINT_RESULT:
+                        report = response.get('report', {})
+                        result_text = self._format_results(report)
+                        self.results_ready.emit(result_text)
+                        break  # Exit loop after getting OSINT result
+
+                    elif response.get('response') == RESP_OSINT_ERROR:
+                        error_msg = response.get('message', 'Unknown error')
+                        self.error_occurred.emit(error_msg)
+                        break  # Exit loop after error
+
+                    else:
+                        # This is a different message (chat, etc.), skip it
+                        logging.debug(f"Skipping non-OSINT message: {response.get('response', response.get('type'))}")
+                        continue
 
             except Exception as e:
                 logging.error(f"Error in listening thread: {e}", exc_info=True)
@@ -488,6 +496,8 @@ class OsintDashboard(QWidget):
 
         listener_thread = threading.Thread(target=listen, daemon=True)
         listener_thread.start()
+
+
 
     def _format_results(self, report: dict) -> str:
         """Format OSINT report into readable text with all results and links."""
@@ -497,7 +507,7 @@ class OsintDashboard(QWidget):
 
         lines = [
             f"OSINT SCAN COMPLETE — @{username}  ({elapsed}s)",
-            "─" * 70,
+            "─" * 50,
         ]
 
         # Telegram section
@@ -524,7 +534,7 @@ class OsintDashboard(QWidget):
         platforms = summary.get('platforms', [])
         if platforms:
             lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
-            lines.append("─" * 70)
+            lines.append("─" * 50)
 
             for i, platform in enumerate(platforms, 1):
                 site = platform.get('site', 'Unknown')
@@ -541,7 +551,7 @@ class OsintDashboard(QWidget):
         else:
             lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  No accounts found")
 
-        lines.append("\n" + "─" * 70)
+        lines.append("\n" + "─" * 50)
 
         return "\n".join(lines)
 
