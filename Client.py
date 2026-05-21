@@ -151,11 +151,13 @@ def get_is_connected() -> bool:
 def osint_username_scan(username: str):
     """Send username OSINT scan request to server via OSINT socket."""
     from Constants import CMD_OSINT_USCAN
+    import time
 
     global OsintSocket, osint_connected
 
     # Always close old socket and create a fresh one for each scan
     close_osint_socket()
+    time.sleep(0.1)  # Allow socket cleanup
 
     logging.info("Creating fresh OSINT socket for new scan...")
     if not connect_osint_socket():
@@ -170,21 +172,6 @@ def osint_username_scan(username: str):
         osint_connected = False
         OsintSocket = None
         raise
-
-
-def close_osint_socket():
-    """Close the OSINT socket cleanly."""
-    global OsintSocket, osint_connected
-
-    try:
-        if OsintSocket:
-            OsintSocket.close()
-            logging.info("OSINT socket closed")
-    except:
-        pass
-    finally:
-        OsintSocket = None
-        osint_connected = False
 
 
 def receive_osint_response(timeout=180):
@@ -212,6 +199,22 @@ def receive_osint_response(timeout=180):
     finally:
         # Close socket after receiving response
         close_osint_socket()
+
+
+
+def close_osint_socket():
+    """Close the OSINT socket cleanly."""
+    global OsintSocket, osint_connected
+
+    try:
+        if OsintSocket:
+            OsintSocket.close()
+            logging.info("OSINT socket closed")
+    except:
+        pass
+    finally:
+        OsintSocket = None
+        osint_connected = False
 
 
 def main():
