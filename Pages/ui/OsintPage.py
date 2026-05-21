@@ -264,6 +264,7 @@ class OsintDashboard(QWidget):
         super().__init__(parent)
         self.setObjectName("osintDashboard")
         self._typing: TypingIndicator | None = None
+        self._listener_thread = None  # Track listener thread
         self._build_ui()
 
         # Connect signals
@@ -362,6 +363,7 @@ class OsintDashboard(QWidget):
     # SUBMIT
     def _on_submit(self, raw: str):
         import Client
+        import time
 
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
@@ -380,7 +382,12 @@ class OsintDashboard(QWidget):
         if fields.get("username"):
             username = fields["username"]
             try:
-                # This will connect OSINT socket if needed
+                # Kill any previous listener thread
+                if self._listener_thread and self._listener_thread.is_alive():
+                    logging.warning("Previous listener thread still running, waiting for completion...")
+                    self._listener_thread.join(timeout=5)
+
+                # Send fresh scan request
                 Client.osint_username_scan(username)
                 logging.info(f"OSINT scan request sent, starting listener...")
                 # NOW start listening thread (after socket is connected)
@@ -436,16 +443,20 @@ class OsintDashboard(QWidget):
 
     def _start_listening_for_results(self):
         """Listen for OSINT results from server in a separate thread."""
-        listener_thread = threading.Thread(target=self._listen_worker, daemon=True)
-        listener_thread.start()
+        self._listener_thread = threading.Thread(target=self._listen_worker, daemon=False)
+        self._listener_thread.start()
 
     def _listen_worker(self):
         """Worker method that listens for OSINT results via dedicated socket."""
         import Client
         from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
+        import time
 
         try:
             logging.info("OSINT listening thread started...")
+            # Add small delay to ensure server is ready
+            time.sleep(0.2)
+
             response = Client.receive_osint_response(timeout=180)
             logging.info(f"Received OSINT response: {response}")
 
@@ -467,7 +478,6 @@ class OsintDashboard(QWidget):
         except Exception as e:
             logging.error(f"Error in OSINT listener: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
-
 
     def _format_results(self, report: dict) -> str:
         """Format OSINT report into readable text with all results and links."""
@@ -524,6 +534,7 @@ class OsintDashboard(QWidget):
         lines.append("\n" + "─" * 50)
 
         return "\n".join(lines)
+
 
 
 # MAIN WINDOW
