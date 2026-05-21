@@ -276,11 +276,29 @@ class WelcomeBubble(QWidget):
 
 
 class OsintDashboard(QWidget):
+    # Signal for thread-safe updates
+    results_ready = pyqtSignal(str)
+    error_occurred = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("osintDashboard")
         self._typing: TypingIndicator | None = None
         self._build_ui()
+
+        # Connect signals
+        self.results_ready.connect(self._on_results_ready)
+        self.error_occurred.connect(self._on_error)
+
+    def _on_results_ready(self, result_text: str):
+        """Called when results are ready (thread-safe)"""
+        self.show_results(result_text)
+
+    def _on_error(self, error_msg: str):
+        """Called when error occurs (thread-safe)"""
+        self._hide_typing()
+        self._add(AnimatedSystemBubble(f"Error: {error_msg}"))
+        self._bar.set_enabled(True)
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -365,6 +383,8 @@ class OsintDashboard(QWidget):
 
     #SUBMIT
     def _on_submit(self, raw: str):
+        import Client
+
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
 
@@ -378,12 +398,18 @@ class OsintDashboard(QWidget):
         self._add(AnimatedSystemBubble(self._build_summary(fields)))
         self._show_typing()
 
-        # Placeholder - shows as terminal text instead of bubble:
-        QTimer.singleShot(1800, lambda: (
-            self._hide_typing(),
-            self._add(TerminalBubble("Waiting for server results...")),
-            self._bar.set_enabled(True)
-        ))
+        # Send scan request to server
+        if fields.get("username"):
+            username = fields["username"]
+            try:
+                Client.osint_username_scan(username)
+                # Start listening thread for results
+                self._start_listening_for_results()
+            except Exception as e:
+                logging.error(f"Failed to send scan request: {e}")
+                self._hide_typing()
+                self._add(AnimatedSystemBubble(f"Error: {str(e)}"))
+                self._bar.set_enabled(True)
 
     def _build_summary(self, fields: dict) -> str:
         lines = ["TARGET QUEUED", "─" * 28]
@@ -431,10 +457,73 @@ class OsintDashboard(QWidget):
             self._typing.deleteLater()
             self._typing = None
 
+    def _start_listening_for_results(self):
+        """Listen for OSINT results from server in a separate thread."""
+        import Client
+        import json
+        import threading
+        import logging
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
 
+        def listen():
+            try:
+                logging.info("Listening thread started...")
+                response = Client.receive_response()
+                logging.info(f"Received response: {response}")
 
+                if response.get('response') == RESP_OSINT_RESULT:
+                    report = response.get('report', {})
+                    result_text = self._format_results(report)
+                    self.results_ready.emit(result_text)
+                elif response.get('response') == RESP_OSINT_ERROR:
+                    error_msg = response.get('message', 'Unknown error')
+                    self.error_occurred.emit(error_msg)
+                else:
+                    logging.warning(f"Unexpected response type: {response.get('response')}")
+                    self.error_occurred.emit("Unexpected response from server")
 
+            except Exception as e:
+                logging.error(f"Error in listening thread: {e}", exc_info=True)
+                self.error_occurred.emit(str(e))
 
+        listener_thread = threading.Thread(target=listen, daemon=True)
+        listener_thread.start()
+
+    def _format_results(self, report: dict) -> str:
+        """Format OSINT report into readable text."""
+        username = report.get('query', '?')
+        elapsed = report.get('elapsed_seconds', '?')
+        summary = report.get('summary', {})
+
+        lines = [
+            f"OSINT SCAN COMPLETE — @{username}  ({elapsed}s)",
+            "─" * 50,
+        ]
+
+        # Telegram section
+        tg = summary.get('telegram', {})
+        if tg.get('found'):
+            lines.append("\n[TELEGRAM]")
+            lines.append(f"  ID: {tg.get('user_id')}")
+            lines.append(f"  Name: {tg.get('name') or 'N/A'}")
+            lines.append(f"  Verified: {'Yes' if tg.get('is_verified') else 'No'}")
+            lines.append(f"  Premium: {'Yes' if tg.get('is_premium') else 'No'}")
+            if tg.get('profile_url'):
+                lines.append(f"  Profile: {tg['profile_url']}")
+        else:
+            lines.append("\n[TELEGRAM] ✗ Not found")
+
+        # Platforms
+        platforms = summary.get('platforms', [])
+        if platforms:
+            lines.append(f"\n[PLATFORMS] ({len(platforms)} accounts found)")
+            for i, platform in enumerate(platforms[:10], 1):
+                lines.append(f"  {i}. {platform.get('site')}")
+
+        if len(platforms) > 10:
+            lines.append(f"  ... and {len(platforms) - 10} more")
+
+        return "\n".join(lines)
 
 
 #MAIN WINDOW
