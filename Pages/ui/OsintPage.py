@@ -1,6 +1,9 @@
 __author__ = "Yuval Malkan"
 
 import sys
+import socket
+import threading
+import logging
 
 from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import NavButton
@@ -99,8 +102,6 @@ class TypingIndicator(QWidget):
         self._timer.stop()
 
 
-
-
 class TerminalBubble(QWidget):
     """Plain terminal text — no bubble styling."""
     def __init__(self, text: str, parent=None):
@@ -121,10 +122,6 @@ class TerminalBubble(QWidget):
         lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         row.addWidget(lbl)
         row.addStretch()
-
-
-
-
 
 
 class AnimatedSystemBubble(QWidget):
@@ -170,10 +167,6 @@ class AnimatedSystemBubble(QWidget):
         """Stop animation and show full text."""
         self._timer.stop()
         self._lbl.setText(self._full_text)
-
-
-
-
 
 
 #  INPUT BAR
@@ -227,8 +220,6 @@ class InputBar(QWidget):
         """)
         self.field.enter_pressed.connect(self._submit)
 
-
-
         inner.addWidget(self.field)
         outer.addWidget(wrap)
 
@@ -240,11 +231,6 @@ class InputBar(QWidget):
 
     def set_enabled(self, v: bool):
         self.field.setEnabled(v)
-
-
-
-
-
 
 
 class WelcomeBubble(QWidget):
@@ -267,12 +253,6 @@ class WelcomeBubble(QWidget):
         lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         row.addWidget(lbl)
         row.addStretch()
-
-
-
-
-
-
 
 
 class OsintDashboard(QWidget):
@@ -309,7 +289,7 @@ class OsintDashboard(QWidget):
         main_wrapper = QHBoxLayout()
         main_wrapper.addStretch()
 
-        #centered container
+        # centered container
         content_container = QWidget()
         content_container.setFixedWidth(1000)
         content_container.setMaximumWidth(1000)
@@ -344,10 +324,10 @@ class OsintDashboard(QWidget):
         self._mlayout.setSpacing(8)
         self._mlayout.addStretch()
 
-        #Add welcome message
+        # Add welcome message
         username = SessionManager.get_username()
         welcome_text = f"Welcome Back {username}!"
-        self._add( WelcomeBubble(welcome_text))
+        self._add(WelcomeBubble(welcome_text))
 
         self._scroll.setWidget(self._container)
         content_layout.addWidget(self._scroll, 1)
@@ -379,10 +359,7 @@ class OsintDashboard(QWidget):
 
         root.addWidget(floating_container, 0)
 
-
-
-
-    #SUBMIT
+    # SUBMIT
     def _on_submit(self, raw: str):
         import Client
 
@@ -414,18 +391,15 @@ class OsintDashboard(QWidget):
 
     def _build_summary(self, fields: dict) -> str:
         lines = ["TARGET QUEUED", "─" * 28]
-        if fields.get("name"):     lines.append(f"  name      {fields['name']}")
-        if fields.get("phone"):    lines.append(f"  phone     {fields['phone']}")
-        if fields.get("email"):    lines.append(f"  email     {fields['email']}")
-        if fields.get("username"): lines.append(f"  username  @{fields['username']}")
+        if fields.get("name"):
+            lines.append(f"  name      {fields['name']}")
+        if fields.get("phone"):
+            lines.append(f"  phone     {fields['phone']}")
+        if fields.get("email"):
+            lines.append(f"  email     {fields['email']}")
+        if fields.get("username"):
+            lines.append(f"  username  @{fields['username']}")
         return "\n".join(lines)
-
-
-
-
-
-
-
 
     # ── PUBLIC — called by OsintWorker when results arrive ────────────
 
@@ -460,45 +434,42 @@ class OsintDashboard(QWidget):
 
     def _start_listening_for_results(self):
         """Listen for OSINT results from server in a separate thread."""
-        import Client
-        import json
-        import threading
-        import logging
-        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
-
-        def listen():
-            try:
-                logging.info("Listening thread started...")
-
-                # Keep reading responses until we get the OSINT result
-                while True:
-                    response = Client.receive_response()
-                    logging.info(f"Received response: {response}")
-
-                    if response.get('response') == RESP_OSINT_RESULT:
-                        report = response.get('report', {})
-                        result_text = self._format_results(report)
-                        self.results_ready.emit(result_text)
-                        break  # Exit loop after getting OSINT result
-
-                    elif response.get('response') == RESP_OSINT_ERROR:
-                        error_msg = response.get('message', 'Unknown error')
-                        self.error_occurred.emit(error_msg)
-                        break  # Exit loop after error
-
-                    else:
-                        # This is a different message (chat, etc.), skip it
-                        logging.debug(f"Skipping non-OSINT message: {response.get('response', response.get('type'))}")
-                        continue
-
-            except Exception as e:
-                logging.error(f"Error in listening thread: {e}", exc_info=True)
-                self.error_occurred.emit(str(e))
-
-        listener_thread = threading.Thread(target=listen, daemon=True)
+        listener_thread = threading.Thread(target=self._listen_worker, daemon=True)
         listener_thread.start()
 
+    def _listen_worker(self):
+        """Worker method that runs in a separate thread to listen for OSINT results."""
+        import Client
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
 
+        try:
+            logging.info("Listening thread started...")
+
+            # Use 180-second timeout (3 minutes) for OSINT scans
+            response = Client.receive_response(timeout=180)
+            logging.info(f"Received response: {response}")
+
+            if response.get('response') == RESP_OSINT_RESULT:
+                report = response.get('report', {})
+                result_text = self._format_results(report)
+                self.results_ready.emit(result_text)
+
+            elif response.get('response') == RESP_OSINT_ERROR:
+                error_msg = response.get('message', 'Unknown error')
+                self.error_occurred.emit(error_msg)
+            else:
+                logging.warning(f"Unexpected response type: {response.get('response')}")
+                self.error_occurred.emit("Unexpected response from server")
+
+        except socket.timeout:
+            logging.error("OSINT scan timeout - server took too long to respond")
+            self.error_occurred.emit("Scan timeout - server took too long to respond")
+        except ConnectionError as e:
+            logging.error(f"Connection error: {e}")
+            self.error_occurred.emit(f"Connection error: {e}")
+        except Exception as e:
+            logging.error(f"Error in listening thread: {e}", exc_info=True)
+            self.error_occurred.emit(str(e))
 
     def _format_results(self, report: dict) -> str:
         """Format OSINT report into readable text with all results and links."""
@@ -557,8 +528,7 @@ class OsintDashboard(QWidget):
         return "\n".join(lines)
 
 
-
-#MAIN WINDOW
+# MAIN WINDOW
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -568,7 +538,7 @@ class MainWindow(QMainWindow):
 
         self.username = SessionManager.get_username()
 
-        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)#todo change it later to other ip
+        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)  # todo change it later to other ip
         if self.username:
             self.chat_backend.connect(self.username)
 
@@ -597,7 +567,7 @@ class MainWindow(QMainWindow):
         self.pages = QStackedWidget()
         self.nav_buttons = []
 
-        nav_items  = [("", "OSINT"), ("", "ROOMS"), ("", "NETWORK")]
+        nav_items = [("", "OSINT"), ("", "ROOMS"), ("", "NETWORK")]
         pages_list = [
             OsintDashboard(),
             RoomsPanel(backend=self.chat_backend),
@@ -648,11 +618,11 @@ if __name__ == "__main__":
     app.setStyleSheet(load_stylesheet("main"))
 
     palette = QPalette()
-    palette.setColor(QPalette.ColorRole.Window,          QColor(WINDOW_BG))
-    palette.setColor(QPalette.ColorRole.WindowText,      QColor(TEXT_TITLE))
-    palette.setColor(QPalette.ColorRole.Base,            QColor(CARD_BG))
-    palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(SIDEBAR_BG))
-    palette.setColor(QPalette.ColorRole.Highlight,       QColor(INPUT_FOCUS))
+    palette.setColor(QPalette.ColorRole.Window, QColor(WINDOW_BG))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(TEXT_TITLE))
+    palette.setColor(QPalette.ColorRole.Base, QColor(CARD_BG))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(SIDEBAR_BG))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(INPUT_FOCUS))
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
     app.setPalette(palette)
 
