@@ -43,6 +43,7 @@ def main():
 
 def handle_client(client, userId):
     current_username = None
+    is_chat_session = False  # Track if this connection registered for chat
 
     try:
         while True:
@@ -71,6 +72,7 @@ def handle_client(client, userId):
                 # ── P2P CHAT ROUTING LOGIC ──
                 elif command == CMD_CHAT_INIT:
                     current_username = request.get('username')
+                    is_chat_session = True  # Mark this as a chat session
                     if current_username:
                         with connections_lock:
                             active_connections[current_username] = client
@@ -180,7 +182,8 @@ def handle_client(client, userId):
     except Exception as e:
         logging.error(f"Client handler error: {e}")
     finally:
-        if current_username:
+        # Only unregister from active sessions if this was a chat session
+        if is_chat_session and current_username:
             with connections_lock:
                 if current_username in active_connections:
                     del active_connections[current_username]
