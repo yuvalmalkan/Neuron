@@ -138,6 +138,37 @@ def handle_client(client, userId):
                             'type': 'SESSION_ENDED', 'peer': current_username
                         }))
 
+
+                # ── OSINT COMMANDS ──
+                elif command == CMD_OSINT_USCAN:
+                    username_target = request.get('target_username')
+
+                    if not username_target:
+                        send_one_message(client, json.dumps({
+                            'response': RESP_OSINT_ERROR,
+                            'message': 'No target username provided'
+                        }))
+                    else:
+                        # Run scan in a separate thread to avoid blocking
+                        def run_scan():
+                            try:
+                                from CoreTools.FullScans.FullUsernameSearch import search_username_complete
+                                report = search_username_complete(username_target)
+                                send_one_message(client, json.dumps({
+                                    'response': RESP_OSINT_RESULT,
+                                    'report': report
+                                }))
+                            except Exception as e:
+                                logging.error(f"OSINT scan error: {e}")
+                                send_one_message(client, json.dumps({
+                                    'response': RESP_OSINT_ERROR,
+                                    'message': str(e)
+                                }))
+
+                        scan_thread = threading.Thread(target=run_scan, daemon=False)
+                        scan_thread.start()
+
+
                 elif command == CMD_EXIT:
                     break
 
