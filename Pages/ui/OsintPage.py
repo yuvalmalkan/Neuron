@@ -380,8 +380,10 @@ class OsintDashboard(QWidget):
         if fields.get("username"):
             username = fields["username"]
             try:
+                # This will connect OSINT socket if needed
                 Client.osint_username_scan(username)
-                # Start listening thread for results
+                logging.info(f"OSINT scan request sent, starting listener...")
+                # NOW start listening thread (after socket is connected)
                 self._start_listening_for_results()
             except Exception as e:
                 logging.error(f"Failed to send scan request: {e}")
@@ -438,16 +440,14 @@ class OsintDashboard(QWidget):
         listener_thread.start()
 
     def _listen_worker(self):
-        """Worker method that runs in a separate thread to listen for OSINT results."""
+        """Worker method that listens for OSINT results via dedicated socket."""
         import Client
         from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
 
         try:
-            logging.info("Listening thread started...")
-
-            # Use 180-second timeout (3 minutes) for OSINT scans
-            response = Client.receive_response(timeout=180)
-            logging.info(f"Received response: {response}")
+            logging.info("OSINT listening thread started...")
+            response = Client.receive_osint_response(timeout=180)
+            logging.info(f"Received OSINT response: {response}")
 
             if response.get('response') == RESP_OSINT_RESULT:
                 report = response.get('report', {})
@@ -462,14 +462,12 @@ class OsintDashboard(QWidget):
                 self.error_occurred.emit("Unexpected response from server")
 
         except socket.timeout:
-            logging.error("OSINT scan timeout - server took too long to respond")
+            logging.error("OSINT scan timeout")
             self.error_occurred.emit("Scan timeout - server took too long to respond")
-        except ConnectionError as e:
-            logging.error(f"Connection error: {e}")
-            self.error_occurred.emit(f"Connection error: {e}")
         except Exception as e:
-            logging.error(f"Error in listening thread: {e}", exc_info=True)
+            logging.error(f"Error in OSINT listener: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
+
 
     def _format_results(self, report: dict) -> str:
         """Format OSINT report into readable text with all results and links."""
