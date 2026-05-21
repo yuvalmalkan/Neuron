@@ -5,7 +5,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from CoreTools.Maigret import Maigret_search_username
 from CoreTools.Sherlock import sherlock_search_username
-from CoreTools.accountFinder import findByUsername
+#from CoreTools.accountFinder import findByUsername
 from CoreTools.SocialMedia.Telegram import lookup_username_sync
 
 """
@@ -69,7 +69,6 @@ def search_username_complete(username: str) -> dict:
     functions_to_run = [
         (sherlock_search_username, "sherlock", 90, username),
         (Maigret_search_username, "maigret", 90, username),
-        (findByUsername, "accountFinder", 45, username),
         (lookup_username_sync, "telegram", 30, username),
     ]
 
@@ -107,7 +106,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
 
     # Sherlock results
     sherlock_data = sources.get("sherlock", {})
-    if isinstance(sherlock_data, list) and not sherlock_data.get("error"):
+    if isinstance(sherlock_data, list):
         for account in sherlock_data:
             summary["platforms"].append({
                 "source": "sherlock",
@@ -118,7 +117,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
 
     # Maigret results
     maigret_data = sources.get("maigret", {})
-    if isinstance(maigret_data, dict) and "accounts" in maigret_data:
+    if maigret_data and isinstance(maigret_data, dict) and "accounts" in maigret_data:
         for account in maigret_data.get("accounts", []):
             summary["platforms"].append({
                 "source": "maigret",
