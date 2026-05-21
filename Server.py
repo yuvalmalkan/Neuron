@@ -9,6 +9,10 @@ from tcp_by_size import send_one_message, recv_one_message
 from UserDatabase import UserDatabase
 from Pages.logic.SignupLogic import handle_signup
 from Pages.logic.LoginLogic import handle_login
+import subprocess
+import sys
+import tempfile
+import os
 
 # Global dictionary to map online usernames to their socket objects
 # Format: { "username": client_socket }
@@ -140,10 +144,10 @@ def handle_client(client, userId):
                             'type': 'SESSION_ENDED', 'peer': current_username
                         }))
 
-
                 # ── OSINT COMMANDS ──
                 elif command == CMD_OSINT_USCAN:
                     username_target = request.get('target_username')
+                    logging.info(f"OSINT scan requested for: {username_target}")
 
                     if not username_target:
                         send_one_message(client, json.dumps({
@@ -151,25 +155,77 @@ def handle_client(client, userId):
                             'message': 'No target username provided'
                         }))
                     else:
-                        # Run scan in a separate thread to avoid blocking
-                        def run_scan():
+                        # Run scan in a separate subprocess (completely isolated)
+                        def run_scan_subprocess():
+                            temp_file = None
                             try:
-                                from CoreTools.FullScans.FullUsernameSearch import search_username_complete
-                                report = search_username_complete(username_target)
-                                send_one_message(client, json.dumps({
-                                    'response': RESP_OSINT_RESULT,
-                                    'report': report
-                                }))
-                            except Exception as e:
-                                logging.error(f"OSINT scan error: {e}")
+                                # Create temp file to store results
+                                temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
+                                temp_path = temp_file.name
+                                temp_file.close()
+
+                                logging.info(f"Starting OSINT subprocess for: {username_target}")
+
+                                # Run scan script as subprocess
+                                result = subprocess.run(
+                                    [sys.executable, '-c', f'''
+import json
+import sys
+from CoreTools.FullScans.FullUsernameSearch import search_username_complete
+
+try:
+    report = search_username_complete("{username_target}")
+    result = {{"response": "ORLT", "report": report}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+except Exception as e:
+    result = {{"response": "OERR", "message": str(e)}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+'''],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=200
+                                )
+
+                                # Read result from temp file
+                                if os.path.exists(temp_path):
+                                    with open(temp_path, 'r') as f:
+                                        response = json.load(f)
+                                    logging.info(f"OSINT subprocess completed for: {username_target}")
+                                    send_one_message(client, json.dumps(response))
+                                else:
+                                    logging.error(f"OSINT temp file not created for: {username_target}")
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': 'Scan failed to write results'
+                                    }))
+
+                            except subprocess.TimeoutExpired:
+                                logging.error(f"OSINT subprocess timeout for: {username_target}")
                                 send_one_message(client, json.dumps({
                                     'response': RESP_OSINT_ERROR,
-                                    'message': str(e)
+                                    'message': 'Scan timeout'
                                 }))
+                            except Exception as e:
+                                logging.error(f"OSINT subprocess exception: {e}")
+                                try:
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': str(e)
+                                    }))
+                                except:
+                                    pass
+                            finally:
+                                # Clean up temp file
+                                if temp_file and os.path.exists(temp_path):
+                                    try:
+                                        os.unlink(temp_path)
+                                    except:
+                                        pass
 
-                        scan_thread = threading.Thread(target=run_scan, daemon=False)
+                        scan_thread = threading.Thread(target=run_scan_subprocess, daemon=True)
                         scan_thread.start()
-
 
                 elif command == CMD_EXIT:
                     break
@@ -188,6 +244,7 @@ def handle_client(client, userId):
                 if current_username in active_connections:
                     del active_connections[current_username]
             logging.info(f"[{current_username}] disconnected.")
+
         try:
             client.close()
         except:
