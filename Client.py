@@ -93,18 +93,18 @@ def receive_response(timeout=120):
         return response
     except socket.timeout:
         logging.error(f"Socket timeout waiting for response after {timeout}s")
-        is_connected = False
         raise TimeoutError(f"No response from server after {timeout}s")
     except Exception as e:
         logging.error(f"Failed to receive response: {e}")
         is_connected = False
         raise
     finally:
-        # Reset timeout to None (blocking mode)
+        # Reset timeout to blocking mode
         try:
             ClientSocket.settimeout(None)
         except:
             pass
+
 
 
 def request_response(command, **data):
