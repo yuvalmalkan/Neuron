@@ -85,7 +85,7 @@ def receive_response():
             raise ConnectionError("Server disconnected")
 
         response = json.loads(response_data)
-        logging.debug(f"Received response: {response.get('status')}")
+        logging.debug(f"Received response: {response.get('response', response.get('status'))}")
         return response
     except Exception as e:
         logging.error(f"Failed to receive response: {e}")
@@ -141,6 +141,25 @@ def disconnect():
 def get_is_connected() -> bool:
     """Check if connected to server."""
     return is_connected
+
+
+
+
+
+def osint_username_scan(username: str):
+    """Send username OSINT scan request to server."""
+    from Constants import CMD_OSINT_USCAN
+    send_request(
+        CMD_OSINT_USCAN,
+        target_username=username
+    )
+
+
+
+
+
+
+
 
 
 def main():
