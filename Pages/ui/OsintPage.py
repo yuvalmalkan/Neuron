@@ -490,25 +490,30 @@ class OsintDashboard(QWidget):
             "─" * 50,
         ]
 
-        # Telegram section
-        tg = summary.get('telegram', {})
-        if tg.get('found'):
-            lines.append("\n[TELEGRAM]")
-            lines.append(f"  ✓ Found")
-            lines.append(f"  ID: {tg.get('user_id')}")
-            lines.append(f"  Name: {tg.get('name') or 'N/A'}")
-            if tg.get('bio'):
-                lines.append(f"  Bio: {tg.get('bio')}")
-            lines.append(f"  Verified: {'✓ Yes' if tg.get('is_verified') else '✗ No'}")
-            lines.append(f"  Premium: {'✓ Yes' if tg.get('is_premium') else '✗ No'}")
-            if tg.get('is_scam'):
-                lines.append(f"  ⚠ SCAM FLAG")
-            if tg.get('is_fake'):
-                lines.append(f"  ⚠ FAKE FLAG")
-            if tg.get('profile_url'):
-                lines.append(f"  Profile: {tg['profile_url']}")
-        else:
-            lines.append("\n[TELEGRAM]\n  ✗ Not found")
+        """
+                
+                # Telegram section
+                tg = summary.get('telegram', {})
+                if tg.get('found'):
+                    lines.append("\n[TELEGRAM]")
+                    lines.append(f"  ✓ Found")
+                    lines.append(f"  ID: {tg.get('user_id')}")
+                    lines.append(f"  Name: {tg.get('name') or 'N/A'}")
+                    if tg.get('bio'):
+                        lines.append(f"  Bio: {tg.get('bio')}")
+                    lines.append(f"  Verified: {'✓ Yes' if tg.get('is_verified') else '✗ No'}")
+                    lines.append(f"  Premium: {'✓ Yes' if tg.get('is_premium') else '✗ No'}")
+                    if tg.get('is_scam'):
+                        lines.append(f"  ⚠ SCAM FLAG")
+                    if tg.get('is_fake'):
+                        lines.append(f"  ⚠ FAKE FLAG")
+                    if tg.get('profile_url'):
+                        lines.append(f"  Profile: {tg['profile_url']}")
+                else:
+                    lines.append("\n[TELEGRAM]\n  ✗ Not found")
+        
+        """
+
 
         # All platforms - show EVERY account with link
         platforms = summary.get('platforms', [])
