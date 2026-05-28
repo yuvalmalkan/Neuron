@@ -480,41 +480,76 @@ class OsintDashboard(QWidget):
             self.error_occurred.emit(str(e))
 
     def _format_results(self, report: dict) -> str:
-        """Format OSINT report into readable text with all results and links."""
+        """Format OSINT report into readable text with ALL results from all sources."""
         username = report.get('query', '?')
         elapsed = report.get('elapsed_seconds', '?')
         summary = report.get('summary', {})
 
         lines = [
             f"OSINT SCAN COMPLETE — @{username}  ({elapsed}s)",
-            "─" * 50,
+            "─" * 60,
         ]
 
+        # TELEGRAM SECTION
+        if summary.get('telegram'):
+            tg = summary['telegram']
+            lines.append("\n[TELEGRAM]")
+            lines.append("─" * 60)
+            if tg.get('found'):
+                lines.append(f"  ✓ Found")
+                lines.append(f"  ID: {tg.get('user_id', 'N/A')}")
+                lines.append(f"  Username: @{tg.get('username', 'N/A')}")
+                lines.append(f"  Name: {tg.get('name', 'N/A')}")
+                lines.append(f"  Bio: {tg.get('bio', 'N/A')}")
+                lines.append(f"  Verified: {'Yes' if tg.get('is_verified') else 'No'}")
+                lines.append(f"  Premium: {'Yes' if tg.get('is_premium') else 'No'}")
+                if tg.get('is_scam'):
+                    lines.append(f"  ⚠️  SCAM FLAG: YES")
+                if tg.get('is_fake'):
+                    lines.append(f"  ⚠️  FAKE FLAG: YES")
+                if tg.get('profile_photo'):
+                    lines.append(f"  Profile Photo: {tg['profile_photo']}")
+                if tg.get('profile_url'):
+                    lines.append(f"  Profile URL: {tg['profile_url']}")
+            else:
+                lines.append("  ✗ Not found")
 
+        # FACEBOOK SECTION
+        if summary.get('facebook'):
+            fb = summary['facebook']
+            lines.append("\n[FACEBOOK]")
+            lines.append("─" * 60)
+            if not fb.get('error'):
+                lines.append(f"  ✓ Found")
+                # Print all available raw data from Facebook
+                for key, value in fb.items():
+                    if value and key != 'error':
+                        lines.append(f"  {key}: {value}")
+            else:
+                lines.append(f"  ✗ Error: {fb.get('error')}")
 
-
-        # All platforms - show EVERY account with link
+        # ALL PLATFORMS - Show EVERY account with full details
         platforms = summary.get('platforms', [])
         if platforms:
             lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
-            lines.append("─" * 50)
+            lines.append("─" * 60)
 
             for i, platform in enumerate(platforms, 1):
                 site = platform.get('site', 'Unknown')
                 url = platform.get('url', 'No URL')
                 source = platform.get('source', '?')
 
-                lines.append(f"\n  {i}. {site}")
+                lines.append(f"\n  {i}. {site} (from {source})")
                 lines.append(f"     🔗 {url}")
 
-                # Show details if available
+                # Show ALL details available
                 if platform.get('details'):
-                    for key, val in list(platform['details'].items())[:3]:
+                    for key, val in platform['details'].items():
                         lines.append(f"     • {key}: {val}")
         else:
-            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  No accounts found")
+            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  ✗ No accounts found")
 
-        lines.append("\n" + "─" * 50)
+        lines.append("\n" + "─" * 60)
 
         return "\n".join(lines)
 
