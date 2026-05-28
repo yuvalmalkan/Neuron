@@ -385,7 +385,15 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 
 
-def FullFacebookScan(username):
+def FullFacebookScan(username) -> dict:
+    """
+        scans facebook profile page
+        downloading the rendered html and extracting information from it
+        args: username
+        returns: dict with profile information
+
+
+    """
     url = "https://www.facebook.com/" + username
     FacebookDownloadRenderedHtml(url)
     path_part = url.split("://")[-1]
