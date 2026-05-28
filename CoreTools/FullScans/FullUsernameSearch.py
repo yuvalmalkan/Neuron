@@ -71,6 +71,7 @@ def search_username_complete(username: str) -> dict:
         (sherlock_search_username, "sherlock", 90, username),
         (Maigret_search_username, "maigret", 90, username),
         (lookup_username_sync, "telegram", 30, username),
+        (FacebookFullScan, "facebook", 30, username),
     ]
 
     # Execute all functions in parallel
@@ -103,6 +104,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
         "total_accounts_found": 0,
         "platforms": [],
         "telegram": {},
+        "facebook": {},
     }
 
     # Sherlock results
@@ -128,9 +130,6 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             })
             summary["total_accounts_found"] += 1
 
-    # Account Finder results (usually prints to console, not returned)
-    # accountfinder_data = sources.get("accountFinder", {})
-
     # Telegram results
     telegram_data = sources.get("telegram", {})
     if isinstance(telegram_data, dict) and not telegram_data.get("error"):
@@ -149,7 +148,15 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             "profile_url": telegram_data.get("profile_url"),
         }
 
+    # Facebook results - MOVED BEFORE RETURN
+    facebook_data = sources.get("facebook", {})
+    if facebook_data and isinstance(facebook_data, dict) and not facebook_data.get("error"):
+        summary["facebook"] = facebook_data
+    else:
+        summary["facebook"] = facebook_data  # Include error if present
+
     return summary
+
 
 
 def print_username_report(report: dict):
@@ -183,19 +190,35 @@ def print_username_report(report: dict):
         else:
             print("  ✗ Not found")
 
-    # Other platforms
+
+    # Facebook section
+    if summary.get("facebook"):
+        fb = summary["facebook"]
+        print("\n[FACEBOOK]")
+        if not fb.get("error"):
+            print(f"  ✓ Found")
+            # Print ALL available raw data from Facebook
+            for key, value in fb.items():
+                if value and key != 'error':
+                    # Format key nicely (convert snake_case to Title Case)
+                    formatted_key = key.replace('_', ' ').title()
+                    print(f"  {formatted_key}: {value}")
+        else:
+            print(f"  ✗ Error: {fb.get('error')}")
+
+    # Other platforms (remove the limit of 15)
     platforms = summary.get("platforms", [])
     if platforms:
         print(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} accounts found)")
-        for i, platform in enumerate(platforms[:15], 1):  # Show first 15
+        for i, platform in enumerate(platforms, 1):  # Removed the [:15] slice
             print(f"  {i}. {platform.get('site')}")
             print(f"     {platform.get('url')}")
             if platform.get('details'):
-                for key, val in list(platform['details'].items())[:2]:  # Show first 2 details
+                for key, val in list(platform['details'].items())[:2]:
                     print(f"     {key}: {val}")
+        # Remove the "more accounts" print statement entirely
 
-        if len(platforms) > 15:
-            print(f"\n  ... and {len(platforms) - 15} more accounts")
+
 
     print("\n" + "=" * 70)
 
