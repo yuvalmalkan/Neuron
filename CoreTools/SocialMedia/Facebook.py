@@ -217,17 +217,6 @@ def fix_profile_pic_url(url: str) -> str:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 def close_login_popup(page):
     """
     Detects and closes Facebook login popups by clicking the X button.
@@ -396,15 +385,20 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 
 
-
-
+def FullFacebookScan(url):
+    FacebookDownloadRenderedHtml(url)
+    path_part = url.split("://")[-1]
+    filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
+    filename = filename.replace(":", "_")
+    filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
+    result = Facebook_info_from_file(filepath)
+    return result
 
 
 
 
 
 if __name__ == "__main__":
-    filename = input("Enter filename: ")
-    result = Facebook_info_from_file(filename)
+    result = FullFacebookScan("https://www.facebook.com/oshri.bouhnik")
     for key, value in result.items():
         print(f"{key}: {value}")
