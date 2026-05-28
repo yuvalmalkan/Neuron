@@ -7,6 +7,7 @@ from CoreTools.Maigret import Maigret_search_username
 from CoreTools.Sherlock import sherlock_search_username
 #from CoreTools.accountFinder import findByUsername
 from CoreTools.SocialMedia.Telegram import lookup_username_sync
+from CoreTools.SocialMedia.Facebook import FacebookFullScan
 
 """
 Complete OSINT scan for a username across all available sources in parallel.

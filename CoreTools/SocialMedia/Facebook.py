@@ -385,7 +385,7 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 
 
-def FullFacebookScan(username) -> dict:
+def FacebookFullScan(username) -> dict:
     """
         scans facebook profile page
         downloading the rendered html and extracting information from it
@@ -408,6 +408,6 @@ def FullFacebookScan(username) -> dict:
 
 
 if __name__ == "__main__":
-    result = FullFacebookScan("https://www.facebook.com/oshri.bouhnik")
+    result = FacebookFullScan("https://www.facebook.com/oshri.bouhnik")
     for key, value in result.items():
         print(f"{key}: {value}")
