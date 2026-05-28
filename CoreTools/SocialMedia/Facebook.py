@@ -385,7 +385,8 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
 
 
 
-def FullFacebookScan(url):
+def FullFacebookScan(username):
+    url = "https://www.facebook.com/" + username
     FacebookDownloadRenderedHtml(url)
     path_part = url.split("://")[-1]
     filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
