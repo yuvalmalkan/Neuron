@@ -153,7 +153,7 @@ class AnimatedSystemBubble(QWidget):
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._type_next_char)
-        self._timer.start(0.1)  # Speed in milliseconds per character
+        self._timer.start(1)  # Speed in milliseconds per character
 
     def _type_next_char(self):
         if self._index < len(self._full_text):
