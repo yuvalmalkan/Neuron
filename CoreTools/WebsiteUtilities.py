@@ -8,7 +8,7 @@ import re
 from playwright.sync_api import sync_playwright
 import time
 
-TEMP_FOLDER_PATH = "temp/"
+TEMP_FOLDER_PATH = "../temp/"
 
 
 
@@ -24,6 +24,10 @@ def downloadHtml(url):
 
     """
     try:
+        # Get absolute path to project root's temp folder
+        BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        TEMP_FOLDER_PATH = os.path.join(BASE_DIR, "temp")
+        os.makedirs(TEMP_FOLDER_PATH, exist_ok=True)  # Ensure folder exists
 
         path_part = url.split("://")[-1]  # "www.instagram.com/john.doe/"
 
@@ -74,5 +78,4 @@ def downloadHtml(url):
 if __name__ == "__main__":
     user = input("username: ")
     #downloadHtml(f"https://www.instagram.com/{user}/")
-    #downloadHtml("https://www.instagram.com/tre6enjoyer/")
     # downloadRenderedHtml(f"https://www.tiktok.com/@shaniamramm") #not working
