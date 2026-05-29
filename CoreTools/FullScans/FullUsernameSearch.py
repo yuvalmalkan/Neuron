@@ -135,7 +135,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
 
     # Telegram results
     telegram_data = sources.get("telegram", {})
-    if isinstance(telegram_data, dict) and not telegram_data.get("error"):
+    if isinstance(telegram_data, dict):  # Remove the "not error" check
         summary["telegram"] = {
             "found": telegram_data.get("found", False),
             "user_id": telegram_data.get("telegram_id"),
@@ -149,9 +149,10 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             "has_photo": telegram_data.get("has_profile_photo"),
             "profile_photo": telegram_data.get("profile_photo_saved"),
             "profile_url": telegram_data.get("profile_url"),
+            "error": telegram_data.get("error"),  # Add error field
         }
 
-    # Instagram results - MOVED BEFORE FACEBOOK & RETURN
+    # Instagram results
     instagram_data = sources.get("instagram", {})
     if instagram_data and isinstance(instagram_data, dict) and not instagram_data.get("error"):
         summary["instagram"] = {
