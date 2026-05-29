@@ -6,9 +6,10 @@ import os
 import logging
 from Constants import debug
 import html
+import time
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
+#BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
 
 
@@ -106,16 +107,29 @@ def fix_profile_pic_url(url: str) -> str:
 
     return fixed_url
 
+def InstagramFullScan(username) -> dict:
+    from CoreTools.WebsiteUtilities import downloadHtml
 
+    # Download the Instagram profile page
+    downloadHtml(f"https://www.instagram.com/{username}/")
+    time.sleep(2)
+    # Construct the filename that downloadHtml actually creates (instagram_{username}.html)
+    filename = f"instagram_{username}.html"
 
-
-
+    # Extract and return profile information
+    try:
+        profile_info = get_info_from_html(filename)
+        return profile_info
+    except Exception as e:
+        logging.error(f"Error extracting Instagram info for {username}: {e}")
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":
 
     filename = input("Enter filename ")
-    print(get_info_from_html(filename))
+    #print(get_info_from_html(filename))
+    print(InstagramFullScan(filename))
 
 
 
