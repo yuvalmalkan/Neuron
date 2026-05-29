@@ -153,7 +153,7 @@ class AnimatedSystemBubble(QWidget):
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._type_next_char)
-        self._timer.start(2)  # Speed in milliseconds per character
+        self._timer.start(0.1)  # Speed in milliseconds per character
 
     def _type_next_char(self):
         if self._index < len(self._full_text):
@@ -527,6 +527,28 @@ class OsintDashboard(QWidget):
                         lines.append(f"  {key}: {value}")
             else:
                 lines.append(f"  ✗ Error: {fb.get('error')}")
+
+
+        # INSTAGRAM SECTION
+        if summary.get('instagram'):
+            ig = summary['instagram']
+            lines.append("\n[INSTAGRAM]")
+            lines.append("─" * 60)
+            if not ig.get('error'):
+                lines.append(f"  ✓ Found")
+                lines.append(f"  Username: @{ig.get('username', 'N/A')}")
+                lines.append(f"  Display Name: {ig.get('display_name', 'N/A')}")
+                lines.append(f"  Bio: {ig.get('bio', 'N/A')}")
+                lines.append(f"  Followers: {ig.get('followers', 'N/A')}")
+                lines.append(f"  Following: {ig.get('following', 'N/A')}")
+                lines.append(f"  Posts: {ig.get('number_of_posts', 'N/A')}")
+                if ig.get('profile_picture_url'):
+                    lines.append(f"  Profile Picture: {ig['profile_picture_url']}")
+                if ig.get('profile_url'):
+                    lines.append(f"  Profile URL: {ig['profile_url']}")
+            else:
+                lines.append(f"  ✗ Error: {ig.get('error')}")
+
 
         # ALL PLATFORMS - Show EVERY account with full details
         platforms = summary.get('platforms', [])
