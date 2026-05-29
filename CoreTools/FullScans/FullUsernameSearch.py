@@ -8,6 +8,7 @@ from CoreTools.Sherlock import sherlock_search_username
 #from CoreTools.accountFinder import findByUsername
 from CoreTools.SocialMedia.Telegram import lookup_username_sync
 from CoreTools.SocialMedia.Facebook import FacebookFullScan
+from CoreTools.SocialMedia.Instagram import InstagramFullScan
 
 """
 Complete OSINT scan for a username across all available sources in parallel.
@@ -72,6 +73,7 @@ def search_username_complete(username: str) -> dict:
         (Maigret_search_username, "maigret", 90, username),
         (lookup_username_sync, "telegram", 30, username),
         (FacebookFullScan, "facebook", 30, username),
+        (InstagramFullScan, "instagram", 30, username),
     ]
 
     # Execute all functions in parallel
@@ -104,6 +106,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
         "total_accounts_found": 0,
         "platforms": [],
         "telegram": {},
+        "instagram": {},
         "facebook": {},
     }
 
@@ -148,7 +151,23 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             "profile_url": telegram_data.get("profile_url"),
         }
 
-    # Facebook results - MOVED BEFORE RETURN
+    # Instagram results - MOVED BEFORE FACEBOOK & RETURN
+    instagram_data = sources.get("instagram", {})
+    if instagram_data and isinstance(instagram_data, dict) and not instagram_data.get("error"):
+        summary["instagram"] = {
+            "username": instagram_data.get("username"),
+            "display_name": instagram_data.get("display_name"),
+            "bio": instagram_data.get("bio"),
+            "followers": instagram_data.get("followers"),
+            "following": instagram_data.get("following"),
+            "number_of_posts": instagram_data.get("number_of_posts"),
+            "profile_picture_url": instagram_data.get("profile_picture_url"),
+            "profile_url": instagram_data.get("profile_url"),
+        }
+    else:
+        summary["instagram"] = instagram_data  # Include error if present
+
+    # Facebook results
     facebook_data = sources.get("facebook", {})
     if facebook_data and isinstance(facebook_data, dict) and not facebook_data.get("error"):
         summary["facebook"] = facebook_data
@@ -156,7 +175,6 @@ def _build_username_summary(sources: dict, username: str) -> dict:
         summary["facebook"] = facebook_data  # Include error if present
 
     return summary
-
 
 
 def print_username_report(report: dict):
@@ -205,6 +223,26 @@ def print_username_report(report: dict):
                     print(f"  {formatted_key}: {value}")
         else:
             print(f"  ✗ Error: {fb.get('error')}")
+
+
+    # Instagram section
+    if summary.get("instagram"):
+        ig = summary["instagram"]
+        print("\n[INSTAGRAM]")
+        if not ig.get("error"):
+            print(f"  ✓ Found")
+            print(f"  Username: {ig.get('username') or 'N/A'}")
+            print(f"  Display Name: {ig.get('display_name') or 'N/A'}")
+            print(f"  Bio: {ig.get('bio') or 'N/A'}")
+            print(f"  Followers: {ig.get('followers') or 'N/A'}")
+            print(f"  Following: {ig.get('following') or 'N/A'}")
+            print(f"  Posts: {ig.get('number_of_posts') or 'N/A'}")
+            if ig.get("profile_picture_url"):
+                print(f"  Profile Picture: {ig['profile_picture_url']}")
+            if ig.get("profile_url"):
+                print(f"  Profile: {ig['profile_url']}")
+        else:
+            print(f"  ✗ Error: {ig.get('error')}")
 
     # Other platforms (remove the limit of 15)
     platforms = summary.get("platforms", [])
