@@ -5,32 +5,28 @@ import re
 import logging
 
 
-
-def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated data in the returned dict
+def scrape_linkedin_osint(full_name):
     """
-
-    args: string profile_url (linkedin profile URL)
+    args: string full_name (e.g., "Firstname Lastname")
     returns: dict with scraped LinkedIn profile data
 
     visible browser
     bypasses cookie walls
-
     sometimes a captcha will appear, in that case it will prompt the user to solve it manually
-
     """
 
-    clean_url = re.sub(r"https?://(www\.)?", "", profile_url).rstrip("/).,?'\"")
-    logging.info(f"Booting browser for: {clean_url}...\n")
-    search_query = f"site:{clean_url}"
+    logging.info(f"Booting browser to search for: {full_name}...\n")
+
+    # Construct the dork query using the provided name
+    search_query = f"site:linkedin.com/in {full_name}"
 
     with sync_playwright() as p:
-
         browser = p.chromium.launch(
             headless=False,
             args=["--disable-blink-features=AutomationControlled"]
         )
 
-        # so the results will be english only
+        # Enforce English results
         context = browser.new_context(
             locale="en-US",
             timezone_id="America/New_York",
@@ -41,18 +37,19 @@ def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated d
         )
         page = context.new_page()
 
-        data = None  # Initialize before try block
+        data = None
 
         try:
-            # Initialize variables with defaults
+            # Initialize variables
             snippet = None
             label = None
             number = None
             match = None
+            profile_url = None
 
             page.goto(f"https://www.google.com/search?q={search_query}&hl=en&gl=us")
 
-            # if a captcha appeared do this
+            # Handle CAPTCHA
             if "unusual traffic" in page.content() or "reCAPTCHA" in page.content():
                 logging.warning("GOOGLE CAPTCHA DETECTED!")
                 logging.warning("Please look at the Chrome window and solve the CAPTCHA manually.")
@@ -60,36 +57,33 @@ def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated d
                 page.wait_for_selector('h3', timeout=60000)
                 logging.warning("CAPTCHA solved! Proceeding...\n")
 
-            # bypass cookie wall if it appears
+            # Bypass cookie wall if it appears
             try:
                 reject_button = page.locator("button:has-text('Reject all')")
                 if reject_button.count() > 0:
                     reject_button.first.click()
                     page.wait_for_load_state('networkidle')
-
             except Exception:
                 pass
 
             page.wait_for_selector('h3', timeout=5000)
-
             html_content = page.content()
 
             if "did not match any documents" in html_content:
-                logging.info("Google has zero records for this exact URL. The profile is hidden from search engines.")
+                logging.info("Google has zero records for this exact name query. They might not exist or are hidden.")
                 return None
 
             title_element = page.locator('h3').first
             snippet_element = page.locator('.VwiC3b').first
 
-            if title_element.count() > 0:
-                print(f"Name & Headline: {title_element.inner_text()}")
+            # Extract the actual LinkedIn URL from the search result link wrapper
+            link_element = page.locator('a:has(h3)').first
+            if link_element.count() > 0:
+                profile_url = link_element.get_attribute('href')
 
+            # Parse the snippet for connections/followers
             if snippet_element.count() > 0:
                 snippet = snippet_element.inner_text()
-
-                print(f"Public Data Snippet:\n{snippet}\n")  # todo add auto translation for public data
-
-                # look for a number followed by k or m
                 match = re.search(r'([\d\.,]+[KM]?)\s*(?:followers|connections|עוקבים|חיבורים)', snippet, re.IGNORECASE)
 
                 if match:
@@ -106,13 +100,13 @@ def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated d
                         elif multiplier == 'M':
                             number *= 1_000_000
 
-                        # translate
+                        # Determine label
                         label = "Connections" if "חיבורים" in snippet or "connections" in snippet.lower() else "Followers"
-                        print(f"estimated {label}: {int(number):,}")
 
+            # Cleaned up return dictionary
             data = {
-                "profile_url": profile_url,
-                "clean_url": clean_url,
+                "search_target": full_name,
+                "discovered_profile_url": profile_url,
                 "name_headline": title_element.inner_text() if title_element.count() > 0 else None,
                 "public_data_snippet": snippet,
                 "connection_type": label,
@@ -129,10 +123,7 @@ def scrape_linkedin_osint(profile_url): #fixme remove prints and fix unrelated d
         return data
 
 
-
-
-
 if __name__ == "__main__":
-    dict =scrape_linkedin_osint("https://www.linkedin.com/in/itay-belogorodsky-9b9a003aa/")
-    print(dict)
 
+    result_dict = scrape_linkedin_osint("Itay Belogorodsky")
+    print(result_dict)
