@@ -1,32 +1,27 @@
+__author__ = "Yuval Malkan"
+
 import os
 import json
-import argparse
 import requests
 import concurrent.futures
 from urllib.parse import quote
-from rich.console import Console
-from rich.progress import Progress
-
-console = Console()
 
 # Default User-Agent to prevent basic blocks
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 
 
-def load_data():
-    """Loads the site configurations from email-data.json"""
-    json_path = "email-data.json"
+def _load_data(json_path: str) -> list:
+    """Internal function to load site configurations."""
     if not os.path.exists(json_path):
-        console.print(f"[bold red]Error:[/bold red] '{json_path}' not found in the current directory.")
-        exit(1)
+        raise FileNotFoundError(f"Configuration file '{json_path}' not found.")
 
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
         return data.get("sites", [])
 
 
-def execute_pre_check(session, pre_check_data):
-    """Executes a pre-check to fetch necessary cookies/tokens before the main request."""
+def _execute_pre_check(session: requests.Session, pre_check_data: dict) -> str:
+    """Internal function to fetch necessary cookies/tokens before the main request."""
     try:
         url = pre_check_data.get("endpoint")
         method = pre_check_data.get("method", "GET")
@@ -34,7 +29,7 @@ def execute_pre_check(session, pre_check_data):
         headers = pre_check_data.get("headers", {}) or {}
         headers["User-Agent"] = USER_AGENT
 
-        res = session.request(method, url, headers=headers, timeout=10)
+        session.request(method, url, headers=headers, timeout=10)
 
         if pre_check_data.get("type") == "cookie":
             cookie_name = pre_check_data.get("cookie_name")
@@ -44,8 +39,8 @@ def execute_pre_check(session, pre_check_data):
     return None
 
 
-def check_site(email, site):
-    """Checks a single site for the existence of the email."""
+def _check_site(email: str, site: dict) -> dict:
+    """Internal function to check a single site for the existence of the email."""
     session = requests.Session()
 
     name = site.get("name")
@@ -61,7 +56,7 @@ def check_site(email, site):
     # Handle pre-checks (e.g., getting CSRF tokens)
     pre_check = site.get("pre_check")
     if pre_check:
-        token = execute_pre_check(session, pre_check)
+        token = _execute_pre_check(session, pre_check)
         if token:
             for k, v in headers.items():
                 if "{csrftoken_value}" in str(v):
@@ -71,6 +66,13 @@ def check_site(email, site):
     if data:
         data = data.replace("{account}", email)
 
+    result = {
+        "site": name,
+        "exists": False,
+        "url": url,
+        "category": site.get("cat", "unknown")
+    }
+
     try:
         response = session.request(method, url, data=data, headers=headers, timeout=15)
         res_text = response.text
@@ -78,69 +80,61 @@ def check_site(email, site):
 
         # Validation Logic
         if m_string and m_string in res_text:
-            return name, False, url
+            return result
 
         if res_code == e_code and (not e_string or e_string in res_text):
-            return name, True, url
+            result["exists"] = True
+            return result
 
-        return name, False, url
+        return result
+
     except requests.RequestException:
-        return name, False, url
+        return result
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Standalone Email OSINT Checker")
-    parser.add_argument("-e", "--email", help="The email address to search.")
-    parser.add_argument("-t", "--threads", type=int, default=10, help="Number of concurrent threads.")
-    args = parser.parse_args()
+def scan_email(email: str, json_path: str = "email-data.json", max_threads: int = 10) -> dict:
+    """
+    Scans various platforms to check if an email is registered.
 
-    # Interactive prompt if no arguments are provided
-    if args.email:
-        email = args.email
-    else:
-        console.print("[bold blue]🐦 Blackbird Email Checker (Standalone)[/bold blue]")
-        try:
-            email = input("Enter the email address to search: ").strip()
-        except KeyboardInterrupt:
-            console.print("\n[bold red]Cancelled.[/bold red]")
-            exit(0)
+    Args:
+        email (str): The target email address.
+        json_path (str): Path to the JSON configuration file.
+        max_threads (int): Number of concurrent requests to make.
 
-        if not email:
-            console.print("[bold red]Error:[/bold red] Email cannot be empty.")
-            exit(1)
+    Returns:
+        dict: A dictionary containing the target email, summary metrics, and a list of all results.
+    """
+    # Ensure the path is relative to the current file if an absolute path isn't provided
+    if not os.path.isabs(json_path):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        json_path = os.path.join(base_dir, json_path)
 
-    sites = load_data()
+    sites = _load_data(json_path)
 
-    console.print(f"\n[bold blue]Starting Search for:[/bold blue] [bold white]{email}[/bold white]")
-    console.print(f"[dim]Loaded {len(sites)} modules from email-data.json[/dim]\n")
+    final_output = {
+        "target_email": email,
+        "total_scanned": len(sites),
+        "total_found": 0,
+        "found_accounts": [],
+        "all_results": []
+    }
 
-    found_accounts = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
+        future_to_site = {executor.submit(_check_site, email, site): site for site in sites}
 
-    # Run checks concurrently
-    with Progress() as progress:
-        task = progress.add_task("[cyan]Scanning modules...", total=len(sites))
+        for future in concurrent.futures.as_completed(future_to_site):
+            try:
+                res = future.result()
+                final_output["all_results"].append(res)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
-            future_to_site = {executor.submit(check_site, email, site): site for site in sites}
+                if res["exists"]:
+                    final_output["found_accounts"].append(res)
+                    final_output["total_found"] += 1
+            except Exception as exc:
+                # Handle any unexpected thread crashes silently to keep the function robust
+                pass
 
-            for future in concurrent.futures.as_completed(future_to_site):
-                site_name, exists, url = future.result()
-                progress.advance(task)
-
-                if exists:
-                    found_accounts.append({"name": site_name, "url": url})
-                    progress.console.print(
-                        f"[bold green][+][/bold green] Found on [bold white]{site_name}[/bold white] -> [dim]{url}[/dim]")
-
-    # Print summary
-    console.print("\n[bold blue]--- Summary ---[/bold blue]")
-    if found_accounts:
-        console.print(f"[bold green]Matches found on {len(found_accounts)} sites:[/bold green]")
-        for acc in found_accounts:
-            console.print(f"  - [bold]{acc['name']}[/bold]: {acc['url']}")
-    else:
-        console.print("[bold yellow]No accounts found using this email.[/bold yellow]")
-
+    return final_output
 
 if __name__ == "__main__":
-    main()
+    print(scan_email("test@gmail.com"))
