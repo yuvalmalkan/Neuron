@@ -58,9 +58,9 @@ RESP_ERROR_EMAIL_EXISTS = "EREML"
 
 
 
-
 # ── OSINT COMMANDS ──
 CMD_OSINT_USCAN = "USCAN"   # Client → Server: Username OSINT scan request
+CMD_OSINT_ESCAN = "ESCAN"   # Client → Server: Email OSINT scan request
 
 # ── OSINT RESPONSES ──
 RESP_OSINT_RESULT = "ORLT"  # Server → Client: OSINT scan complete with results
