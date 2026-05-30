@@ -174,6 +174,62 @@ def osint_username_scan(username: str):
         raise
 
 
+
+
+def osint_email_scan(email: str):
+    """Send email OSINT scan request to server via OSINT socket."""
+    from Constants import CMD_OSINT_ESCAN
+    import time
+
+    global OsintSocket, osint_connected
+
+    # Always close old socket and create a fresh one for each scan
+    close_osint_socket()
+    time.sleep(0.1)  # Allow socket cleanup
+
+    logging.info("Creating fresh OSINT socket for new email scan...")
+    if not connect_osint_socket():
+        raise ConnectionError("Cannot connect OSINT socket to server")
+
+    request = {"command": CMD_OSINT_ESCAN, "target_email": email}
+    try:
+        send_one_message(OsintSocket, json.dumps(request))
+        logging.info(f"Sent OSINT email scan request for: {email}")
+    except Exception as e:
+        logging.error(f"Failed to send OSINT email request: {e}")
+        osint_connected = False
+        OsintSocket = None
+        raise
+
+
+def osint_raw_scan(command: str, payload: dict) -> socket.socket:
+    """
+    Open a fresh independent socket, send one OSINT command, return the socket.
+    Caller is responsible for receiving and closing it.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((serverIp, port))
+    request = {"command": command, **payload}
+    send_one_message(sock, json.dumps(request))
+    return sock
+
+
+def receive_from_socket(sock: socket.socket, timeout=180) -> dict:
+    """Receive one OSINT response from a given socket and close it."""
+    try:
+        sock.settimeout(timeout)
+        data = recv_one_message(sock, return_type="string")
+        if not data:
+            raise ConnectionError("Socket disconnected")
+        return json.loads(data)
+    finally:
+        try:
+            sock.close()
+        except:
+            pass
+
+
+
 def receive_osint_response(timeout=180):
     """Receive OSINT response from dedicated OSINT socket."""
     global OsintSocket, osint_connected
