@@ -63,44 +63,55 @@ def check_site(email, site):
     if pre_check:
         token = execute_pre_check(session, pre_check)
         if token:
-            # Replace placeholder in headers
             for k, v in headers.items():
                 if "{csrftoken_value}" in str(v):
                     headers[k] = v.replace("{csrftoken_value}", token)
 
-    # Prepare standard headers
     headers["User-Agent"] = USER_AGENT
     if data:
         data = data.replace("{account}", email)
 
     try:
-        # Execute the main request
         response = session.request(method, url, data=data, headers=headers, timeout=15)
         res_text = response.text
         res_code = response.status_code
 
         # Validation Logic
         if m_string and m_string in res_text:
-            return name, False
+            return name, False, url
 
         if res_code == e_code and (not e_string or e_string in res_text):
-            return name, True
+            return name, True, url
 
-        return name, False
+        return name, False, url
     except requests.RequestException:
-        return name, False
+        return name, False, url
 
 
 def main():
     parser = argparse.ArgumentParser(description="Standalone Email OSINT Checker")
-    parser.add_argument("-e", "--email", required=True, help="The email address to search.")
+    parser.add_argument("-e", "--email", help="The email address to search.")
     parser.add_argument("-t", "--threads", type=int, default=10, help="Number of concurrent threads.")
     args = parser.parse_args()
 
-    email = args.email
+    # Interactive prompt if no arguments are provided
+    if args.email:
+        email = args.email
+    else:
+        console.print("[bold blue]🐦 Blackbird Email Checker (Standalone)[/bold blue]")
+        try:
+            email = input("Enter the email address to search: ").strip()
+        except KeyboardInterrupt:
+            console.print("\n[bold red]Cancelled.[/bold red]")
+            exit(0)
+
+        if not email:
+            console.print("[bold red]Error:[/bold red] Email cannot be empty.")
+            exit(1)
+
     sites = load_data()
 
-    console.print(f"\n[bold blue]🐦 Starting Search for:[/bold blue] [bold white]{email}[/bold white]")
+    console.print(f"\n[bold blue]Starting Search for:[/bold blue] [bold white]{email}[/bold white]")
     console.print(f"[dim]Loaded {len(sites)} modules from email-data.json[/dim]\n")
 
     found_accounts = []
@@ -113,20 +124,20 @@ def main():
             future_to_site = {executor.submit(check_site, email, site): site for site in sites}
 
             for future in concurrent.futures.as_completed(future_to_site):
-                site_name, exists = future.result()
+                site_name, exists, url = future.result()
                 progress.advance(task)
 
                 if exists:
-                    found_accounts.append(site_name)
+                    found_accounts.append({"name": site_name, "url": url})
                     progress.console.print(
-                        f"[bold green][+][/bold green] Found on [bold white]{site_name}[/bold white]")
+                        f"[bold green][+][/bold green] Found on [bold white]{site_name}[/bold white] -> [dim]{url}[/dim]")
 
     # Print summary
     console.print("\n[bold blue]--- Summary ---[/bold blue]")
     if found_accounts:
         console.print(f"[bold green]Matches found on {len(found_accounts)} sites:[/bold green]")
         for acc in found_accounts:
-            console.print(f"  - {acc}")
+            console.print(f"  - [bold]{acc['name']}[/bold]: {acc['url']}")
     else:
         console.print("[bold yellow]No accounts found using this email.[/bold yellow]")
 
