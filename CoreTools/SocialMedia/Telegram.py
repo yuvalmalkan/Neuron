@@ -21,7 +21,7 @@ load_dotenv()
 
 API_ID = int(os.getenv("TELEGRAM_API_ID", 0))
 API_HASH = os.getenv("TELEGRAM_API_HASH", "")
-SESSION = "neuron"
+SESSION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "neuron")
 
 # Setup temp folder
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -29,7 +29,7 @@ TEMP_FOLDER = os.path.join(BASE_DIR, "CoreTools", "temp")
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 
-# ─── HELPERS ──────────────────────────────────────────────────────────────────
+#helper functions
 
 def _clean_name(first, last):
     first = (first or "").strip()
@@ -367,23 +367,42 @@ async def telegram_find_phone(username: str = None, name: str = None) -> dict:
 # sync wrappers
 
 def lookup_phone_sync(phone: str) -> dict:
-    return asyncio.run(telegram_lookup_phone(phone))
-
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(telegram_lookup_phone(phone))
+    finally:
+        loop.close()
 
 def lookup_username_sync(username: str) -> dict:
-    return asyncio.run(telegram_lookup_username(username))
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(telegram_lookup_username(username))
+    finally:
+        loop.close()
+
+
 
 
 def search_name_sync(name: str, limit: int = 10) -> dict:
-    return asyncio.run(telegram_search_name(name, limit))
-
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(telegram_search_name(name, limit))
+    finally:
+        loop.close()
 
 def get_contacts_sync() -> dict:
-    return asyncio.run(telegram_get_contacts())
-
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(telegram_get_contacts())
+    finally:
+        loop.close()
 
 def find_phone_sync(username: str = None, name: str = None) -> dict:
-    return asyncio.run(telegram_find_phone(username=username, name=name))
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(telegram_find_phone(username=username, name=name))
+    finally:
+        loop.close()
 
 
 if __name__ == "__main__":
