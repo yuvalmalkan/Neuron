@@ -41,21 +41,6 @@ def run_function_with_timeout(func, timeout, *args, **kwargs):
 
 
 def search_username_complete(username: str) -> dict:
-    """
-    Complete username search across ALL available OSINT sources.
-    Runs all tools in parallel for maximum speed.
-
-    Args:
-        username: Target username to search (with or without @)
-
-    Returns:
-        Comprehensive report with all findings from:
-        - Sherlock (social media platforms)
-        - Maigret (site enumeration)
-        - Account Finder (custom sites database)
-        - Telegram (Telegram-specific lookup)
-    """
-
     username = username.lstrip("@")
     report = {
         "query": username,
@@ -67,33 +52,47 @@ def search_username_complete(username: str) -> dict:
     import time
     start_time = time.time()
 
-    # Define all username search functions with their timeouts
+    # Run Telegram in its own thread early — reads result from JSON file after
+    telegram_thread = threading.Thread(target=lookup_username_sync, args=(username,), daemon=True)
+    telegram_thread.start()
+
     functions_to_run = [
         (sherlock_search_username, "sherlock", 90, username),
         (Maigret_search_username, "maigret", 90, username),
-        (lookup_username_sync, "telegram", 30, username),
         (FacebookFullScan, "facebook", 30, username),
         (InstagramFullScan, "instagram", 30, username),
     ]
 
-    # Execute all functions in parallel
     with ThreadPoolExecutor(max_workers=4) as executor:
         future_to_key = {}
-
         for func, key, timeout, *args in functions_to_run:
             future = executor.submit(run_function_with_timeout, func, timeout, *args)
             future_to_key[future] = key
 
-        # Collect results as they complete
         for future in as_completed(future_to_key):
             key = future_to_key[future]
             try:
-                result = future.result()
-                report["sources"][key] = result
+                report["sources"][key] = future.result()
             except Exception as e:
                 report["sources"][key] = {"error": str(e)}
 
-    # Build summary from all sources
+    # Wait for Telegram thread to finish and write its JSON
+    telegram_thread.join(timeout=60)
+
+    # Read Telegram result from the JSON file it writes to temp
+    import os
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    telegram_json_path = os.path.join(BASE_DIR, "CoreTools", "temp", f"telegram_username_{username}.json")
+
+    if os.path.exists(telegram_json_path):
+        try:
+            with open(telegram_json_path, "r", encoding="utf-8") as f:
+                report["sources"]["telegram"] = json.load(f)
+        except Exception as e:
+            report["sources"]["telegram"] = {"error": f"Failed to read telegram JSON: {e}"}
+    else:
+        report["sources"]["telegram"] = {"error": "Telegram JSON not written — check credentials or session"}
+
     report["summary"] = _build_username_summary(report["sources"], username)
     report["elapsed_seconds"] = round(time.time() - start_time, 2)
 
