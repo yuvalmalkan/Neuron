@@ -125,7 +125,6 @@ class TerminalBubble(QWidget):
 
 
 class AnimatedSystemBubble(QWidget):
-    """System response with typing animation"""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -146,25 +145,22 @@ class AnimatedSystemBubble(QWidget):
         row.addWidget(self._lbl)
         row.addStretch()
 
-        # Typing animation
         self._full_text = text
-        self._current_text = ""
         self._index = 0
+        self._BATCH = 20  # characters per tick
 
         self._timer = QTimer(self)
-        self._timer.timeout.connect(self._type_next_char)
-        self._timer.start(1)  # Speed in milliseconds per character
+        self._timer.timeout.connect(self._type_next)
+        self._timer.start(8)  # ms per batch
 
-    def _type_next_char(self):
+    def _type_next(self):
         if self._index < len(self._full_text):
-            self._current_text += self._full_text[self._index]
-            self._lbl.setText(self._current_text)
-            self._index += 1
+            self._index = min(self._index + self._BATCH, len(self._full_text))
+            self._lbl.setText(self._full_text[:self._index])
         else:
             self._timer.stop()
 
     def stop(self):
-        """Stop animation and show full text."""
         self._timer.stop()
         self._lbl.setText(self._full_text)
 
@@ -256,7 +252,6 @@ class WelcomeBubble(QWidget):
 
 
 class OsintDashboard(QWidget):
-    # Signal for thread-safe updates
     results_ready = pyqtSignal(str)
     error_occurred = pyqtSignal(str)
 
@@ -264,21 +259,19 @@ class OsintDashboard(QWidget):
         super().__init__(parent)
         self.setObjectName("osintDashboard")
         self._typing: TypingIndicator | None = None
-        self._listener_thread = None  # Track listener thread
+        self._listener_thread = None
         self._build_ui()
-
-        # Connect signals
         self.results_ready.connect(self._on_results_ready)
         self.error_occurred.connect(self._on_error)
 
     def _on_results_ready(self, result_text: str):
-        """Called when results are ready (thread-safe)"""
-        self.show_results(result_text)
+        self._hide_typing()
+        self._add(SystemBubble(result_text))
+        self._bar.set_enabled(True)
 
     def _on_error(self, error_msg: str):
-        """Called when error occurs (thread-safe)"""
         self._hide_typing()
-        self._add(AnimatedSystemBubble(f"Error: {error_msg}"))
+        self._add(SystemBubble(f"Error: {error_msg}"))
         self._bar.set_enabled(True)
 
     def _build_ui(self):
@@ -286,11 +279,9 @@ class OsintDashboard(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Main container centered on screen
         main_wrapper = QHBoxLayout()
         main_wrapper.addStretch()
 
-        # centered container
         content_container = QWidget()
         content_container.setFixedWidth(1000)
         content_container.setMaximumWidth(1000)
@@ -299,7 +290,6 @@ class OsintDashboard(QWidget):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(0)
 
-        # Scroll area for messages
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -325,10 +315,8 @@ class OsintDashboard(QWidget):
         self._mlayout.setSpacing(8)
         self._mlayout.addStretch()
 
-        # Add welcome message
         username = SessionManager.get_username()
-        welcome_text = f"Welcome Back {username}!"
-        self._add(WelcomeBubble(welcome_text))
+        self._add(WelcomeBubble(f"Welcome Back {username}!"))
 
         self._scroll.setWidget(self._container)
         content_layout.addWidget(self._scroll, 1)
@@ -338,7 +326,6 @@ class OsintDashboard(QWidget):
 
         root.addLayout(main_wrapper, 1)
 
-        # Floating input bar - bottom center
         floating_container = QWidget()
         floating_container.setStyleSheet("background: transparent;")
         floating_layout = QVBoxLayout(floating_container)
@@ -360,10 +347,8 @@ class OsintDashboard(QWidget):
 
         root.addWidget(floating_container, 0)
 
-    # SUBMIT
     def _on_submit(self, raw: str):
-        import Client
-        import time
+        from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN
 
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
@@ -378,25 +363,88 @@ class OsintDashboard(QWidget):
         self._add(AnimatedSystemBubble(self._build_summary(fields)))
         self._show_typing()
 
-        # Send scan request to server
-        if fields.get("username"):
-            username = fields["username"]
-            try:
-                # Kill any previous listener thread
-                if self._listener_thread and self._listener_thread.is_alive():
-                    logging.warning("Previous listener thread still running, waiting for completion...")
-                    self._listener_thread.join(timeout=5)
+        has_username = bool(fields.get("username"))
+        has_email = bool(fields.get("email"))
+        self._scan_username = fields.get("username")
+        self._scan_email = fields.get("email")
 
-                # Send fresh scan request
-                Client.osint_username_scan(username)
-                logging.info(f"OSINT scan request sent, starting listener...")
-                # NOW start listening thread (after socket is connected)
-                self._start_listening_for_results()
-            except Exception as e:
-                logging.error(f"Failed to send scan request: {e}")
-                self._hide_typing()
-                self._add(AnimatedSystemBubble(f"Error: {str(e)}"))
-                self._bar.set_enabled(True)
+        if has_username and has_email:
+            self._listener_thread = threading.Thread(
+                target=self._launch_combined,
+                args=(CMD_OSINT_USCAN, CMD_OSINT_ESCAN),
+                daemon=True
+            )
+        elif has_username:
+            self._listener_thread = threading.Thread(
+                target=self._launch_username,
+                daemon=True
+            )
+        elif has_email:
+            self._listener_thread = threading.Thread(
+                target=self._launch_email,
+                daemon=True
+            )
+        else:
+            self._hide_typing()
+            self._bar.set_enabled(True)
+            return
+
+        self._listener_thread.start()
+
+    def _launch_username(self):
+        import Client
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
+        try:
+            Client.osint_username_scan(self._scan_username)
+            response = Client.receive_osint_response(timeout=180)
+            if response.get('response') == RESP_OSINT_RESULT:
+                self.results_ready.emit(self._format_results(response.get('report', {})))
+            elif response.get('response') == RESP_OSINT_ERROR:
+                self.error_occurred.emit(response.get('message', 'Unknown error'))
+            else:
+                self.error_occurred.emit("Unexpected response from server")
+        except Exception as e:
+            logging.error(f"Username scan error: {e}", exc_info=True)
+            self.error_occurred.emit(str(e))
+
+    def _launch_email(self):
+        import Client
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
+        try:
+            Client.osint_email_scan(self._scan_email)
+            response = Client.receive_osint_response(timeout=180)
+            if response.get('response') == RESP_OSINT_RESULT:
+                self.results_ready.emit(self._format_results(response.get('report', {})))
+            elif response.get('response') == RESP_OSINT_ERROR:
+                self.error_occurred.emit(response.get('message', 'Unknown error'))
+            else:
+                self.error_occurred.emit("Unexpected response from server")
+        except Exception as e:
+            logging.error(f"Email scan error: {e}", exc_info=True)
+            self.error_occurred.emit(str(e))
+
+    def _launch_combined(self, cmd_u, cmd_e):
+        import Client
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
+        try:
+            sock_u = Client.osint_raw_scan(cmd_u, {"target_username": self._scan_username})
+            sock_e = Client.osint_raw_scan(cmd_e, {"target_email": self._scan_email})
+            parts = []
+            for sock in (sock_u, sock_e):
+                try:
+                    resp = Client.receive_from_socket(sock, 180)
+                    if resp.get('response') == RESP_OSINT_RESULT:
+                        parts.append(self._format_results(resp.get('report', {})))
+                    elif resp.get('response') == RESP_OSINT_ERROR:
+                        parts.append(f"Error: {resp.get('message', 'Unknown error')}")
+                    else:
+                        parts.append("Unexpected response from server")
+                except Exception as e:
+                    parts.append(f"Error: {str(e)}")
+            self.results_ready.emit(("\n" + "═" * 60 + "\n").join(parts))
+        except Exception as e:
+            logging.error(f"Combined scan error: {e}", exc_info=True)
+            self.error_occurred.emit(str(e))
 
     def _build_summary(self, fields: dict) -> str:
         lines = ["TARGET QUEUED", "─" * 28]
@@ -410,24 +458,22 @@ class OsintDashboard(QWidget):
             lines.append(f"  username  @{fields['username']}")
         return "\n".join(lines)
 
-    # ── PUBLIC — called by OsintWorker when results arrive ────────────
-
     def show_results(self, text: str):
-        """
-        Call this from your worker signal when the server returns the full result.
-        text: plain string (formatted however OsintLogic produces it).
-        """
         self._hide_typing()
-        self._add(AnimatedSystemBubble(text))
+        self._add(SystemBubble(text))
         self._bar.set_enabled(True)
-
-    # ── HELPERS ──────────────────────────────
 
     def _add(self, widget: QWidget):
         self._mlayout.insertWidget(self._mlayout.count() - 1, widget)
-        QTimer.singleShot(30, lambda: self._scroll.verticalScrollBar().setValue(
-            self._scroll.verticalScrollBar().maximum()
-        ))
+        QTimer.singleShot(30, self._safe_scroll)
+
+    def _safe_scroll(self):
+        try:
+            self._scroll.verticalScrollBar().setValue(
+                self._scroll.verticalScrollBar().maximum()
+            )
+        except RuntimeError:
+            pass
 
     def _show_typing(self):
         self._hide_typing()
@@ -441,140 +487,131 @@ class OsintDashboard(QWidget):
             self._typing.deleteLater()
             self._typing = None
 
-    def _start_listening_for_results(self):
-        """Listen for OSINT results from server in a separate thread."""
-        self._listener_thread = threading.Thread(target=self._listen_worker, daemon=False)
-        self._listener_thread.start()
-
     def _listen_worker(self):
-        """Worker method that listens for OSINT results via dedicated socket."""
         import Client
         from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
-        import time
-
         try:
-            logging.info("OSINT listening thread started...")
-            # Add small delay to ensure server is ready
-            time.sleep(0.2)
-
             response = Client.receive_osint_response(timeout=180)
-            logging.info(f"Received OSINT response: {response}")
-
             if response.get('response') == RESP_OSINT_RESULT:
-                report = response.get('report', {})
-                result_text = self._format_results(report)
-                self.results_ready.emit(result_text)
-
+                self.results_ready.emit(self._format_results(response.get('report', {})))
             elif response.get('response') == RESP_OSINT_ERROR:
-                error_msg = response.get('message', 'Unknown error')
-                self.error_occurred.emit(error_msg)
+                self.error_occurred.emit(response.get('message', 'Unknown error'))
             else:
-                logging.warning(f"Unexpected response type: {response.get('response')}")
                 self.error_occurred.emit("Unexpected response from server")
-
-        except socket.timeout:
-            logging.error("OSINT scan timeout")
-            self.error_occurred.emit("Scan timeout - server took too long to respond")
         except Exception as e:
-            logging.error(f"Error in OSINT listener: {e}", exc_info=True)
+            logging.error(f"Listener error: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
 
     def _format_results(self, report: dict) -> str:
-        """Format OSINT report into readable text with ALL results from all sources."""
-        username = report.get('query', '?')
+        query = report.get('query', '?')
         elapsed = report.get('elapsed_seconds', '?')
         summary = report.get('summary', {})
 
-        lines = [
-            f"OSINT SCAN COMPLETE — @{username}  ({elapsed}s)",
-            "─" * 60,
-        ]
+        is_email = '@' in query and '.' in query
 
-        # TELEGRAM SECTION
-        if summary.get('telegram'):
-            tg = summary['telegram']
-            lines.append("\n[TELEGRAM]")
-            lines.append("─" * 60)
-            if tg.get('found'):
-                lines.append(f"  ✓ Found")
-                lines.append(f"  ID: {tg.get('user_id', 'N/A')}")
-                lines.append(f"  Username: @{tg.get('username', 'N/A')}")
-                lines.append(f"  Name: {tg.get('name', 'N/A')}")
-                lines.append(f"  Bio: {tg.get('bio', 'N/A')}")
-                lines.append(f"  Verified: {'Yes' if tg.get('is_verified') else 'No'}")
-                lines.append(f"  Premium: {'Yes' if tg.get('is_premium') else 'No'}")
-                if tg.get('is_scam'):
-                    lines.append(f"  ⚠️  SCAM FLAG: YES")
-                if tg.get('is_fake'):
-                    lines.append(f"  ⚠️  FAKE FLAG: YES")
-                if tg.get('profile_photo'):
-                    lines.append(f"  Profile Photo: {tg['profile_photo']}")
-                if tg.get('profile_url'):
-                    lines.append(f"  Profile URL: {tg['profile_url']}")
+        if is_email:
+            lines = [
+                f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
+                "─" * 60,
+                "\n[EMAIL SCAN SUMMARY]",
+                "─" * 60,
+            ]
+
+            total_scanned = summary.get('total_scanned', 0)
+            total_found = summary.get('total_accounts_found', 0)
+            lines.append(f"  Total Scanned: {total_scanned}")
+            lines.append(f"  Total Found: {total_found}")
+
+            platforms = summary.get('platforms', [])
+            if platforms:
+                lines.append(f"\n[PLATFORMS WHERE EMAIL IS REGISTERED] ({len(platforms)} accounts)")
+                lines.append("─" * 60)
+                for i, platform in enumerate(platforms, 1):
+                    lines.append(f"\n  {i}. {platform.get('site', 'Unknown')}")
+                    lines.append(f"     Category: {platform.get('category', 'unknown')}")
+                    lines.append(f"     🔗 {platform.get('url', 'No URL')}")
             else:
-                lines.append("  ✗ Not found")
+                lines.append("\n[PLATFORMS WHERE EMAIL IS REGISTERED]")
+                lines.append("  ✗ No accounts found")
 
-        # FACEBOOK SECTION
-        if summary.get('facebook'):
-            fb = summary['facebook']
-            lines.append("\n[FACEBOOK]")
-            lines.append("─" * 60)
-            if not fb.get('error'):
-                lines.append(f"  ✓ Found")
-                # Print all available raw data from Facebook
-                for key, value in fb.items():
-                    if value and key != 'error':
-                        lines.append(f"  {key}: {value}")
-            else:
-                lines.append(f"  ✗ Error: {fb.get('error')}")
+            lines.append("\n" + "─" * 60)
+            return "\n".join(lines)
 
-
-        # INSTAGRAM SECTION
-        if summary.get('instagram'):
-            ig = summary['instagram']
-            lines.append("\n[INSTAGRAM]")
-            lines.append("─" * 60)
-            if not ig.get('error'):
-                lines.append(f"  ✓ Found")
-                lines.append(f"  Username: @{ig.get('username', 'N/A')}")
-                lines.append(f"  Display Name: {ig.get('display_name', 'N/A')}")
-                lines.append(f"  Bio: {ig.get('bio', 'N/A')}")
-                lines.append(f"  Followers: {ig.get('followers', 'N/A')}")
-                lines.append(f"  Following: {ig.get('following', 'N/A')}")
-                lines.append(f"  Posts: {ig.get('number_of_posts', 'N/A')}")
-                if ig.get('profile_picture_url'):
-                    lines.append(f"  Profile Picture: {ig['profile_picture_url']}")
-                if ig.get('profile_url'):
-                    lines.append(f"  Profile URL: {ig['profile_url']}")
-            else:
-                lines.append(f"  ✗ Error: {ig.get('error')}")
-
-
-        # ALL PLATFORMS - Show EVERY account with full details
-        platforms = summary.get('platforms', [])
-        if platforms:
-            lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
-            lines.append("─" * 60)
-
-            for i, platform in enumerate(platforms, 1):
-                site = platform.get('site', 'Unknown')
-                url = platform.get('url', 'No URL')
-                source = platform.get('source', '?')
-
-                lines.append(f"\n  {i}. {site} (from {source})")
-                lines.append(f"     🔗 {url}")
-
-                # Show ALL details available
-                if platform.get('details'):
-                    for key, val in platform['details'].items():
-                        lines.append(f"     • {key}: {val}")
         else:
-            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  ✗ No accounts found")
+            lines = [
+                f"OSINT SCAN COMPLETE — @{query}  ({elapsed}s)",
+                "─" * 60,
+            ]
 
-        lines.append("\n" + "─" * 60)
+            if summary.get('telegram'):
+                tg = summary['telegram']
+                lines.append("\n[TELEGRAM]")
+                lines.append("─" * 60)
+                if tg.get('found'):
+                    lines.append(f"  ✓ Found")
+                    lines.append(f"  ID: {tg.get('user_id', 'N/A')}")
+                    lines.append(f"  Username: @{tg.get('username', 'N/A')}")
+                    lines.append(f"  Name: {tg.get('name', 'N/A')}")
+                    lines.append(f"  Bio: {tg.get('bio', 'N/A')}")
+                    lines.append(f"  Verified: {'Yes' if tg.get('is_verified') else 'No'}")
+                    lines.append(f"  Premium: {'Yes' if tg.get('is_premium') else 'No'}")
+                    if tg.get('is_scam'):
+                        lines.append(f"  ⚠️  SCAM FLAG: YES")
+                    if tg.get('is_fake'):
+                        lines.append(f"  ⚠️  FAKE FLAG: YES")
+                    if tg.get('profile_photo'):
+                        lines.append(f"  Profile Photo: {tg['profile_photo']}")
+                    if tg.get('profile_url'):
+                        lines.append(f"  Profile URL: {tg['profile_url']}")
+                else:
+                    lines.append("  ✗ Not found")
 
-        return "\n".join(lines)
+            if summary.get('facebook'):
+                fb = summary['facebook']
+                lines.append("\n[FACEBOOK]")
+                lines.append("─" * 60)
+                if not fb.get('error'):
+                    lines.append(f"  ✓ Found")
+                    for key, value in fb.items():
+                        if value and key != 'error':
+                            lines.append(f"  {key}: {value}")
+                else:
+                    lines.append(f"  ✗ Error: {fb.get('error')}")
 
+            if summary.get('instagram'):
+                ig = summary['instagram']
+                lines.append("\n[INSTAGRAM]")
+                lines.append("─" * 60)
+                if not ig.get('error'):
+                    lines.append(f"  ✓ Found")
+                    lines.append(f"  Username: @{ig.get('username', 'N/A')}")
+                    lines.append(f"  Display Name: {ig.get('display_name', 'N/A')}")
+                    lines.append(f"  Bio: {ig.get('bio', 'N/A')}")
+                    lines.append(f"  Followers: {ig.get('followers', 'N/A')}")
+                    lines.append(f"  Following: {ig.get('following', 'N/A')}")
+                    lines.append(f"  Posts: {ig.get('number_of_posts', 'N/A')}")
+                    if ig.get('profile_picture_url'):
+                        lines.append(f"  Profile Picture: {ig['profile_picture_url']}")
+                    if ig.get('profile_url'):
+                        lines.append(f"  Profile URL: {ig['profile_url']}")
+                else:
+                    lines.append(f"  ✗ Error: {ig.get('error')}")
+
+            platforms = summary.get('platforms', [])
+            if platforms:
+                lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
+                lines.append("─" * 60)
+                for i, platform in enumerate(platforms, 1):
+                    lines.append(f"\n  {i}. {platform.get('site', 'Unknown')} (from {platform.get('source', '?')})")
+                    lines.append(f"     🔗 {platform.get('url', 'No URL')}")
+                    if platform.get('details'):
+                        for key, val in platform['details'].items():
+                            lines.append(f"     • {key}: {val}")
+            else:
+                lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  ✗ No accounts found")
+
+            lines.append("\n" + "─" * 60)
+            return "\n".join(lines)
 
 
 # MAIN WINDOW
