@@ -19,6 +19,7 @@ import os
 active_connections = {}
 connections_lock = threading.Lock()
 
+root_dir = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     server = socket.socket()
@@ -169,23 +170,27 @@ def handle_client(client, userId):
                                 # Run scan script as subprocess
                                 result = subprocess.run(
                                     [sys.executable, '-c', f'''
-import json
-import sys
-from CoreTools.FullScans.FullUsernameSearch import search_username_complete
+                                import json
+                                import sys
+                                import os
+                                sys.path.insert(0, "{root_dir}")
+                                os.chdir("{root_dir}")
+                                from CoreTools.FullScans.FullUsernameSearch import search_username_complete
 
-try:
-    report = search_username_complete("{username_target}")
-    result = {{"response": "ORLT", "report": report}}
-    with open("{temp_path}", "w") as f:
-        json.dump(result, f)
-except Exception as e:
-    result = {{"response": "OERR", "message": str(e)}}
-    with open("{temp_path}", "w") as f:
-        json.dump(result, f)
-'''],
+                                try:
+                                    report = search_username_complete("{username_target}")
+                                    result = {{"response": "ORLT", "report": report}}
+                                    with open("{temp_path}", "w") as f:
+                                        json.dump(result, f)
+                                except Exception as e:
+                                    result = {{"response": "OERR", "message": str(e)}}
+                                    with open("{temp_path}", "w") as f:
+                                        json.dump(result, f)
+                                '''],
                                     capture_output=True,
                                     text=True,
-                                    timeout=200
+                                    timeout=200,
+                                    cwd=root_dir
                                 )
 
                                 # Read result from temp file
@@ -226,6 +231,104 @@ except Exception as e:
 
                         scan_thread = threading.Thread(target=run_scan_subprocess, daemon=True)
                         scan_thread.start()
+
+
+                elif command == CMD_OSINT_ESCAN:
+                    email_target = request.get('target_email')
+                    logging.info(f"OSINT scan requested for email: {email_target}")
+
+                    if not email_target:
+                        send_one_message(client, json.dumps({
+                            'response': RESP_OSINT_ERROR,
+                            'message': 'No target email provided'
+                        }))
+                    else:
+                        # Run scan in a separate subprocess (completely isolated)
+                        def run_email_scan_subprocess():
+                            temp_file = None
+                            try:
+                                # Create temp file to store results
+                                temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
+                                temp_path = temp_file.name
+                                temp_file.close()
+
+                                logging.info(f"Starting OSINT subprocess for email: {email_target}")
+
+                                # Get the root directory for proper imports
+                                root_dir = os.path.dirname(os.path.abspath(__file__))
+
+                                # Run scan script as subprocess
+                                result = subprocess.run(
+                                    [sys.executable, '-c', f'''
+import json
+import sys
+import os
+sys.path.insert(0, "{root_dir}")
+os.chdir("{root_dir}")
+from CoreTools.FullScans.FullEmailSearch import search_email_complete
+
+try:
+    report = search_email_complete("{email_target}")
+    result = {{"response": "ORLT", "report": report}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+except Exception as e:
+    result = {{"response": "OERR", "message": str(e)}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+'''],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=200,
+                                    cwd=root_dir  # Set working directory
+                                )
+
+                                # Log subprocess output for debugging
+                                if result.stdout:
+                                    logging.debug(f"Subprocess stdout: {result.stdout}")
+                                if result.stderr:
+                                    logging.warning(f"Subprocess stderr: {result.stderr}")
+
+
+                                # Read result from temp file
+                                if os.path.exists(temp_path):
+                                    with open(temp_path, 'r') as f:
+                                        response = json.load(f)
+                                    logging.info(f"OSINT subprocess completed for email: {email_target}")
+                                    send_one_message(client, json.dumps(response))
+                                else:
+                                    logging.error(f"OSINT temp file not created for email: {email_target}")
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': 'Scan failed to write results'
+                                    }))
+
+                            except subprocess.TimeoutExpired:
+                                logging.error(f"OSINT subprocess timeout for email: {email_target}")
+                                send_one_message(client, json.dumps({
+                                    'response': RESP_OSINT_ERROR,
+                                    'message': 'Scan timeout'
+                                }))
+                            except Exception as e:
+                                logging.error(f"OSINT subprocess exception: {e}", exc_info=True)
+                                try:
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': str(e)
+                                    }))
+                                except:
+                                    pass
+                            finally:
+                                # Clean up temp file
+                                if temp_file and os.path.exists(temp_path):
+                                    try:
+                                        os.unlink(temp_path)
+                                    except:
+                                        pass
+
+                        scan_thread = threading.Thread(target=run_email_scan_subprocess, daemon=True)
+                        scan_thread.start()
+
 
                 elif command == CMD_EXIT:
                     break
