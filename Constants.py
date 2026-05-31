@@ -64,5 +64,5 @@ CMD_OSINT_USCAN = "USCAN"   # Client → Server: Username OSINT scan request
 CMD_OSINT_ESCAN = "ESCAN"   # Client → Server: Email OSINT scan request
 
 # ── OSINT RESPONSES ──
-RESP_OSINT_RESULT = "ORSLT"  # Server → Client: OSINT scan complete with results
-RESP_OSINT_ERROR = "OSERR"   # Server → Client: OSINT scan failed with error message
+RESP_OSINT_RESULT = "ORLT"  # Server → Client: OSINT scan complete with results
+RESP_OSINT_ERROR = "OERR"   # Server → Client: OSINT scan failed with error message
