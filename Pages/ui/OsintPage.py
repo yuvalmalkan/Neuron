@@ -10,7 +10,28 @@ from Pages.ui.uiElements import NavButton
 from Pages.ui.RoomsPage import RoomsPanel
 from Pages.ui.NetworkPage import NetworkPage
 from Pages.logic.RoomsLogic import ChatBackend
-from Pages.logic.OsintLogic import parse_target_input
+# parse_target_input defined inline — handles mixed input
+import re as _re
+
+def parse_target_input(raw: str) -> dict:
+    fields = {"phone": None, "email": None, "username": None, "name": None}
+    tokens = raw.split()
+    remaining = []
+    for token in tokens:
+        # Phone: starts with + followed by digits, or 7+ consecutive digits (with optional separators)
+        if _re.match(r'^\+\d{6,15}$', token) or _re.match(r'^\d[\d\-\s().]{6,}$', token):
+            fields["phone"] = token
+        # Email
+        elif _re.match(r'[^@]+@[^@]+\.[^@]+', token):
+            fields["email"] = token.lstrip("@")
+        # Username: starts with @
+        elif token.startswith("@") and len(token) > 1:
+            fields["username"] = token.lstrip("@")
+        else:
+            remaining.append(token)
+    if remaining and not any(fields[k] for k in ("phone", "email", "username")):
+        fields["name"] = " ".join(remaining)
+    return fields
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -348,7 +369,7 @@ class OsintDashboard(QWidget):
         root.addWidget(floating_container, 0)
 
     def _on_submit(self, raw: str):
-        from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN
+        from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN, CMD_OSINT_PSCAN
 
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
@@ -365,30 +386,29 @@ class OsintDashboard(QWidget):
 
         has_username = bool(fields.get("username"))
         has_email = bool(fields.get("email"))
+        has_phone = bool(fields.get("phone"))
         self._scan_username = fields.get("username")
         self._scan_email = fields.get("email")
+        self._scan_phone = fields.get("phone")
 
-        if has_username and has_email:
-            self._listener_thread = threading.Thread(
-                target=self._launch_combined,
-                args=(CMD_OSINT_USCAN, CMD_OSINT_ESCAN),
-                daemon=True
-            )
-        elif has_username:
-            self._listener_thread = threading.Thread(
-                target=self._launch_username,
-                daemon=True
-            )
-        elif has_email:
-            self._listener_thread = threading.Thread(
-                target=self._launch_email,
-                daemon=True
-            )
-        else:
+        scans = []
+        if has_username:
+            scans.append(("username", self._scan_username))
+        if has_email:
+            scans.append(("email", self._scan_email))
+        if has_phone:
+            scans.append(("phone", self._scan_phone))
+
+        if not scans:
             self._hide_typing()
             self._bar.set_enabled(True)
             return
 
+        self._listener_thread = threading.Thread(
+            target=self._launch_all,
+            args=(scans,),
+            daemon=True
+        )
         self._listener_thread.start()
 
     def _launch_username(self):
@@ -423,28 +443,55 @@ class OsintDashboard(QWidget):
             logging.error(f"Email scan error: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
 
-    def _launch_combined(self, cmd_u, cmd_e):
+    def _launch_phone(self):
         import Client
-        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR, RESP_OSINT_PHONE_RESULT
         try:
-            sock_u = Client.osint_raw_scan(cmd_u, {"target_username": self._scan_username})
-            sock_e = Client.osint_raw_scan(cmd_e, {"target_email": self._scan_email})
-            parts = []
-            for sock in (sock_u, sock_e):
-                try:
-                    resp = Client.receive_from_socket(sock, 180)
-                    if resp.get('response') == RESP_OSINT_RESULT:
-                        parts.append(self._format_results(resp.get('report', {})))
-                    elif resp.get('response') == RESP_OSINT_ERROR:
-                        parts.append(f"Error: {resp.get('message', 'Unknown error')}")
-                    else:
-                        parts.append("Unexpected response from server")
-                except Exception as e:
-                    parts.append(f"Error: {str(e)}")
-            self.results_ready.emit(("\n" + "═" * 60 + "\n").join(parts))
+            Client.osint_phone_scan(self._scan_phone)
+            response = Client.receive_osint_response(timeout=180)
+            if response.get('response') in (RESP_OSINT_RESULT, RESP_OSINT_PHONE_RESULT):
+                self.results_ready.emit(self._format_results(response.get('report', {})))
+            elif response.get('response') == RESP_OSINT_ERROR:
+                self.error_occurred.emit(response.get('message', 'Unknown error'))
+            else:
+                self.error_occurred.emit("Unexpected response from server")
         except Exception as e:
-            logging.error(f"Combined scan error: {e}", exc_info=True)
+            logging.error(f"Phone scan error: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
+
+    def _launch_all(self, scans: list):
+        import Client
+        from Constants import RESP_OSINT_RESULT, RESP_OSINT_ERROR, RESP_OSINT_PHONE_RESULT
+
+        DIVIDER = "\n" + "═" * 60 + "\n"
+        parts = []
+
+        for scan_type, target in scans:
+            try:
+                if scan_type == "username":
+                    sock = Client.osint_raw_scan("USCAN", {"target_username": target})
+                elif scan_type == "email":
+                    sock = Client.osint_raw_scan("ESCAN", {"target_email": target})
+                elif scan_type == "phone":
+                    sock = Client.osint_raw_scan("PSCAN", {"target_phone": target})
+                else:
+                    continue
+
+                resp = Client.receive_from_socket(sock, 180)
+                if resp.get('response') in (RESP_OSINT_RESULT, RESP_OSINT_PHONE_RESULT):
+                    parts.append(self._format_results(resp.get('report', {})))
+                elif resp.get('response') == RESP_OSINT_ERROR:
+                    parts.append(f"Error ({scan_type}): {resp.get('message', 'Unknown error')}")
+                else:
+                    parts.append(f"Unexpected response for {scan_type} scan")
+            except Exception as e:
+                logging.error(f"{scan_type} scan error: {e}", exc_info=True)
+                parts.append(f"Error ({scan_type}): {str(e)}")
+
+        if parts:
+            self.results_ready.emit(DIVIDER.join(parts))
+        else:
+            self.error_occurred.emit("All scans failed")
 
     def _build_summary(self, fields: dict) -> str:
         lines = ["TARGET QUEUED", "─" * 28]
@@ -507,9 +554,58 @@ class OsintDashboard(QWidget):
         elapsed = report.get('elapsed_seconds', '?')
         summary = report.get('summary', {})
 
-        is_email = '@' in query and '.' in query
+        import re
+        # Phone: starts with + or is purely digits/separators (e.g. +972501234567)
+        is_phone = bool(re.match(r'^\+?\d[\d\s\-.()]{5,}$', query.strip()))
+        is_email = not is_phone and ('@' in query and '.' in query)
 
-        if is_email:
+        if is_phone:
+            lines = [
+                f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
+                "─" * 60,
+                "\n[PHONE INFO]",
+                "─" * 60,
+            ]
+            lines.append(f"  Phone     : {summary.get('phone_e164') or query}")
+            lines.append(f"  Country   : {summary.get('country_flag', '')} {summary.get('country') or '—'}")
+            lines.append(f"  Line type : {summary.get('line_type') or '—'}")
+            lines.append(f"  Location  : {summary.get('location') or '—'}")
+
+            lines.append("\n[TELEGRAM]")
+            lines.append("─" * 60)
+            if summary.get('telegram_registered'):
+                tg_id = summary.get('telegram_username') or str(summary.get('telegram_id', ''))
+                lines.append(f"  ✓ Found  (@{tg_id})" if tg_id else "  ✓ Found (no username)")
+                lines.append(f"  ID       : {summary.get('telegram_id', 'N/A')}")
+                lines.append(f"  Name     : {summary.get('name') or '—'}")
+                lines.append(f"  Premium  : {'Yes' if summary.get('telegram_premium') else 'No'}")
+                if summary.get('telegram_scam'):
+                    lines.append("  ⚠️  SCAM FLAG: YES")
+                if summary.get('telegram_fake'):
+                    lines.append("  ⚠️  FAKE FLAG: YES")
+                if summary.get('telegram_photo_saved'):
+                    lines.append(f"  Photo    : {summary['telegram_photo_saved']} ({summary.get('telegram_photo_size_kb', '?')} KB)")
+                elif summary.get('telegram_has_photo'):
+                    lines.append("  Photo    : exists (download failed)")
+                else:
+                    lines.append("  Photo    : No")
+                if summary.get('telegram_profile_url'):
+                    lines.append(f"  Profile  : {summary['telegram_profile_url']}")
+            else:
+                err = summary.get('telegram_error')
+                lines.append(f"  ✗ Not found{(' — ' + err) if err else ''}")
+
+            dorks = summary.get('google_dork_urls', [])
+            if dorks:
+                lines.append(f"\n[GOOGLE DORK URLS] ({len(dorks)} queries)")
+                lines.append("─" * 60)
+                for url in dorks:
+                    lines.append(f"  🔗 {url}")
+
+            lines.append("\n" + "─" * 60)
+            return "\n".join(lines)
+
+        elif is_email:
             lines = [
                 f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
                 "─" * 60,
