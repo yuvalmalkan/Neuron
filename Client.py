@@ -202,6 +202,32 @@ def osint_email_scan(email: str):
         raise
 
 
+def osint_phone_scan(phone: str):
+    """Send phone OSINT scan request to server via OSINT socket."""
+    from Constants import CMD_OSINT_PSCAN
+    import time
+
+    global OsintSocket, osint_connected
+
+    # Always close old socket and create a fresh one for each scan
+    close_osint_socket()
+    time.sleep(0.1)  # Allow socket cleanup
+
+    logging.info("Creating fresh OSINT socket for new phone scan...")
+    if not connect_osint_socket():
+        raise ConnectionError("Cannot connect OSINT socket to server")
+
+    request = {"command": CMD_OSINT_PSCAN, "target_phone": phone}
+    try:
+        send_one_message(OsintSocket, json.dumps(request))
+        logging.info(f"Sent OSINT phone scan request for: {phone}")
+    except Exception as e:
+        logging.error(f"Failed to send OSINT phone request: {e}")
+        osint_connected = False
+        OsintSocket = None
+        raise
+
+
 def osint_raw_scan(command: str, payload: dict) -> socket.socket:
     """
     Open a fresh independent socket, send one OSINT command, return the socket.
