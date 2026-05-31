@@ -193,7 +193,7 @@ def print_username_report(report: dict):
         tg = summary["telegram"]
         print("\n[TELEGRAM]")
         if tg.get("found"):
-            print(f"    Found")
+            print(f"    Telegram Account Found!")
             print(f"    ID: {tg.get('user_id')}")
             print(f"    Name: {tg.get('name') or 'N/A'}")
             print(f"    Bio: {tg.get('bio') or 'N/A'}")
@@ -206,7 +206,7 @@ def print_username_report(report: dict):
             if tg.get("profile_url"):
                 print(f"    Profile: {tg['profile_url']}")
         else:
-            print("  ✗ Not found")
+            print("  Not found")
 
 
     # Facebook section
@@ -214,7 +214,7 @@ def print_username_report(report: dict):
         fb = summary["facebook"]
         print("\n[FACEBOOK]")
         if not fb.get("error"):
-            print(f"  ✓ Found")
+            print(f"  Facebook Account Found!")
             # Print ALL available raw data from Facebook
             for key, value in fb.items():
                 if value and key != 'error':
@@ -222,7 +222,7 @@ def print_username_report(report: dict):
                     formatted_key = key.replace('_', ' ').title()
                     print(f"  {formatted_key}: {value}")
         else:
-            print(f"  ✗ Error: {fb.get('error')}")
+            print(f"  Error: {fb.get('error')}")
 
 
     # Instagram section
@@ -230,7 +230,7 @@ def print_username_report(report: dict):
         ig = summary["instagram"]
         print("\n[INSTAGRAM]")
         if not ig.get("error"):
-            print(f"  ✓ Found")
+            print(f"  Instagram Account Found!")
             print(f"  Username: {ig.get('username') or 'N/A'}")
             print(f"  Display Name: {ig.get('display_name') or 'N/A'}")
             print(f"  Bio: {ig.get('bio') or 'N/A'}")
@@ -242,7 +242,7 @@ def print_username_report(report: dict):
             if ig.get("profile_url"):
                 print(f"  Profile: {ig['profile_url']}")
         else:
-            print(f"  ✗ Error: {ig.get('error')}")
+            print(f"  Error: {ig.get('error')}")
 
     # Other platforms (remove the limit of 15)
     platforms = summary.get("platforms", [])

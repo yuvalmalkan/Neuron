@@ -618,7 +618,7 @@ class OsintDashboard(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Project Neuron")
+        self.setWindowTitle("Neuron")
         self.setMinimumSize(1100, 700)
         self.resize(1280, 780)
 
