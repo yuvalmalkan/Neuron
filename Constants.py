@@ -1,3 +1,4 @@
+__author__ = "Yuval Malkan"
 import logging
 from UserDatabase import UserDatabase
 import os
