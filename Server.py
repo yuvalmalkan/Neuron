@@ -330,6 +330,92 @@ except Exception as e:
                         scan_thread.start()
 
 
+                elif command == CMD_OSINT_PSCAN:
+                    phone_target = request.get('target_phone')
+                    logging.info(f"OSINT scan requested for phone: {phone_target}")
+
+                    if not phone_target:
+                        send_one_message(client, json.dumps({
+                            'response': RESP_OSINT_ERROR,
+                            'message': 'No target phone provided'
+                        }))
+                    else:
+                        def run_phone_scan_subprocess():
+                            temp_file = None
+                            try:
+                                temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
+                                temp_path = temp_file.name
+                                temp_file.close()
+
+                                logging.info(f"Starting OSINT subprocess for phone: {phone_target}")
+
+                                result = subprocess.run(
+                                    [sys.executable, '-c', f'''
+import json
+import sys
+import os
+sys.path.insert(0, "{root_dir}")
+os.chdir("{root_dir}")
+from CoreTools.FullScans.FullPhoneSearch import search_phone_complete
+
+try:
+    report = search_phone_complete("{phone_target}")
+    result = {{"response": "OPLT", "report": report}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+except Exception as e:
+    result = {{"response": "OERR", "message": str(e)}}
+    with open("{temp_path}", "w") as f:
+        json.dump(result, f)
+'''],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=200,
+                                    cwd=root_dir
+                                )
+
+                                if result.stdout:
+                                    logging.debug(f"Subprocess stdout: {result.stdout}")
+                                if result.stderr:
+                                    logging.warning(f"Subprocess stderr: {result.stderr}")
+
+                                if os.path.exists(temp_path):
+                                    with open(temp_path, 'r') as f:
+                                        response = json.load(f)
+                                    logging.info(f"OSINT subprocess completed for phone: {phone_target}")
+                                    send_one_message(client, json.dumps(response))
+                                else:
+                                    logging.error(f"OSINT temp file not created for phone: {phone_target}")
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': 'Scan failed to write results'
+                                    }))
+
+                            except subprocess.TimeoutExpired:
+                                logging.error(f"OSINT subprocess timeout for phone: {phone_target}")
+                                send_one_message(client, json.dumps({
+                                    'response': RESP_OSINT_ERROR,
+                                    'message': 'Scan timeout'
+                                }))
+                            except Exception as e:
+                                logging.error(f"OSINT subprocess exception: {e}", exc_info=True)
+                                try:
+                                    send_one_message(client, json.dumps({
+                                        'response': RESP_OSINT_ERROR,
+                                        'message': str(e)
+                                    }))
+                                except:
+                                    pass
+                            finally:
+                                if temp_file and os.path.exists(temp_path):
+                                    try:
+                                        os.unlink(temp_path)
+                                    except:
+                                        pass
+
+                        scan_thread = threading.Thread(target=run_phone_scan_subprocess, daemon=True)
+                        scan_thread.start()
+
                 elif command == CMD_EXIT:
                     break
 
