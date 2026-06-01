@@ -22,12 +22,9 @@ from PyQt6.QtGui import QFont, QColor, QPalette, QKeyEvent
 import SessionManager
 
 
-# ──────────────────────────────────────────
-#  MESSAGE WIDGETS
-# ──────────────────────────────────────────
 
 class UserBubble(QWidget):
-    """Right-aligned bubble — what the user typed."""
+    """right aligned bubble, what the user typed."""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -49,7 +46,7 @@ class UserBubble(QWidget):
 
 
 class SystemBubble(QWidget):
-    """Left-aligned system result — plain terminal text."""
+    """left aligned system result, plain terminal text."""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -152,7 +149,7 @@ class AnimatedSystemBubble(QWidget):
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._type_next)
-        self._timer.start(8)  # ms per batch
+        self._timer.start(8)
 
     def _type_next(self):
         if self._index < len(self._full_text):
@@ -166,12 +163,10 @@ class AnimatedSystemBubble(QWidget):
         self._lbl.setText(self._full_text)
 
 
-# ──────────────────────────────────────────
-#  INPUT BAR
-# ──────────────────────────────────────────
 
+#input bar
 class _TextEdit(QPlainTextEdit):
-    """Enter = submit, Shift+Enter = newline."""
+    """enter = submit, Shift+Enter = newline."""
     enter_pressed = pyqtSignal()
 
     def keyPressEvent(self, e: QKeyEvent):
@@ -321,7 +316,6 @@ class OsintDashboard(QWidget):
         self._add(SystemBubble(result_text))
         self._bar.set_enabled(True)
 
-        # Gemini summary in background
         threading.Thread(
             target=self._run_ai_summary,
             args=(result_text,),
@@ -610,10 +604,7 @@ class OsintDashboard(QWidget):
             self.error_occurred.emit(str(e))
 
 
-# ──────────────────────────────────────────
-#  MAIN WINDOW
-# ──────────────────────────────────────────
-
+#main window
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -692,9 +683,6 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
 
-# ──────────────────────────────────────────
-#  ENTRY POINT
-# ──────────────────────────────────────────
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

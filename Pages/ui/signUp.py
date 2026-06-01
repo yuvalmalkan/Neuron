@@ -71,20 +71,15 @@ def SignupClicked(form: SignupForm):
         return
 
     try:
-        # Connect to server if not already connected
         if not Client.get_is_connected():
             if not Client.connect_to_server():
                 QMessageBox.critical(None, "Connection Error", "Could not connect to server. Is it running?")
                 return
 
-        # Send signup request to server
         response = Client.signup(username, email, password)
 
-        # Check response
         if response.get('status') == 'success':
             logging.info(f"User {username} signed up successfully")
-
-            # Store session for auto-login
             SessionManager.set_session(
                 response.get('user_id'),
                 response.get('username'),

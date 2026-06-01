@@ -16,10 +16,6 @@ from PyQt6.QtGui import QFont, QColor, QTextCursor, QTextCharFormat
 
 
 
-# ──────────────────────────────────────────
-#  SMALL HELPER WIDGETS
-# ──────────────────────────────────────────
-
 class _Divider(QFrame):
     """Thin horizontal rule that matches the card border color."""
     def __init__(self, parent=None):
@@ -66,9 +62,6 @@ class _Badge(QLabel):
         self.setFixedHeight(18)
 
 
-# ──────────────────────────────────────────
-#  RESULT BLOCK WIDGETS
-# ──────────────────────────────────────────
 
 class _ResultBlock(QFrame):
     """
@@ -131,7 +124,6 @@ class PortsBlock(_ResultBlock):
         super().__init__(accent=accent, parent=parent)
         self.add_header(f"PORT  SCAN  —  {len(open_ports)} OPEN")
 
-        # Header row
         hdr = QHBoxLayout()
         for txt, w in [("PORT", 60), ("STATE", 80), ("SERVICE", 120)]:
             l = _KVLabel(txt, is_key=True)
@@ -199,9 +191,6 @@ class WhoisBlock(_ResultBlock):
         self.inner_layout().addWidget(box)
 
 
-# ──────────────────────────────────────────
-#  TERMINAL FEED  (streaming log lines)
-# ──────────────────────────────────────────
 
 class TerminalFeed(QTextEdit):
     """
@@ -233,9 +222,6 @@ class TerminalFeed(QTextEdit):
         self.ensureCursorVisible()
 
 
-# ──────────────────────────────────────────
-#  MODULE TOGGLE BUTTON
-# ──────────────────────────────────────────
 
 class ModuleToggle(GlowingButton):
     """
@@ -253,14 +239,10 @@ class ModuleToggle(GlowingButton):
 
     def _on_toggle(self, checked: bool):
         self.setProperty("variant", "primary" if checked else "danger")
-        # Force QSS re-evaluation
         self.style().unpolish(self)
         self.style().polish(self)
 
 
-# ──────────────────────────────────────────
-#  SCROLLABLE RESULTS CONTAINER
-# ──────────────────────────────────────────
 
 class ResultsContainer(QScrollArea):
     def __init__(self, parent=None):
@@ -283,25 +265,21 @@ class ResultsContainer(QScrollArea):
         self.setWidget(self._inner)
 
     def add_block(self, widget: QWidget):
-        # Insert before the trailing stretch
         idx = self._vbox.count() - 1
         self._vbox.insertWidget(idx, widget)
-        # Scroll to bottom after a tick
         QTimer.singleShot(50, lambda: self.verticalScrollBar().setValue(
             self.verticalScrollBar().maximum()
         ))
 
     def clear_blocks(self):
-        while self._vbox.count() > 1:   # keep the trailing stretch
+        while self._vbox.count() > 1:
             item = self._vbox.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
 
 
-# ──────────────────────────────────────────
-#  MAIN NETWORK PAGE
-# ──────────────────────────────────────────
 
+#main network page
 class NetworkPage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -314,7 +292,7 @@ class NetworkPage(QWidget):
         root.setContentsMargins(28, 24, 28, 16)
         root.setSpacing(16)
 
-        # ── HEADER ──────────────────────────────
+        #header
         hdr = QHBoxLayout()
         title = QLabel("NETWORK")
         title.setFont(QFont(FONT_TITLE, 20, QFont.Weight.Bold))
@@ -326,7 +304,6 @@ class NetworkPage(QWidget):
         hdr.addStretch()
         root.addLayout(hdr)
 
-        # ── TARGET + SCAN BTN ────────────────────
         target_card = Card()
         tc_layout = QVBoxLayout(target_card)
         tc_layout.setContentsMargins(20, 14, 20, 14)
@@ -353,7 +330,6 @@ class NetworkPage(QWidget):
         input_row.addWidget(self._clear_btn)
         tc_layout.addLayout(input_row)
 
-        # ── MODULE TOGGLES ───────────────────────
         toggle_row = QHBoxLayout()
         toggle_row.setSpacing(8)
 
@@ -370,7 +346,7 @@ class NetworkPage(QWidget):
         tc_layout.addLayout(toggle_row)
         root.addWidget(target_card)
 
-        # ── RESULTS AREA ─────────────────────────
+        #results
         results_label = QLabel("SCAN RESULTS")
         results_label.setFont(QFont(FONT_TITLE, 11))
         results_label.setStyleSheet(f"color: {TEXT_PLACEHOLDER};")
@@ -379,15 +355,13 @@ class NetworkPage(QWidget):
         self._results = ResultsContainer()
         root.addWidget(self._results, 1)
 
-        # ── TERMINAL FEED ────────────────────────
         self._terminal = TerminalFeed()
         root.addWidget(self._terminal)
 
-    # ── ACTIVE MODULE LIST ───────────────────
+    #active module list
     def _active_modules(self) -> list[str]:
         return [mid for mid, btn in self._modules.items() if btn.isChecked()]
 
-    # ── SCAN FLOW ────────────────────────────
     def _on_scan(self):
         target = self._target_input.text().strip()
         if not target:
@@ -399,7 +373,7 @@ class NetworkPage(QWidget):
             self._terminal.append_line("  [!] enable at least one module", color="#BB0000")
             return
 
-        # Clear previous results
+        #clear previous results
         self._results.clear_blocks()
         self._terminal.clear()
         self._set_scanning(True)
@@ -424,7 +398,7 @@ class NetworkPage(QWidget):
         color = "#BB0000" if active else TEXT_PLACEHOLDER
 
 
-    # ── SIGNAL HANDLERS ──────────────────────
+    #signal handlers
     def _on_log(self, line: str):
         self._terminal.append_line(line)
 

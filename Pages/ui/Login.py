@@ -27,9 +27,6 @@ import Client
 import SessionManager
 
 
-# ──────────────────────────────────────────
-#  TYPING ANIMATION WIDGET
-# ──────────────────────────────────────────
 class TypingLabel(QLabel):
     def __init__(self, text_to_type, parent=None):
         super().__init__(parent)
@@ -41,29 +38,20 @@ class TypingLabel(QLabel):
         self.setStyleSheet(f"color: {TEXT_TITLE};")
         self.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-        # Setup the timer for the typing effect
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._type_next_char)
-        self.timer.start(40)  # Speed in milliseconds per character
+        self.timer.start(40)
 
     def _type_next_char(self):
         if self.index < len(self.full_text):
             self.current_text += self.full_text[self.index]
-            self.setText(self.current_text + " ")  # Add a terminal block cursor
+            self.setText(self.current_text + " ")
             self.index += 1
         else:
             self.timer.stop()
-            # Blinking cursor effect can be added here later
 
 
 
-
-
-
-
-# ──────────────────────────────────────────
-#  START PAGE MAIN WINDOW
-# ──────────────────────────────────────────
 class Login(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -74,7 +62,7 @@ class Login(QMainWindow):
         self._build_layout()
 
     def _build_layout(self):
-        # Apply background to main window, not central widget
+        # Apply background to main window
         self.setStyleSheet(f"""
             QMainWindow {{
                 background-image: url({BlueBgNeurons});
@@ -91,24 +79,16 @@ class Login(QMainWindow):
         central.setStyleSheet("QWidget { background-color: transparent; }")
         self.setCentralWidget(central)
 
-        # Single unified layout for the whole window
         root = QHBoxLayout(central)
         root.setContentsMargins(80, 0, 80, 0)
         root.setSpacing(40)
 
-        #text
         self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan" )
-        #\n\nOSINT\nNetwork\nCommunication\nPowered By AI! \n
         root.addWidget(self.typing_label, 1)
 
-        # form
         card_container = QVBoxLayout()
         card_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-
-
-
-#
 
         self.auth_card = Card()
         self.auth_card.setFixedSize(450, 480)
@@ -161,17 +141,7 @@ class Login(QMainWindow):
 
 
 
-
-
-
-
-
-
-
-
-# ──────────────────────────────────────────
 #  LOGIN FORM
-# ──────────────────────────────────────────
 class LoginForm(QWidget):
     def __init__(self, switch_callback, parent=None):
         super().__init__(parent)
@@ -211,37 +181,29 @@ def LoginClicked(form: LoginForm):
     """
     import Client
 
-    # Get username and password from input fields
     username = form.user_input.text().strip()
     password = form.pass_input.text()
 
     logging.debug(f"Login clicked for user: {username}")
 
-    # Validate input fields
     if not username or not password:
         logging.warning("Login attempt with empty credentials")
         QMessageBox.warning(None, "Validation Error", "Please enter both username and password")
         return
 
     try:
-        # Connect to server if not already connected
         if not Client.get_is_connected():
             if not Client.connect_to_server():
                 QMessageBox.critical(None, "Connection Error", "Could not connect to server.")
                 return
 
-        # Send login request to server
         response = Client.login(username, password)
 
-        # Check response
         if response.get('status') == 'success':
             logging.info(f"User {username} logged in successfully")
             user_id = response.get('user_id')
 
-            # Store session information
             SessionManager.set_session(user_id, username, response.get('email', ''))
-
-            # Close login window and open OSINT page
 
             login_window = form.window()
             login_window.close()
@@ -252,7 +214,6 @@ def LoginClicked(form: LoginForm):
 
 
         else:
-            # Provide specific error messages based on response code using constants
             response_code = response.get('code')
 
             if response_code == RESP_LOGIN_USER_NOT_FOUND:
@@ -266,7 +227,6 @@ def LoginClicked(form: LoginForm):
                 logging.error(f"Login failed: {error_msg}")
 
             QMessageBox.critical(None, "Login Failed", error_msg)
-            # Clear password field on failed login
             form.pass_input.clear()
 
     except Exception as e:

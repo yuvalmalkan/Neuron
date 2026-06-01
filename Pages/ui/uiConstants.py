@@ -1,5 +1,4 @@
 __author__ = "Yuval Malkan"
-# THEME: Iceberg — desaturated blue, submarine cold, everything muted
 
 import os
 from PyQt6.QtGui import QFontDatabase
@@ -11,38 +10,37 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-# ── SEMANTIC COLORS ───────────────────────
 
-# Window & Layout
+# window & Layout
 WINDOW_BG       = "#090B11"
 SIDEBAR_BG      = "#0F1117"
 SIDEBAR_BORDER  = "#1E2132"
 
-# Cards & Containers
+# cards & containers
 CARD_BG         = "#0F1117"
 CARD_BORDER     = "#1E2132"
 
-# Inputs
+# inputs
 INPUT_BG        = "#1E2132"
 INPUT_BORDER    = "#2E3347"
 INPUT_FOCUS     = "#84A0C6"
 INPUT_SELECTION = "#84A0C644"
 
-# Buttons (Primary - e.g., Scan, Save)
+# primary buttons
 BTN_PRIMARY_BG     = "-"
 BTN_PRIMARY_BORDER = "#84A0C6"
 BTN_PRIMARY_TEXT   = BTN_PRIMARY_BORDER
 BTN_PRIMARY_HOVER  = "#84A0C622"
 BTN_PRIMARY_PRESS  = "#84A0C644"
 
-# Buttons (Danger - e.g., Clear)
+# danger buttons
 BTN_DANGER_BG      = "-"
 BTN_DANGER_BORDER  = "#2E3347"
 BTN_DANGER_TEXT    = BTN_DANGER_BORDER
 BTN_DANGER_HOVER   = "#E2787844"
 BTN_DANGER_PRESS   = "#E2787866"
 
-# Navigation Topbar
+# navigation topbar
 NAV_TEXT_IDLE      = "#2E3347"
 NAV_TEXT_HOVER     = "#6B7394"
 NAV_BG_ACTIVE      = SIDEBAR_BG
@@ -50,37 +48,35 @@ NAV_BG_HOVER       = SIDEBAR_BG
 NAV_TEXT_ACTIVE    = "#C6C8D1"
 NAV_BORDER_ACTIVE  = "#84A0C6"
 
-# Login/Auth Pages
+# login/auth pages
 LOGIN_WINDOW_BG    = "#090B11"
 LOGIN_CARD_BG      = "rgba(9, 11, 17, 0.85)"
 LOGIN_TEXT_TITLE   = "#C6C8D1"
 LOGIN_TEXT_INPUT   = "#C6C8D1"
 
-# Typography
+# typography
 TEXT_TITLE       = "#C6C8D1"
 TEXT_BODY        = "#C6C8D1"
 TEXT_PLACEHOLDER = "#6B7394"
 
-# ── DATA TYPE COLORS (multi-color terminal output) ─────────────────
-# Use these to color-code different data types in ResultDisplay / terminal output.
-# Apply via QLabel property or rich text: label.setProperty("dataType", "ip")
-TEXT_IP          = "#89B8C2"   # IP addresses, hostnames
-TEXT_PORT        = "#A093C7"   # port numbers, numeric IDs
+#data type colors
+TEXT_IP          = "#89B8C2"   # ip addresses, hostnames
+TEXT_PORT        = "#A093C7"   # port numbers
 TEXT_OK          = "#84A0C6"   # success, resolved, online
 TEXT_ALERT       = "#E27878"   # critical errors, warnings
-TEXT_HANDLE      = "#84A0C6"   # usernames, @handles, social
-TEXT_MUTED       = "#2E3347"   # timestamps, secondary metadata
-TEXT_TERMINAL    = "#84A0C6"   # general terminal accent / prompt
+TEXT_HANDLE      = "#84A0C6"   # usernames, social
+TEXT_MUTED       = "#2E3347"   # timestamps
+TEXT_TERMINAL    = "#84A0C6"   # general terminal prompt
 
-# Misc
+# misc
 SCROLLBAR_BG     = "#090B11"
 SCROLLBAR_HANDLE = "#1E213266"
 
-# Fonts
+# fonts
 FONT_MONO  = "SF Pro"
 FONT_TITLE = "SF Pro"
 
-# Assets
+# assets
 BwBgNeurons = os.path.join(root_dir, "Assets", "Photos", "neuronbgbw.jpg")
 BlueBgNeurons = os.path.join(root_dir, "Assets", "Photos", "neuronbgblue.jpg")
 
@@ -91,53 +87,53 @@ def load_stylesheet(filename):
             qss = f.read()
 
         replacements = {
-            # Layout
+            # layout
             "@WINDOW_BG@":          WINDOW_BG,
             "@SIDEBAR_BG@":         SIDEBAR_BG,
             "@SIDEBAR_BORDER@":     SIDEBAR_BORDER,
-            # Cards
+            # cards
             "@CARD_BG@":            CARD_BG,
             "@CARD_BORDER@":        CARD_BORDER,
-            # Inputs
+            # inputs
             "@INPUT_BG@":           INPUT_BG,
             "@INPUT_BORDER@":       INPUT_BORDER,
             "@INPUT_FOCUS@":        INPUT_FOCUS,
             "@INPUT_SELECTION@":    INPUT_SELECTION,
-            # Buttons primary
+            # buttons primary
             "@BTN_PRIMARY_BG@":     BTN_PRIMARY_BG,
             "@BTN_PRIMARY_BORDER@": BTN_PRIMARY_BORDER,
             "@BTN_PRIMARY_TEXT@":   BTN_PRIMARY_TEXT,
             "@BTN_PRIMARY_HOVER@":  BTN_PRIMARY_HOVER,
             "@BTN_PRIMARY_PRESS@":  BTN_PRIMARY_PRESS,
-            # Buttons danger
+            # buttons danger
             "@BTN_DANGER_BG@":      BTN_DANGER_BG,
             "@BTN_DANGER_BORDER@":  BTN_DANGER_BORDER,
             "@BTN_DANGER_TEXT@":    BTN_DANGER_TEXT,
             "@BTN_DANGER_HOVER@":   BTN_DANGER_HOVER,
             "@BTN_DANGER_PRESS@":   BTN_DANGER_PRESS,
-            # Nav
+            # nav
             "@NAV_TEXT_IDLE@":      NAV_TEXT_IDLE,
             "@NAV_TEXT_HOVER@":     NAV_TEXT_HOVER,
             "@NAV_BG_HOVER@":       NAV_BG_HOVER,
             "@NAV_TEXT_ACTIVE@":    NAV_TEXT_ACTIVE,
             "@NAV_BG_ACTIVE@":      NAV_BG_ACTIVE,
             "@NAV_BORDER_ACTIVE@":  NAV_BORDER_ACTIVE,
-            # Typography
+            # typography
             "@TEXT_TITLE@":         TEXT_TITLE,
             "@TEXT_BODY@":          TEXT_BODY,
             "@TEXT_PLACEHOLDER@":   TEXT_PLACEHOLDER,
             "@TEXT_TERMINAL@":      TEXT_TERMINAL,
-            # Data type colors
+            # data type colors
             "@TEXT_IP@":            TEXT_IP,
             "@TEXT_PORT@":          TEXT_PORT,
             "@TEXT_OK@":            TEXT_OK,
             "@TEXT_ALERT@":         TEXT_ALERT,
             "@TEXT_HANDLE@":        TEXT_HANDLE,
             "@TEXT_MUTED@":         TEXT_MUTED,
-            # Scrollbar
+            # scrollbar
             "@SCROLLBAR_BG@":       SCROLLBAR_BG,
             "@SCROLLBAR_HANDLE@":   SCROLLBAR_HANDLE,
-            # Fonts & assets
+            # fonts & assets
             "@FONT_MONO@":          FONT_MONO,
             "@FONT_TITLE@":         FONT_TITLE,
             "@BwBgNeurons@":        BwBgNeurons,

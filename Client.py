@@ -22,7 +22,7 @@ import sys as _sys
 serverIp = _sys.argv[1] if len(_sys.argv) > 1 else _default_serverIp
 
 
-# Global socket connections
+#global socket connections
 ClientSocket = None
 is_connected = False
 OsintSocket = None
@@ -31,7 +31,7 @@ socket_lock = threading.Lock()
 
 
 def connect_to_server(host=serverIp, port_num=port):
-    """Connect to the server."""
+    """connect to the server"""
     global ClientSocket, is_connected
 
     try:
@@ -47,7 +47,7 @@ def connect_to_server(host=serverIp, port_num=port):
 
 
 def connect_osint_socket(host=serverIp, port_num=port):
-    """Create a separate socket connection for OSINT operations."""
+    """create a separate socket connection for osint operations."""
     global OsintSocket, osint_connected
 
     try:
@@ -64,7 +64,7 @@ def connect_osint_socket(host=serverIp, port_num=port):
 
 
 def send_request(command, **data):
-    """Send a request to the server."""
+    """send a request to the server."""
     global ClientSocket, is_connected
 
     if not is_connected:
@@ -83,7 +83,7 @@ def send_request(command, **data):
 
 
 def receive_response():
-    """Receive a response from the server."""
+    """receive a response from the server."""
     global ClientSocket, is_connected
 
     if not is_connected:
@@ -104,13 +104,13 @@ def receive_response():
 
 
 def request_response(command, **data):
-    """Send a request and wait for response in one call."""
+    """send a request and wait for response in one call"""
     send_request(command, **data)
     return receive_response()
 
 
 def login(username, password):
-    """Send login request to server."""
+    """send login request to server"""
     return request_response(
         CMD_LOGIN,
         username=username,
@@ -119,7 +119,7 @@ def login(username, password):
 
 
 def signup(username, email, password):
-    """Send signup request to server."""
+    """send signup request to server"""
     return request_response(
         CMD_SIGNUP,
         username=username,
@@ -129,7 +129,7 @@ def signup(username, email, password):
 
 
 def disconnect():
-    """Disconnect from the server."""
+    """disconnect from the server"""
     global ClientSocket, is_connected
 
     try:
@@ -149,20 +149,20 @@ def disconnect():
 
 
 def get_is_connected() -> bool:
-    """Check if connected to server."""
+    """check if connected to server"""
     return is_connected
 
 
 def osint_username_scan(username: str):
-    """Send username OSINT scan request to server via OSINT socket."""
+    """send username OSINT scan request to server via OSINT socket."""
     from Constants import CMD_OSINT_USCAN
     import time
 
     global OsintSocket, osint_connected
 
-    # Always close old socket and create a fresh one for each scan
+    #always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1)  # Allow socket cleanup
+    time.sleep(0.1)  #socket cleanup
 
     logging.info("Creating fresh OSINT socket for new scan...")
     if not connect_osint_socket():
@@ -188,15 +188,18 @@ def osint_email_scan(email: str):
 
     global OsintSocket, osint_connected
 
-    # Always close old socket and create a fresh one for each scan
+    #always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1)  # Allow socket cleanup
+    time.sleep(0.1) #socket cleanup
 
     logging.info("Creating fresh OSINT socket for new email scan...")
     if not connect_osint_socket():
         raise ConnectionError("Cannot connect OSINT socket to server")
 
+
     request = {"command": CMD_OSINT_ESCAN, "target_email": email}
+
+
     try:
         send_one_message(OsintSocket, json.dumps(request))
         logging.info(f"Sent OSINT email scan request for: {email}")
@@ -208,15 +211,15 @@ def osint_email_scan(email: str):
 
 
 def osint_phone_scan(phone: str):
-    """Send phone OSINT scan request to server via OSINT socket."""
+    """send phone osint scan request to server via OSINT socket."""
     from Constants import CMD_OSINT_PSCAN
     import time
 
     global OsintSocket, osint_connected
 
-    # Always close old socket and create a fresh one for each scan
+    #always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1)  # Allow socket cleanup
+    time.sleep(0.1)  #allow socket cleanup
 
     logging.info("Creating fresh OSINT socket for new phone scan...")
     if not connect_osint_socket():
@@ -235,8 +238,8 @@ def osint_phone_scan(phone: str):
 
 def osint_raw_scan(command: str, payload: dict) -> socket.socket:
     """
-    Open a fresh independent socket, send one OSINT command, return the socket.
-    Caller is responsible for receiving and closing it.
+    open a fresh independent socket, send one osint command, return the socket.
+    Caller is responsible for receiving and closing it
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((serverIp, port))
@@ -246,7 +249,7 @@ def osint_raw_scan(command: str, payload: dict) -> socket.socket:
 
 
 def receive_from_socket(sock: socket.socket, timeout=180) -> dict:
-    """Receive one OSINT response from a given socket and close it."""
+    """receive one osint response from a given socket and close it"""
     try:
         sock.settimeout(timeout)
         data = recv_one_message(sock, return_type="string")
@@ -262,7 +265,8 @@ def receive_from_socket(sock: socket.socket, timeout=180) -> dict:
 
 
 def receive_osint_response(timeout=180):
-    """Receive OSINT response from dedicated OSINT socket."""
+    """receive osint response from dedicated osint socket."""
+
     global OsintSocket, osint_connected
 
     if not osint_connected or OsintSocket is None:
@@ -271,37 +275,44 @@ def receive_osint_response(timeout=180):
     try:
         OsintSocket.settimeout(timeout)
         response_data = recv_one_message(OsintSocket, return_type="string")
+
         if not response_data:
             raise ConnectionError("OSINT socket disconnected")
 
         response = json.loads(response_data)
         logging.debug(f"Received OSINT response: {response.get('response')}")
         return response
+
+
     except socket.timeout:
         logging.error(f"OSINT socket timeout after {timeout}s")
         raise TimeoutError(f"No OSINT response after {timeout}s")
+
     except Exception as e:
         logging.error(f"Failed to receive OSINT response: {e}")
         raise
+
     finally:
-        # Close socket after receiving response
+        #close socket after receiving response
         close_osint_socket()
 
 
 
 def close_osint_socket():
-    """Close the OSINT socket cleanly."""
+    """close the osint socket cleanly"""
     global OsintSocket, osint_connected
 
     try:
         if OsintSocket:
             OsintSocket.close()
-            logging.info("OSINT socket closed")
+            logging.info("osint socket closed")
     except:
         pass
     finally:
         OsintSocket = None
         osint_connected = False
+
+
 
 
 def main():

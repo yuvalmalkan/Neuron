@@ -37,11 +37,11 @@ class ChatBackend(QThread):
             self.socket.connect((self.host, self.port))
             self.username = username
 
-            # Register with the Server
+            #register with the Server
             req = {"command": CMD_CHAT_INIT, "username": self.username}
             send_one_message(self.socket, json.dumps(req))
 
-            # Start the background listening loop
+            #start the background listening loop
             self._is_running = True
             self.start()
             return True
@@ -54,15 +54,17 @@ class ChatBackend(QThread):
         self._is_running = False
         if self.socket:
             try:
-                self.socket.close()  # Closes socket, which breaks the recv() block below cleanly
+                self.socket.close()
             except:
                 pass
 
-        self.wait()  # Safely waits for thread to shut down
+        self.wait()  #waits for thread to shut down
         self.active_peer = None
 
     def run(self):
         """Standard listening loop running in the background thread."""
+
+
         while self._is_running:
             try:
                 data = recv_one_message(self.socket, return_type="string")
@@ -72,7 +74,7 @@ class ChatBackend(QThread):
                 payload = json.loads(data)
                 msg_type = payload.get("type")
 
-                # Qt natively routes these emissions safely to the Main UI Thread
+                #qt natively routes these emissions safely to the main ui thread
                 if msg_type == "ONLINE_USERS":
                     self.online_users_received.emit(payload.get("users", []))
 
@@ -94,13 +96,18 @@ class ChatBackend(QThread):
                         self.active_peer = None
                     self.session_ended.emit(payload.get("peer"))
 
+
             except Exception:
-                break  # Loop breaks safely on disconnect
+                break
+
+
 
         if self._is_running:
             self.connection_lost.emit("Disconnected from server.")
 
-    # ── Sending Methods (Called directly from Main UI Thread) ──
+
+
+    #sending methods called directly from main ui thread
     def fetch_online_users(self):
         self._send({"command": CMD_FETCH_USERS})
 

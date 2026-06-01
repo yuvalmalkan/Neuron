@@ -16,28 +16,22 @@ def shadow(widget, color="#00d4ff", blur=20, offset=(0, 0)):
     widget.setGraphicsEffect(fx)
     return fx
 
-# ──────────────────────────────────────────
-#  REUSABLE STYLED CARD
-# ──────────────────────────────────────────
+
+#reusable styled card
 class Card(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Style handles globally via QSS
 
-# ──────────────────────────────────────────
-#  GLOWING INPUT FIELD
-# ──────────────────────────────────────────
+
 class GlowInput(QLineEdit):
     def __init__(self, placeholder="", parent=None):
         super().__init__(parent)
         self.setPlaceholderText(placeholder)
         self.setFont(QFont(FONT_MONO, 11))
         self.setMinimumHeight(44)
-        # States (:focus, ::placeholder) handled globally via QSS
 
-# ──────────────────────────────────────────
-#  GLOW BUTTON
-# ──────────────────────────────────────────
+
 class GlowingButton(QPushButton):
     def __init__(self, text, variant="primary", parent=None):
         super().__init__(text, parent)
@@ -45,7 +39,6 @@ class GlowingButton(QPushButton):
         self.setFont(QFont(FONT_MONO, 10))
         self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
-        # Set property for QSS to target specific variants ("primary" or "danger")
         self.setProperty("variant", variant)
 
 
@@ -65,9 +58,7 @@ class HyperButton(QPushButton):
 
 
 
-# ──────────────────────────────────────────
-#  SIDEBAR NAV BUTTON
-# ──────────────────────────────────────────
+#side bar nav button
 class NavButton(QPushButton):
     def __init__(self, icon_text, label, parent=None):
         super().__init__(parent)
@@ -82,10 +73,6 @@ class NavButton(QPushButton):
 
 
 
-
-# ──────────────────────────────────────────
-#  RESULT DISPLAY WIDGET
-# ──────────────────────────────────────────
 class ResultDisplay(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -96,12 +83,7 @@ class ResultDisplay(QTextEdit):
 
 
 
-
-
-
-# ──────────────────────────────────────────
-#  CUSTOM AUTHENTICATION WIDGETS
-# ──────────────────────────────────────────
+#custom authentication widgets
 class AuthInput(GlowInput):
     def __init__(self, placeholder="", is_password=False, parent=None):
         super().__init__(placeholder, parent)

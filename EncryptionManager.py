@@ -43,9 +43,7 @@ def ecc_exchange(private_key, peer_public_key):
     return shared_secret
 
 
-# ============================================================================
-# KEY DERIVATION FUNCTIONS
-# ============================================================================
+
 
 def derive_key_hkdf(shared_key, length=32, info=b'handshake data'):
     """

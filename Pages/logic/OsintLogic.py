@@ -163,16 +163,16 @@ def build_target_summary(fields: dict) -> str:
 
 
 def format_osint_results(report: dict) -> str:
-    """convert a raw OSINT report dict into a human-readable terminal string."""
+    """convert a raw OSINT report dict into a human readable terminal string."""
     query = report.get('query', '?')
     elapsed = report.get('elapsed_seconds', '?')
     summary = report.get('summary') or report.get('sources') or {}
 
-    # Determine input type
+    #determine input type
     is_phone = bool(re.match(r'^\+?\d[\d\s\-.()]{5,}$', query.strip()))
     is_email = not is_phone and ('@' in query and '.' in query)
 
-    #Phone
+    #phone
     if is_phone:
         lines = [
             f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
@@ -189,7 +189,7 @@ def format_osint_results(report: dict) -> str:
         lines.append("─" * 60)
         if summary.get('telegram_registered'):
             tg_id = summary.get('telegram_username') or str(summary.get('telegram_id', ''))
-            lines.append(f"  ✓ Found  (@{tg_id})" if tg_id else "  ✓ Found (no username)")
+            lines.append(f"  Found  (@{tg_id})" if tg_id else "    Found (no username)")
             lines.append(f"  ID       : {summary.get('telegram_id', 'N/A')}")
             lines.append(f"  Name     : {summary.get('name') or '—'}")
             lines.append(f"  Premium  : {'Yes' if summary.get('telegram_premium') else 'No'}")
@@ -207,7 +207,7 @@ def format_osint_results(report: dict) -> str:
                 lines.append(f"  Profile  : {summary['telegram_profile_url']}")
         else:
             err = summary.get('telegram_error')
-            lines.append(f"  ✗ Not found{(' — ' + err) if err else ''}")
+            lines.append(f"    Not found{(' — ' + err) if err else ''}")
 
         dorks = summary.get('google_dork_urls', [])
         if dorks:
@@ -219,7 +219,7 @@ def format_osint_results(report: dict) -> str:
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)
 
-    #Email
+    #email
     elif is_email:
         lines = [
             f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
@@ -243,14 +243,14 @@ def format_osint_results(report: dict) -> str:
                 lines.append(f"     LINK: {platform.get('url', 'No URL')}")
         else:
             lines.append("\n[PLATFORMS WHERE EMAIL IS REGISTERED]")
-            lines.append("  ✗ No accounts found")
+            lines.append("   No accounts found")
 
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)
 
 
 
-    #Username
+    #username
     else:
         lines = [
             f"OSINT SCAN COMPLETE — @{query}  ({elapsed}s)",
@@ -262,7 +262,7 @@ def format_osint_results(report: dict) -> str:
             lines.append("\n[TELEGRAM]")
             lines.append("─" * 60)
             if tg.get('found'):
-                lines.append(f"  ✓ Found")
+                lines.append(f"  Found")
                 lines.append(f"  ID: {tg.get('user_id', 'N/A')}")
                 lines.append(f"  Username: @{tg.get('username', 'N/A')}")
                 lines.append(f"  Name: {tg.get('name', 'N/A')}")
@@ -278,26 +278,26 @@ def format_osint_results(report: dict) -> str:
                 if tg.get('profile_url'):
                     lines.append(f"  Profile URL: {tg['profile_url']}")
             else:
-                lines.append("  ✗ Not found")
+                lines.append("    Not found")
 
         if summary.get('facebook'):
             fb = summary['facebook']
             lines.append("\n[FACEBOOK]")
             lines.append("─" * 60)
             if not fb.get('error'):
-                lines.append(f"  ✓ Found")
+                lines.append(f"    Found")
                 for key, value in fb.items():
                     if value and key != 'error':
                         lines.append(f"  {key}: {value}")
             else:
-                lines.append(f"  ✗ Error: {fb.get('error')}")
+                lines.append(f"    Error: {fb.get('error')}")
 
         if summary.get('instagram'):
             ig = summary['instagram']
             lines.append("\n[INSTAGRAM]")
             lines.append("─" * 60)
             if not ig.get('error'):
-                lines.append(f"  ✓ Found")
+                lines.append(f"  Found")
                 lines.append(f"  Username: @{ig.get('username', 'N/A')}")
                 lines.append(f"  Display Name: {ig.get('display_name', 'N/A')}")
                 lines.append(f"  Bio: {ig.get('bio', 'N/A')}")
@@ -309,7 +309,7 @@ def format_osint_results(report: dict) -> str:
                 if ig.get('profile_url'):
                     lines.append(f"  Profile URL: {ig['profile_url']}")
             else:
-                lines.append(f"  ✗ Error: {ig.get('error')}")
+                lines.append(f"    Error: {ig.get('error')}")
 
         platforms = summary.get('platforms', [])
         if platforms:
@@ -322,7 +322,7 @@ def format_osint_results(report: dict) -> str:
                     for key, val in platform['details'].items():
                         lines.append(f"     • {key}: {val}")
         else:
-            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n  ✗ No accounts found")
+            lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n    No accounts found")
 
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)

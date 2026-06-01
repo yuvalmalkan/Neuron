@@ -19,7 +19,7 @@ user_db = UserDatabase(db_path)
 port = 34401
 serverIp = "0.0.0.0"
 
-# ── GENERAL & AUTH COMMANDS ──
+#general and auth
 CMD_LOGIN = "LOGIN"         # Client request to authenticate an existing user session
 CMD_SIGNUP = "SGNUP"        # Client request to register and create a new user account
 CMD_EXIT = "EXITT"          # Client notification to the server that it is disconnecting
@@ -29,7 +29,7 @@ CMD_RESEND = "RSEND"        # Client request to resend an OTP or verification co
 CMD_FORGOT = "FRGOT"        # Client request to initiate the forgot-password recovery flow
 CMD_RESET = "RESET"         # Client request to submit a new password using a recovery token
 
-# ── CHAT COMMANDS ──
+#chat
 CMD_CHAT_INIT = "CINIT"     # Registers the client's chat socket with the server
 CMD_FETCH_USERS = "FUSRS"   # Requests the list of all currently online users
 CMD_CHAT_REQUEST = "CREQU"  # Sends a chat session request to a target peer
@@ -38,7 +38,7 @@ CMD_CHAT_DECLINE = "CDECL"  # Declines an incoming chat session request
 CMD_DIRECT_MSG = "DMSGS"    # Routes a direct text message to the active peer through the server
 CMD_END_SESSION = "ESESS"   # Notifies the server and peer that the current chat session is ending
 
-# ── RESPONSES ──
+#responses
 RESP_LOGIN_OK = "OKLOG"                   # Server response: User successfully logged in
 RESP_SIGNUP_OK = "OKSNP"                  # Server response: User account successfully created
 RESP_ERROR = "ERROR"                      # Server response: A general or malformed request error occurred
@@ -57,12 +57,12 @@ RESP_VERIFY_OK = "OKVRF"                  # Server response: Account verificatio
 RESP_RESET_OK = "OKRST"                   # Server response: Password successfully reset
 RESP_ERROR_EMAIL_EXISTS = "EREML"         # Server response: Error, email already linked to another account
 
-#OSINT COMMANDS
+#osint commands
 CMD_OSINT_USCAN = "USCAN"   # Client request to initiate a background Username OSINT scan
 CMD_OSINT_ESCAN = "ESCAN"   # Client request to initiate a background Email OSINT scan
 CMD_OSINT_PSCAN = "PSCAN"   # Client request to initiate a background Phone OSINT scan
 
-#OSINT RESPONSES
+#osint responses
 RESP_OSINT_RESULT = "ORSLT"       # Server response: Email/Username scan completed successfully with data
 RESP_OSINT_ERROR = "OERRS"        # Server response: OSINT scan failed, crashed, or timed out
 RESP_OSINT_PHONE_RESULT = "OPLTS" # Server response: Phone scan completed successfully with data
