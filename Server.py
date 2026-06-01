@@ -182,11 +182,11 @@ def handle_client(client, userId):
 
                                 try:
                                     report = search_username_complete("{username_target}")
-                                    result = {{"response": "ORLT", "report": report}}
+                                    result = {{"response": "ORSLT", "report": report}}
                                     with open("{temp_path}", "w") as f:
                                         json.dump(result, f)
                                 except Exception as e:
-                                    result = {{"response": "OERR", "message": str(e)}}
+                                    result = {{"response": "OERRS", "message": str(e)}}
                                     with open("{temp_path}", "w") as f:
                                         json.dump(result, f)
                                 '''],
@@ -272,11 +272,11 @@ from CoreTools.FullScans.FullEmailSearch import search_email_complete
 
 try:
     report = search_email_complete("{email_target}")
-    result = {{"response": "ORLT", "report": report}}
+    result = {{"response": "ORSLT", "report": report}}
     with open("{temp_path}", "w") as f:
         json.dump(result, f)
 except Exception as e:
-    result = {{"response": "OERR", "message": str(e)}}
+    result = {{"response": "OERRS", "message": str(e)}}
     with open("{temp_path}", "w") as f:
         json.dump(result, f)
 '''],
@@ -363,11 +363,11 @@ from CoreTools.FullScans.FullPhoneSearch import search_phone_complete
 
 try:
     report = search_phone_complete("{phone_target}")
-    result = {{"response": "OPLT", "report": report}}
+    result = {{"response": "OPLTS", "report": report}}
     with open("{temp_path}", "w") as f:
         json.dump(result, f)
 except Exception as e:
-    result = {{"response": "OERR", "message": str(e)}}
+    result = {{"response": "OERRS", "message": str(e)}}
     with open("{temp_path}", "w") as f:
         json.dump(result, f)
 '''],
