@@ -21,6 +21,9 @@ connections_lock = threading.Lock()
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 
+#for subprocesses windows
+root_dir_escaped = root_dir.replace("\\", "/")
+
 def main():
     server = socket.socket()
     try:
@@ -173,8 +176,8 @@ def handle_client(client, userId):
                                 import json
                                 import sys
                                 import os
-                                sys.path.insert(0, "{root_dir}")
-                                os.chdir("{root_dir}")
+                                sys.path.insert(0, "{root_dir_escaped}")
+                                os.chdir("{root_dir_escaped}")
                                 from CoreTools.FullScans.FullUsernameSearch import search_username_complete
 
                                 try:
@@ -263,8 +266,8 @@ def handle_client(client, userId):
 import json
 import sys
 import os
-sys.path.insert(0, "{root_dir}")
-os.chdir("{root_dir}")
+sys.path.insert(0, "{root_dir_escaped}")
+os.chdir("{root_dir_escaped}")
 from CoreTools.FullScans.FullEmailSearch import search_email_complete
 
 try:
@@ -354,8 +357,8 @@ except Exception as e:
 import json
 import sys
 import os
-sys.path.insert(0, "{root_dir}")
-os.chdir("{root_dir}")
+sys.path.insert(0, "{root_dir_escaped}")
+os.chdir("{root_dir_escaped}")
 from CoreTools.FullScans.FullPhoneSearch import search_phone_complete
 
 try:
