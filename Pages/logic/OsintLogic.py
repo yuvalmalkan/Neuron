@@ -187,12 +187,12 @@ def format_osint_results(report: dict) -> str:
             lines.append(f"\n[GOOGLE DORK URLS] ({len(dorks)} queries)")
             lines.append("─" * 60)
             for url in dorks:
-                lines.append(f"  🔗 {url}")
+                lines.append(f"  LINK: {url}")
 
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)
 
-    # ── Email ─────────────────────────────────────────────────────────────────
+    #Email
     elif is_email:
         lines = [
             f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
@@ -213,7 +213,7 @@ def format_osint_results(report: dict) -> str:
             for i, platform in enumerate(platforms, 1):
                 lines.append(f"\n  {i}. {platform.get('site', 'Unknown')}")
                 lines.append(f"     Category: {platform.get('category', 'unknown')}")
-                lines.append(f"     🔗 {platform.get('url', 'No URL')}")
+                lines.append(f"     LINK: {platform.get('url', 'No URL')}")
         else:
             lines.append("\n[PLATFORMS WHERE EMAIL IS REGISTERED]")
             lines.append("  ✗ No accounts found")
@@ -288,7 +288,7 @@ def format_osint_results(report: dict) -> str:
             lines.append("─" * 60)
             for i, platform in enumerate(platforms, 1):
                 lines.append(f"\n  {i}. {platform.get('site', 'Unknown')} (from {platform.get('source', '?')})")
-                lines.append(f"     🔗 {platform.get('url', 'No URL')}")
+                lines.append(f"     LINK: {platform.get('url', 'No URL')}")
                 if platform.get('details'):
                     for key, val in platform['details'].items():
                         lines.append(f"     • {key}: {val}")
