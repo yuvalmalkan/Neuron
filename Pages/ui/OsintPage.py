@@ -3,7 +3,7 @@ __author__ = "Yuval Malkan"
 import sys
 import threading
 import logging
-
+import Client
 from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import NavButton
 from Pages.ui.RoomsPage import RoomsPanel
@@ -623,7 +623,7 @@ class MainWindow(QMainWindow):
 
         self.username = SessionManager.get_username()
 
-        self.chat_backend = ChatBackend(host="127.0.0.1", port=34401)  # todo change it later to other ip
+        self.chat_backend = ChatBackend(host=Client.serverIp, port=34401)  # todo change it later to other ip
         if self.username:
             self.chat_backend.connect(self.username)
 
