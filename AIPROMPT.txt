@@ -69,3 +69,5 @@ You must return your complete analysis STRICTLY as a valid JSON object using the
     }
   }
 }
+
+make youre efforts as lite as possible, and only include the most relevant information in the final JSON output. save tokens
