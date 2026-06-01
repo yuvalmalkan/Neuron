@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-#PHONE VALIDATION
 
 def parse_phone(phone: str) -> dict:
     digits = re.sub(r'\D', '', phone)
@@ -25,7 +24,6 @@ def parse_phone(phone: str) -> dict:
 
 
 #ABSTRACT API
-
 def lookup_abstract(phone: str, api_key: str) -> dict:
     url = "https://phonevalidation.abstractapi.com/v1/"
     params = {"api_key": api_key, "phone": phone}
@@ -46,7 +44,7 @@ def lookup_abstract(phone: str, api_key: str) -> dict:
         return {"source": "abstract", "error": str(e)}
 
 
-# find country offline fallback
+
 
 DIAL_CODES = {
     "972": {"country": "Israel",            "flag": "🇮🇱"},
@@ -68,6 +66,8 @@ DIAL_CODES = {
     "98":  {"country": "Iran",              "flag": "🇮🇷"},
 }
 
+
+
 def get_country_from_dialcode(phone: str) -> dict:
     digits = re.sub(r'\D', '', phone)
     if digits.startswith('0'):
@@ -83,8 +83,7 @@ def get_country_from_dialcode(phone: str) -> dict:
     return {"error": "Unknown dial code"}
 
 
-#google dorks no scraping
-
+#google dorks no scraping for gemini later
 def google_dorks_for_phone(phone: str) -> list:
     digits = re.sub(r'\D', '', phone)
     formatted = phone.strip()
@@ -103,7 +102,6 @@ def google_dorks_for_phone(phone: str) -> list:
     return [base + requests.utils.quote(d) for d in dorks]
 
 
-#AGGREGATE
 
 def full_phone_osint(phone: str, abstract_key: Optional[str] = None) -> dict:
     results = {

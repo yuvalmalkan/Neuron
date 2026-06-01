@@ -8,11 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
 from PhoneOsint import full_phone_osint
-# Remove or fix this import - it's asking for auth
-# from CoreTools.SocialMedia.Telegram import telegram_lookup_phone
-
-# Instead, import from the correct location with proper session handling
-from CoreTools.SocialMedia.Telegram import lookup_phone_sync  # Use sync version instead of async
+from CoreTools.SocialMedia.Telegram import lookup_phone_sync
 
 load_dotenv()
 
@@ -28,17 +24,16 @@ async def _run_all(phone: str, config: dict) -> dict:
     loop = asyncio.get_event_loop()
 
     with ThreadPoolExecutor(max_workers=3) as pool:
-        # Basic lookups run in a thread
         future_basic = loop.run_in_executor(
             pool, lambda: full_phone_osint(phone, abstract_key=config.get("abstract_key"))
         )
 
-        # Telegram runs in thread pool (no auth prompt if session exists)
+        #no auth prompt if session exists
         future_tg = loop.run_in_executor(
             pool, lambda: lookup_phone_sync(phone)
         )
 
-        # Both run simultaneously
+
         basic_result, tg_result = await asyncio.gather(
             future_basic,
             future_tg,
@@ -61,7 +56,7 @@ def _build_summary(sources: dict) -> dict:
     co = basic.get("country_offline", {})
     parsed = basic.get("parsed", {})
 
-    # Clean name — ignore "." style placeholder names
+
     name = tg.get("full_name")
     if name and all(c in ". " for c in name):
         name = None
@@ -110,14 +105,15 @@ def print_report(report: dict):
     print(f"  Location     : {s.get('location') or '—'}")
     print("─" * 55)
     tg_id = s.get('telegram_username') or str(s.get('telegram_id')) if s.get('telegram_registered') else None
+
     print(
-        f"  Telegram     : {'✓ ' + tg_id if tg_id else ('✓ (no username)' if s.get('telegram_registered') else '✗ Not found')}")
+        f"  Telegram     : {' ' + tg_id if tg_id else (' (no username)' if s.get('telegram_registered') else '  Not found')}")
     if s.get('telegram_registered'):
         print(f"  TG Name      : {s.get('name') or '—'}")
         print(f"  TG Premium   : {'Yes' if s.get('telegram_premium') else 'No'}")
-        print(f"  TG Scam flag : {'⚠ YES' if s.get('telegram_scam') else 'No'}")
+        print(f"  TG Scam flag : {'YES' if s.get('telegram_scam') else 'No'}")
         if s.get('telegram_photo_saved'):
-            print(f"  TG Photo     : ✓ {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb', '?')} KB)")
+            print(f"  TG Photo     :  {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb', '?')} KB)")
         elif s.get('telegram_has_photo'):
             print(f"  TG Photo     : exists (download failed)")
         else:
@@ -129,14 +125,13 @@ def print_report(report: dict):
     print("═" * 55 + "\n")
 
 
+
+
+
+
 def build_gemini_prompt(report: dict) -> str:
     s = report.get("summary", {})
     lines = [
-        "You are an OSINT analyst. Analyze the following phone number data and provide:",
-        "1. A summary of what is known about this number",
-        "2. Any patterns or conclusions you can draw",
-        "3. Risk assessment (spam/scam/legitimate)",
-        "4. Recommended next investigation steps",
         "",
         f"Phone number : {report['query']}",
         f"Country      : {s.get('country') or 'Unknown'}",
@@ -168,7 +163,7 @@ if __name__ == "__main__":
     report = run_full_osint(PHONE)
     print_report(report)
 
-    # Save JSON without base64 blob
+
     report_clean = json.loads(json.dumps(report))
     report_clean.get("summary", {}).pop("telegram_photo_base64", None)
     report_clean.get("sources", {}).get("telegram", {}).pop("profile_photo_base64", None)
@@ -178,5 +173,4 @@ if __name__ == "__main__":
         json.dump(report_clean, f, indent=2, ensure_ascii=False)
     print(f"Report saved to {filename}")
 
-    print("\n=== GEMINI PROMPT ===\n")
     print(build_gemini_prompt(report))

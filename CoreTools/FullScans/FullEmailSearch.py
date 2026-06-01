@@ -95,7 +95,7 @@ def _build_email_summary(sources: dict, email: str) -> dict:
 
 
 def print_email_report(report: dict):
-    """Pretty print the email search report"""
+    """print the email search report"""
     email = report.get("query", "?")
     elapsed = report.get("elapsed_seconds", "?")
 
@@ -124,7 +124,7 @@ def print_email_report(report: dict):
 
 
 def save_email_report(report: dict):
-    """Save the complete report to JSON in temp folder"""
+    """Save the report to json in temp folder"""
     import os
 
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

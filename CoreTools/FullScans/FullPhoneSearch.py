@@ -17,10 +17,7 @@ CONFIG = {
 }
 
 
-# ──────────────────────────────────────────
-#  TIMEOUT HELPER  (mirrors FullUsernameSearch)
-# ──────────────────────────────────────────
-
+#helper
 def run_function_with_timeout(func, timeout, *args, **kwargs):
     """Run a function in a thread; return an error dict if it times out."""
     try:
@@ -46,14 +43,10 @@ def run_function_with_timeout(func, timeout, *args, **kwargs):
         return {"error": str(e)}
 
 
-# ──────────────────────────────────────────
-#  MAIN SEARCH FUNCTION
-# ──────────────────────────────────────────
 
 def search_phone_complete(phone: str, config: dict = None) -> dict:
     """
-    Complete OSINT scan for a phone number across all available sources in parallel.
-    Mirrors the structure of search_username_complete() in FullUsernameSearch.py.
+    Complete OSINT scan for a phone number across all available sources in parallel
     """
     if config is None:
         config = CONFIG
@@ -67,7 +60,7 @@ def search_phone_complete(phone: str, config: dict = None) -> dict:
 
     start_time = time.time()
 
-    # ── Telegram runs in its own thread early (writes JSON to temp) ──
+    #telegram runs in its own thread early
     telegram_thread = threading.Thread(
         target=lookup_phone_sync,
         args=(phone,),
@@ -75,7 +68,7 @@ def search_phone_complete(phone: str, config: dict = None) -> dict:
     )
     telegram_thread.start()
 
-    # ── Other lookups run in the thread pool ──
+    #other lookups run in the thread pool
     functions_to_run = [
         (full_phone_osint, "basic", 30, phone, config.get("abstract_key")),
     ]
@@ -93,7 +86,7 @@ def search_phone_complete(phone: str, config: dict = None) -> dict:
             except Exception as e:
                 report["sources"][key] = {"error": str(e)}
 
-    # ── Wait for Telegram thread, then read its JSON output ──
+    #wait for Telegram thread, then read its json output
     telegram_thread.join(timeout=60)
 
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -119,10 +112,7 @@ def search_phone_complete(phone: str, config: dict = None) -> dict:
     return report
 
 
-# ──────────────────────────────────────────
-#  SUMMARY BUILDER
-# ──────────────────────────────────────────
-
+#summary
 def _build_phone_summary(sources: dict, phone: str) -> dict:
     """Extract and combine key findings from all sources."""
     tg = sources.get("telegram", {})
@@ -131,13 +121,13 @@ def _build_phone_summary(sources: dict, phone: str) -> dict:
     co = basic.get("country_offline", {}) if isinstance(basic, dict) else {}
     parsed = basic.get("parsed", {}) if isinstance(basic, dict) else {}
 
-    # Ignore placeholder names like "."
+
     name = tg.get("full_name") if isinstance(tg, dict) else None
     if name and all(c in ". " for c in name):
         name = None
 
     return {
-        # ── Identity ──
+
         "name": name,
         "telegram_id": tg.get("telegram_id") if isinstance(tg, dict) else None,
         "telegram_username": tg.get("username") if isinstance(tg, dict) else None,
@@ -153,22 +143,19 @@ def _build_phone_summary(sources: dict, phone: str) -> dict:
         "telegram_profile_url": tg.get("profile_url") if isinstance(tg, dict) else None,
         "telegram_error": tg.get("error") if isinstance(tg, dict) else str(tg),
 
-        # ── Line info ──
+        #line info
         "phone_e164": parsed.get("e164"),
         "country": ab.get("country") or co.get("country"),
         "country_flag": co.get("flag"),
         "line_type": ab.get("type"),
         "location": ab.get("location"),
 
-        # ── Google dorks ──
+        #dork
         "google_dork_urls": basic.get("google_dorks", []) if isinstance(basic, dict) else [],
     }
 
 
-# ──────────────────────────────────────────
-#  PRINT REPORT  (CLI output)
-# ──────────────────────────────────────────
-
+#printing
 def print_phone_report(report: dict):
     s = report.get("summary", {})
     elapsed = report.get("elapsed_seconds", "?")
@@ -185,14 +172,14 @@ def print_phone_report(report: dict):
     tg_registered = s.get("telegram_registered")
     tg_id = s.get("telegram_username") or (str(s.get("telegram_id")) if s.get("telegram_id") else None)
 
-    print(f"  Telegram     : {'✓ ' + tg_id if tg_id else ('✓ (no username)' if tg_registered else '✗ Not found')}")
+    print(f"  Telegram     : {'  ' + tg_id if tg_id else ('  (no username)' if tg_registered else '✗ Not found')}")
 
     if tg_registered:
         print(f"  TG Name      : {s.get('name') or '—'}")
         print(f"  TG Premium   : {'Yes' if s.get('telegram_premium') else 'No'}")
-        print(f"  TG Scam flag : {'⚠ YES' if s.get('telegram_scam') else 'No'}")
+        print(f"  TG Scam flag : {' YES' if s.get('telegram_scam') else 'No'}")
         if s.get("telegram_photo_saved"):
-            print(f"  TG Photo     : ✓ {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb', '?')} KB)")
+            print(f"  TG Photo     :  {s['telegram_photo_saved']} ({s.get('telegram_photo_size_kb', '?')} KB)")
         elif s.get("telegram_has_photo"):
             print(f"  TG Photo     : exists (download failed)")
         else:
@@ -207,9 +194,6 @@ def print_phone_report(report: dict):
     print("═" * 55 + "\n")
 
 
-# ──────────────────────────────────────────
-#  GEMINI PROMPT BUILDER
-# ──────────────────────────────────────────
 
 def build_gemini_prompt(report: dict) -> str:
     s = report.get("summary", {})
@@ -244,12 +228,9 @@ def build_gemini_prompt(report: dict) -> str:
     return "\n".join(lines)
 
 
-# ──────────────────────────────────────────
-#  SAVE REPORT
-# ──────────────────────────────────────────
-
+#save to mac
 def save_phone_report(report: dict) -> str:
-    """Save the complete report (without base64 blob) to JSON in temp folder."""
+    """Save the complete report to json in temp folder."""
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     TEMP_FOLDER = os.path.join(BASE_DIR, "temp")
     os.makedirs(TEMP_FOLDER, exist_ok=True)
@@ -258,7 +239,7 @@ def save_phone_report(report: dict) -> str:
     filename = f"osint_phone_{phone_safe}.json"
     filepath = os.path.join(TEMP_FOLDER, filename)
 
-    # Strip base64 blobs before saving
+    #strip base64
     report_clean = json.loads(json.dumps(report))
     report_clean.get("summary", {}).pop("telegram_photo_base64", None)
     report_clean.get("sources", {}).get("telegram", {}).pop("profile_photo_base64", None)
@@ -269,9 +250,6 @@ def save_phone_report(report: dict) -> str:
     return filepath
 
 
-# ──────────────────────────────────────────
-#  ENTRY POINT
-# ──────────────────────────────────────────
 
 if __name__ == "__main__":
     phone = input("Enter phone number: ").strip()

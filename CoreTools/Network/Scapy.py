@@ -12,7 +12,6 @@ from datetime import datetime
 
 
 def packet_callback(packet):
-    # 1. Get Timestamp
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
     src_ip = ""
@@ -21,7 +20,7 @@ def packet_callback(packet):
     length = len(packet)
     info = ""
 
-    # 2. Parse Data Link / Network Layer (IP/ARP)
+    #Parse Data Link / Network Layer (IP/ARP)
     if packet.haslayer(IP):
         src_ip = packet[IP].src
         dst_ip = packet[IP].dst
@@ -32,18 +31,18 @@ def packet_callback(packet):
         src_ip = packet[ARP].psrc
         dst_ip = packet[ARP].pdst
         protocol = "ARP"
-        if packet[ARP].op == 1:  # ARP Request
+        if packet[ARP].op == 1:  #arp request
             info = f"Who has {dst_ip}? Tell {src_ip}"
-        elif packet[ARP].op == 2:  # ARP Reply
+        elif packet[ARP].op == 2:  # arp reply
             info = f"{src_ip} is at {packet[ARP].hwsrc}"
     else:
-        # Fallback for non-IP traffic
+        #Fallback for non IP traffic
         src_ip = packet.src if hasattr(packet, 'src') else "Unknown"
         dst_ip = packet.dst if hasattr(packet, 'dst') else "Unknown"
         protocol = "ETH"
         info = packet.summary()
 
-    # 3. Parse Transport / Application Layer
+    #parse transport /application layer
     if packet.haslayer(TCP):
         protocol = "TCP"
         src_port = packet[TCP].sport
@@ -57,7 +56,7 @@ def packet_callback(packet):
         dst_port = packet[UDP].dport
         info = f"{src_port} -> {dst_port}"
 
-        # Identify DNS queries within UDP
+        # identify dns queries within udp
         if packet.haslayer(DNSQR):
             protocol = "DNS"
             query = packet[DNSQR].qname.decode('utf-8', errors='ignore')
@@ -68,11 +67,11 @@ def packet_callback(packet):
         info = f"Type={packet[ICMP].type} Code={packet[ICMP].code}"
 
     elif not protocol:
-        # Catch-all for IP packets without recognized transport layers
+        #catch all for ip packets without recognized transport layers
         protocol = f"IP"
         info = packet.summary()
 
-    # 4. Print the formatted row
+    #print
     print(f"{timestamp:<12} | {src_ip:<16} | {dst_ip:<16} | {protocol:<6} | {length:<5} | {info}")
 
 

@@ -24,7 +24,7 @@ def load_sites(json_path: str = "sites.json") -> dict:
     for category_sites in data["categories"].values():
         for site_name, site_info in category_sites.items():
             if site_name in flat:
-                print(f"[!] Duplicate site name skipped: {site_name}")
+                print(f"Duplicate site name skipped: {site_name}")
                 continue
             flat[site_name] = site_info
     return flat
@@ -48,24 +48,25 @@ def findByUsername(username): #todo add website/account search by intrests or ca
         )
     }
 
+
     for site, info in sites.items():
         target_url = info["url"].format(username)
         try:
             r = requests.get(target_url, timeout=8, headers=headers, allow_redirects=True)
 
-            # 1. Non-200 status -> not found
+            #non 200 status not found
             if r.status_code != 200:
                 continue
 
-            # 2. Redirect away from expected URL -> not found (for check_url sites)
+            #redirect away from expected url = not found (for check_url sites)
             if info.get("check_url") and r.url != target_url:
                 continue
 
-            # 3. Page contains a known "not found" phrase -> false positive
+            #page contains a known "not found" phrase, false positive
             if info.get("not_found") and check_not_found_strings(r.text, info["not_found"]):
                 continue
 
-            print(f"[+] Found {username} on {site}: {target_url}")
+            print(f"Found {username} on {site}: {target_url}")
 
         except requests.RequestException:
             pass  # timeout, connection error, etc.
@@ -92,7 +93,7 @@ def makeUserNames(fullname: str) -> list:
 
 def findAccounts(fullname: str):
     usernames = makeUserNames(fullname)
-    print(f"Searching {len(usernames)} username variations across {len(sites)} sites...\n")
+    print(f"searching {len(usernames)} username variations across {len(sites)} sites...\n")
 
     threads = []
     for username in usernames:

@@ -110,13 +110,16 @@ def fix_profile_pic_url(url: str) -> str:
 def InstagramFullScan(username) -> dict:
     from CoreTools.WebsiteUtilities import downloadHtml
 
-    # Download the Instagram profile page
+    #download the Instagram profile page
     downloadHtml(f"https://www.instagram.com/{username}/")
     time.sleep(2)
-    # Construct the filename that downloadHtml actually creates (instagram_{username}.html)
+
+
+    #make filename for the downloaded html
     filename = f"instagram_{username}.html"
 
-    # Extract and return profile information
+
+    #extract and return profile information
     try:
         profile_info = get_info_from_html(filename)
         return profile_info

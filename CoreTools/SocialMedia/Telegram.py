@@ -23,14 +23,15 @@ API_ID = int(os.getenv("TELEGRAM_API_ID", 0))
 API_HASH = os.getenv("TELEGRAM_API_HASH", "")
 SESSION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "neuron")
 
-# Setup temp folder
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 TEMP_FOLDER = os.path.join(BASE_DIR, "CoreTools", "temp")
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
 
-#helper functions
 
+
+#helper functions
 def _clean_name(first, last):
     first = (first or "").strip()
     last = (last or "").strip()
@@ -50,7 +51,7 @@ async def _download_photo(client, user, user_id) -> dict:
         buf.seek(0)
         photo_bytes = buf.read()
         if photo_bytes:
-            filename = f"{user_id}.jpg"  # Just use user_id as filename
+            filename = f"{user_id}.jpg"
             filepath = os.path.join(TEMP_FOLDER, filename)
             with open(filepath, "wb") as f:
                 f.write(photo_bytes)
@@ -61,6 +62,9 @@ async def _download_photo(client, user, user_id) -> dict:
     except Exception as e:
         photo_info["photo_download_error"] = str(e)
     return photo_info
+
+
+
 
 
 def _extract_user_info(user) -> dict:
@@ -96,9 +100,9 @@ async def _get_full_user_bio(client, user) -> str | None:
 
 
 def _save_result_json(result: dict, filename: str) -> str:
-    """Save result to JSON file in temp folder."""
+    """Save result to json file in temp folder."""
     filepath = os.path.join(TEMP_FOLDER, filename)
-    # Don't save base64 to disk (it's huge)
+
     result_clean = dict(result)
     result_clean.pop("profile_photo_base64", None)
     with open(filepath, "w", encoding="utf-8") as f:
@@ -106,7 +110,9 @@ def _save_result_json(result: dict, filename: str) -> str:
     return filepath
 
 
-# ─── 1. LOOKUP BY PHONE ───────────────────────────────────────────────────────
+
+
+
 
 async def lookup_by_phone(client: TelegramClient, phone: str) -> dict:
     """
@@ -135,7 +141,7 @@ async def lookup_by_phone(client: TelegramClient, phone: str) -> dict:
 
         await client(DeleteContactsRequest([user]))
 
-        # Save to temp folder
+        #save to temp folder
         safe_phone = phone.replace("+", "").replace(" ", "_")
         _save_result_json(result, f"telegram_phone_{safe_phone}.json")
 
@@ -147,7 +153,7 @@ async def lookup_by_phone(client: TelegramClient, phone: str) -> dict:
     return result
 
 
-# ─── 2. LOOKUP BY USERNAME ────────────────────────────────────────────────────
+
 
 async def lookup_by_username(client: TelegramClient, username: str) -> dict:
     """
@@ -166,7 +172,7 @@ async def lookup_by_username(client: TelegramClient, username: str) -> dict:
         if user.photo:
             result.update(await _download_photo(client, user, user.id))
 
-        # Save to temp folder
+        #save to temp folder
         _save_result_json(result, f"telegram_username_{username}.json")
 
     except (UsernameNotOccupiedError, UsernameInvalidError):
@@ -179,7 +185,9 @@ async def lookup_by_username(client: TelegramClient, username: str) -> dict:
     return result
 
 
-# ─── 3. SEARCH BY NAME ────────────────────────────────────────────────────────
+
+
+
 
 async def search_by_name(client: TelegramClient, name: str, limit: int = 10) -> dict:
     """
@@ -204,6 +212,8 @@ async def search_by_name(client: TelegramClient, name: str, limit: int = 10) -> 
         safe_name = name.replace(" ", "_").lower()
         _save_result_json(result, f"telegram_search_{safe_name}.json")
 
+
+
     except FloodWaitError as e:
         result["error"] = f"Flood wait: {e.seconds}s"
     except Exception as e:
@@ -212,7 +222,6 @@ async def search_by_name(client: TelegramClient, name: str, limit: int = 10) -> 
     return result
 
 
-# ─── 4. GET MUTUAL CONTACTS ───────────────────────────────────────────────────
 
 async def get_mutual_contacts(client: TelegramClient) -> dict:
     """
@@ -241,7 +250,8 @@ async def get_mutual_contacts(client: TelegramClient) -> dict:
     return result
 
 
-# ─── 5. DOWNLOAD PHOTO BY USERNAME ───────────────────────────────────────────
+
+
 
 async def download_photo_by_username(client: TelegramClient, username: str) -> dict:
     """Download profile photo of any public Telegram user by username."""
@@ -250,19 +260,22 @@ async def download_photo_by_username(client: TelegramClient, username: str) -> d
         user = await client.get_entity(f"@{username}")
         if not user.photo:
             return {"source": "telegram", "error": "User has no profile photo"}
+
+
         result = {
             "source": "telegram",
             "username": f"@{username}",
             **await _download_photo(client, user, user.id)
         }
-        # Save metadata to temp folder
+
+
+        #save metadata to temp folder
         _save_result_json(result, f"telegram_photo_{username}.json")
         return result
     except Exception as e:
         return {"source": "telegram", "error": str(e)}
 
 
-# ─── 6. FIND PHONE BY USERNAME/NAME ──────────────────────────────────────────
 
 async def find_phone_by_username(client: TelegramClient, username: str) -> dict:
     """
@@ -270,6 +283,8 @@ async def find_phone_by_username(client: TelegramClient, username: str) -> dict:
     Only works if the user has set their phone to 'visible to everyone'
     in Telegram privacy settings — most users keep this private.
     """
+
+
     username = username.lstrip("@")
     result = {
         "source": "telegram",
@@ -291,13 +306,15 @@ async def find_phone_by_username(client: TelegramClient, username: str) -> dict:
 
         result.update(_extract_user_info(user))
 
-        # Save to temp folder
+        #save to temp folder
         _save_result_json(result, f"telegram_findphone_{username}.json")
 
     except Exception as e:
         result["error"] = str(e)
 
     return result
+
+
 
 
 async def find_phone_by_name(client: TelegramClient, name: str) -> dict:
@@ -333,8 +350,9 @@ async def find_phone_by_name(client: TelegramClient, name: str) -> dict:
     return result
 
 
-# main async
 
+
+# main async
 async def telegram_lookup_phone(phone: str) -> dict:
     async with TelegramClient(SESSION, API_ID, API_HASH) as client:
         return await lookup_by_phone(client, phone)
@@ -355,6 +373,7 @@ async def telegram_get_contacts() -> dict:
         return await get_mutual_contacts(client)
 
 
+
 async def telegram_find_phone(username: str = None, name: str = None) -> dict:
     async with TelegramClient(SESSION, API_ID, API_HASH) as client:
         if username:
@@ -365,7 +384,6 @@ async def telegram_find_phone(username: str = None, name: str = None) -> dict:
 
 
 # sync wrappers
-
 def lookup_phone_sync(phone: str) -> dict:
     loop = asyncio.new_event_loop()
     try:
@@ -390,12 +408,16 @@ def search_name_sync(name: str, limit: int = 10) -> dict:
     finally:
         loop.close()
 
+
+
 def get_contacts_sync() -> dict:
     loop = asyncio.new_event_loop()
     try:
         return loop.run_until_complete(telegram_get_contacts())
     finally:
         loop.close()
+
+
 
 def find_phone_sync(username: str = None, name: str = None) -> dict:
     loop = asyncio.new_event_loop()
@@ -405,6 +427,8 @@ def find_phone_sync(username: str = None, name: str = None) -> dict:
         loop.close()
 
 
+
+
 if __name__ == "__main__":
     import sys
 
@@ -412,7 +436,7 @@ if __name__ == "__main__":
         print("Usage:")
         print("  python3 Telegram.py phone +972501234567")
         print("  python3 Telegram.py username @someone")
-        print("  python3 Telegram.py name 'Ophir Shavit'")
+        print("  python3 Telegram.py name 'first last'")
         print("  python3 Telegram.py findphone @someone")
         print(f"\nSaving to: {TEMP_FOLDER}")
         sys.exit(0)

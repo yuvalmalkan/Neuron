@@ -57,50 +57,50 @@ def Facebook_info_from_file(filename: str) -> dict:
         with open(filePath, "r", encoding="utf-8") as file:
             data = file.read()
 
-        # Extract display name from og:title meta tag
+        #display name
         display_name_match = re.search(r'<meta property="og:title" content="([^"]+)"', data)
         if display_name_match:
             profile["display_name"] = display_name_match.group(1).strip()
 
-        # Extract profile picture URL from og:image
+        #profile picture url
         profile_pic_match = re.search(r'<meta property="og:image" content="([^"]+)"', data)
         if profile_pic_match:
             profile["profile_picture_url"] = fix_profile_pic_url(profile_pic_match.group(1))
 
-        # Extract vanity/username from og:url
+        #vanity/username
         url_match = re.search(r'<meta property="og:url" content="https://www\.facebook\.com/([^"/?]+)"', data)
         if url_match:
             profile["username"] = url_match.group(1)
             profile["profile_url"] = f"https://www.facebook.com/{profile['username']}"
 
-        # Extract user ID from meta tags or JavaScript data
+        #userid
         user_id_match = re.search(r'"userID":"(\d+)"', data)
         if not user_id_match:
             user_id_match = re.search(r'id":"(pfbid[^"]+)"', data)
         if user_id_match:
             profile["user_id"] = user_id_match.group(1)
 
-        # Extract profile description/bio from og:description
+        #profile description/bio
         bio_match = re.search(r'<meta property="og:description" content="([^"]+)"', data)
         if bio_match:
             profile["bio"] = bio_match.group(1).strip()
 
-        # Extract work information from JSON data
+        #work information
         work_info = extract_work_info(data)
         if work_info:
             profile["work_info"] = work_info
 
-        # Extract education information
+        #education information
         education_info = extract_education_info(data)
         if education_info:
             profile["education_info"] = education_info
 
-        # Extract photo URLs
+        #photo urls
         photos = extract_photos(data)
         if photos:
             profile["photos"] = photos
 
-        # Extract follower/following counts if available
+        #follower/following counts if available
         followers_match = re.search(r'(\d+[KM]?)\s+followers', data, re.IGNORECASE)
         if followers_match:
             profile["followers"] = followers_match.group(1)
@@ -153,7 +153,7 @@ def extract_education_info(data: str) -> list:
     """
     education_items = []
     try:
-        # Look for education/college sections
+        #education/college sections
         edu_pattern = r'"field_section_type":"(?:college|secondary_school)"[^}]*"title":\s*{\s*"text":"([^"]+)"'
         matches = re.finditer(edu_pattern, data, re.DOTALL)
         for match in matches:
@@ -179,16 +179,17 @@ def extract_photos(data: str) -> list:
     """
     photos = []
     try:
-        # Extract photo URLs from src attributes and image URLs
+        #photo urls from src attributes and image URLs
         photo_pattern = r'"uri":"(https://scontent[^"]+)"'
         matches = re.finditer(photo_pattern, data)
 
-        seen_urls = set()  # Avoid duplicates
+        seen_urls = set()
         for match in matches:
             url = match.group(1)
-            # Filter for actual image URLs and avoid duplicates
+
+            #filter for actual image urls and avoid duplicates
             if "_n.jpg" in url or "_n.png" in url or ".webp" in url:
-                if url not in seen_urls and len(photos) < 20:  # Limit to 20 photos
+                if url not in seen_urls and len(photos) < 20:  #20 photos limitttt
                     photos.append(fix_profile_pic_url(url))
                     seen_urls.add(url)
     except Exception as e:
@@ -227,21 +228,24 @@ def close_login_popup(page):
     Returns:
         bool: True if popup was closed, False if no popup found
     """
+
+
     try:
-        # Wait a moment for popup to appear if it exists
+
+        #Wait a moment for popup to appear if it exists
         time.sleep(1)
 
-        # Multiple selectors for the close button across different Facebook layouts
+        #close button across different Facebook layouts
         close_button_selectors = [
             'button[aria-label="Close"]',
             'button[aria-label="close"]',
             'div[role="button"][aria-label="Close"]',
             'div[role="button"][aria-label="close"]',
-            'button.x9f619.x1iyjqo2',  # Facebook's X button class
+            'button.x9f619.x1iyjqo2',  #facebooks x button class
             '[data-testid="modal_close_button"]',
             'button[aria-label*="Close"]',
-            'svg[aria-label="Close"] ..',  # SVG close icon
-            '.x1iyjqo2.xs83m0k.x6ikm8r.x10wlt62',  # Another close button variant
+            'svg[aria-label="Close"] ..',  #svg close icon
+            '.x1iyjqo2.xs83m0k.x6ikm8r.x10wlt62',  #Another close button variant
         ]
 
         popup_selectors = [
@@ -250,23 +254,27 @@ def close_login_popup(page):
             '.x9f619',
         ]
 
-        # Check if a popup/dialog is visible
+        #Check for popup/dialog
         for popup_selector in popup_selectors:
             try:
                 popups = page.query_selector_all(popup_selector)
                 if popups:
                     logging.info(f"Found popup with selector: {popup_selector}")
 
-                    # Try to find and click the close button within the popup
+                    #try to find and click the close button within the popup
                     for close_selector in close_button_selectors:
                         try:
+
                             close_button = page.query_selector(close_selector)
                             if close_button:
+
                                 logging.info(f"Found close button: {close_selector}")
                                 page.click(close_selector)
                                 time.sleep(1)  # Wait for popup to close
                                 logging.info("Successfully closed login popup")
                                 return True
+
+
                         except Exception:
                             continue
             except Exception:
@@ -277,6 +285,9 @@ def close_login_popup(page):
     except Exception as e:
         logging.warning(f"Error handling login popup: {e}")
         return False
+
+
+
 
 
 def FacebookDownloadRenderedHtml(url): #fixme make it download all the informatin facebook
@@ -302,23 +313,23 @@ def FacebookDownloadRenderedHtml(url): #fixme make it download all the informati
 
         time.sleep(3)
 
-        # Close any login popups
+        #close any login popups
         if close_login_popup(page):
             logging.info("Login popup closed, waiting for content to load...")
-            time.sleep(5)  # IMPORTANT: Wait for content to render
+            time.sleep(5) #wait for content to render
 
-            # CRUCIAL: Scroll multiple times to trigger lazy-loading of all profile data
-            # Photos, work info, education, and other details load as you scroll
+            #scroll
             logging.info("Scrolling profile to load dynamic content...")
-            for scroll_iter in range(6):  # Scroll 6 times
-                page.evaluate("window.scrollBy(0, window.innerHeight);")
-                time.sleep(1)  # Wait for content to load after each scroll
 
-            # Scroll back to top to ensure all visible content is in the DOM
+            for scroll_iter in range(6):  #scroll 6 times
+                page.evaluate("window.scrollBy(0, window.innerHeight);")
+                time.sleep(1)  #wait for content to load after each scroll
+
+            #scroll back to top
             page.evaluate("window.scrollTo(0, 0);")
             time.sleep(2)
 
-            # Final wait for network to settle
+            #wait for network to settle
             try:
                 page.wait_for_load_state("networkidle", timeout=5000)
             except:
@@ -326,7 +337,7 @@ def FacebookDownloadRenderedHtml(url): #fixme make it download all the informati
 
         time.sleep(2)
 
-        # Extract the fully rendered HTML
+        #exctarct the fully rendered html
         html_content = page.content()
         filepath = os.path.join(TEMP_FOLDER_PATH, f'{filename}.html')
 
@@ -349,12 +360,14 @@ def FacebookDownloadRenderedHtmlWithRetry(url, max_retries=3):
     Returns:
         str: Filename if successful, None if failed
     """
+
+
     for attempt in range(max_retries):
         try:
             logging.info(f"Attempt {attempt + 1}/{max_retries}")
             FacebookDownloadRenderedHtml(url)
 
-            # Check if the HTML was successfully saved and contains meaningful data
+            #check if the html was successfully saved and contains meaningful data
             path_part = url.split("://")[-1]
             filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
             filename = filename.replace(":", "_")
@@ -408,6 +421,6 @@ def FacebookFullScan(username) -> dict:
 
 
 if __name__ == "__main__":
-    result = FacebookFullScan("https://www.facebook.com/oshri.bouhnik")
+    result = FacebookFullScan("https://www.facebook.com/test")
     for key, value in result.items():
         print(f"{key}: {value}")

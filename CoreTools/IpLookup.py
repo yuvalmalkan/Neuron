@@ -3,7 +3,7 @@ __author__ = "Yuval Malkan"
 import requests
 import re
 import subprocess
-
+import subprocess
 
 def get_ip_info(ip: str) -> dict:
     res = requests.get(f"https://ipinfo.io/{ip}/json", timeout=10)
@@ -29,10 +29,10 @@ def get_ip_info(ip: str) -> dict:
 
 def ping_and_fingerprint(ip: str) -> dict:
     try:
-        # Run a single ping command (macOS/Linux syntax)
+        #run ping command
         output = subprocess.check_output(["ping", "-c", "1", "-W", "2", ip], text=True)
 
-        # Extract TTL using a basic regex
+        #extract ttl using regex
         ttl_match = re.search(r"ttl=(\d+)", output)
         if ttl_match:
             ttl = int(ttl_match.group(1))
@@ -52,7 +52,7 @@ def ping_and_fingerprint(ip: str) -> dict:
 
 
 
-import subprocess
+
 
 def get_whois_info(ip: str) -> str:
     try:
@@ -83,16 +83,5 @@ if __name__ == "__main__":
 
 
 
-"""
-Connection-specific DNS Suffix  . : lan
-   IPv6 Address. . . . . . . . . . . : 2a0d:6fc2:5ad1:8c00:f005:2ad8:39cf:d2ea
-   Temporary IPv6 Address. . . . . . : 2a0d:6fc2:5ad1:8c00:d447:dd17:d773:8e7a
-   Link-local IPv6 Address . . . . . : fe80::f955:e95:a49e:852e%17
-   IPv4 Address. . . . . . . . . . . : 192.168.1.175
-   Subnet Mask . . . . . . . . . . . : 255.255.255.0
-   Default Gateway . . . . . . . . . : fe80::d635:1dff:fe4f:e24d%17
-                                       192.168.1.1
-
-"""
 
 

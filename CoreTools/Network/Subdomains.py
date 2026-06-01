@@ -17,7 +17,7 @@ def enumerate_subdomains(domain: str) -> list[dict]:
         "support", "help", "status", "monitor", "ns1", "ns2",
     ]
 
-    # Use raw domain (strip leading http/https)
+    #use raw domain (strip leading http/https)
     clean_domain = re.sub(r"^https?://", "", domain.strip()).rstrip("/")
     found = []
 

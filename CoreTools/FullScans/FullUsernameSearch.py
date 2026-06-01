@@ -52,7 +52,7 @@ def search_username_complete(username: str) -> dict:
     import time
     start_time = time.time()
 
-    # Run Telegram in its own thread early — reads result from JSON file after
+    #run telegram in its own thread early, reads result from json file after
     telegram_thread = threading.Thread(target=lookup_username_sync, args=(username,), daemon=True)
     telegram_thread.start()
 
@@ -76,10 +76,10 @@ def search_username_complete(username: str) -> dict:
             except Exception as e:
                 report["sources"][key] = {"error": str(e)}
 
-    # Wait for Telegram thread to finish and write its JSON
+    #wait for Telegram thread to finish and write its json
     telegram_thread.join(timeout=60)
 
-    # Read Telegram result from the JSON file it writes to temp
+    #read Telegram result from the json file it writes to temp
     import os
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     telegram_json_path = os.path.join(BASE_DIR, "CoreTools", "temp", f"telegram_username_{username}.json")
@@ -134,7 +134,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
 
     # Telegram results
     telegram_data = sources.get("telegram", {})
-    if isinstance(telegram_data, dict):  # Remove the "not error" check
+    if isinstance(telegram_data, dict):
         summary["telegram"] = {
             "found": telegram_data.get("found", False),
             "user_id": telegram_data.get("telegram_id"),
@@ -148,7 +148,7 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             "has_photo": telegram_data.get("has_profile_photo"),
             "profile_photo": telegram_data.get("profile_photo_saved"),
             "profile_url": telegram_data.get("profile_url"),
-            "error": telegram_data.get("error"),  # Add error field
+            "error": telegram_data.get("error"),
         }
 
     # Instagram results
@@ -165,16 +165,20 @@ def _build_username_summary(sources: dict, username: str) -> dict:
             "profile_url": instagram_data.get("profile_url"),
         }
     else:
-        summary["instagram"] = instagram_data  # Include error if present
+        summary["instagram"] = instagram_data
+
+
 
     # Facebook results
     facebook_data = sources.get("facebook", {})
     if facebook_data and isinstance(facebook_data, dict) and not facebook_data.get("error"):
         summary["facebook"] = facebook_data
     else:
-        summary["facebook"] = facebook_data  # Include error if present
+        summary["facebook"] = facebook_data
 
     return summary
+
+
 
 
 def print_username_report(report: dict):
@@ -262,7 +266,7 @@ def print_username_report(report: dict):
 
 
 def save_username_report(report: dict):
-    """Save the complete report to JSON in temp folder"""
+    """Save the complete report to json in temp folder"""
     import os
 
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

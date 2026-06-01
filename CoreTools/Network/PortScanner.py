@@ -5,7 +5,7 @@ from Helpers import resolve_target
 
 
 def port_scanner(target: str) -> list[dict]:
-    """Fast TCP connect scan on common ports."""
+    """scan common ports."""
     COMMON_PORTS = {
         21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP",
         53: "DNS", 80: "HTTP", 110: "POP3", 143: "IMAP",

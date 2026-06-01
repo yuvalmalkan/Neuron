@@ -23,15 +23,18 @@ def downloadHtml(url):
     returns: void, downloads html into temp folder
 
     """
+
+
     try:
-        # Get absolute path to project root's temp folder
+        #get absolute path to project roots temp folder
         BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         TEMP_FOLDER_PATH = os.path.join(BASE_DIR, "temp")
         os.makedirs(TEMP_FOLDER_PATH, exist_ok=True)  # Ensure folder exists
 
-        path_part = url.split("://")[-1]  # "www.instagram.com/john.doe/"
+        path_part = url.split("://")[-1]  # "www.instagram.com/malkan/"
 
-        # For Instagram, extract username from URL if possible
+
+        #for instagram, extract username from url
         if "instagram.com/" in path_part:
 
             username = path_part.split("instagram.com/")[-1].rstrip("/")
@@ -40,10 +43,10 @@ def downloadHtml(url):
 
 
         else:
-            # For other URLs, sanitize but keep dots in the actual content
+            #for other urls, sanitize but keep dots in the actual content
             filename = path_part.replace("/", "_").replace("?", "_").replace("&", "_")
 
-        # Remove any remaining problematic characters
+        #remove any remaining problematic characters
         filename = filename.replace(":", "_")
 
         if not filename:

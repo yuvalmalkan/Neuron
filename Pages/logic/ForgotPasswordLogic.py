@@ -110,16 +110,17 @@ def VerifyOTP(email, codeAttempt):
     if email in pendingUsers:
         user_data = pendingUsers[email]
 
-        # Check if code expired
+        #check if code expired
         if time.time() > user_data['expiredTime']:
             del pendingUsers[email]
             logging.warning(f"OTP expired for {email}")
             return (RESP_ERROR, "Code expired, please request a new one")
 
 
-        # Check if code matches
+        #check if code matches
         elif user_data['code'] == codeAttempt:
-            # Code is valid - user can now reset password
+
+            #code is valid!! user can now reset password
             logging.info(f"OTP verified successfully for {email}")
             return (RESP_VERIFY_OK, "Code verified successfully")
 

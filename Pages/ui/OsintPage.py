@@ -233,7 +233,7 @@ class InputBar(QWidget):
 
 
 class AiSummaryBubble(QWidget):
-    """AI-generated intelligence summary — visually distinct from raw data bubbles."""
+    """AI-generated intelligence summary"""
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
@@ -252,7 +252,7 @@ class AiSummaryBubble(QWidget):
         inner.setContentsMargins(14, 10, 14, 10)
         inner.setSpacing(6)
 
-        header = QLabel("⬡  AI INTELLIGENCE SUMMARY")
+        header = QLabel("NEURON'S ARTIFICIAL INTELLIGENCE SUMMARY")
         header.setFont(QFont(FONT_MONO, 11, QFont.Weight.Bold))
         header.setStyleSheet(f"color: {TEXT_TITLE}; background: transparent; border: none;")
         inner.addWidget(header)
@@ -296,9 +296,7 @@ class WelcomeBubble(QWidget):
         row.addStretch()
 
 
-# ──────────────────────────────────────────
-#  OSINT DASHBOARD
-# ──────────────────────────────────────────
+
 
 class OsintDashboard(QWidget):
     results_ready = pyqtSignal(str)
@@ -313,7 +311,7 @@ class OsintDashboard(QWidget):
         self._listener_thread = None
         self._build_ui()
 
-        # FIX: Explicitly queue the connections to the main thread
+
         self.results_ready.connect(self._on_results_ready, Qt.ConnectionType.QueuedConnection)
         self.error_occurred.connect(self._on_error, Qt.ConnectionType.QueuedConnection)
         self.ai_summary_ready.connect(self._on_ai_summary_ready, Qt.ConnectionType.QueuedConnection)
@@ -322,7 +320,8 @@ class OsintDashboard(QWidget):
         self._hide_typing()
         self._add(SystemBubble(result_text))
         self._bar.set_enabled(True)
-        # Kick off Gemini summary in background — doesn't block the UI
+
+        # Gemini summary in background
         threading.Thread(
             target=self._run_ai_summary,
             args=(result_text,),

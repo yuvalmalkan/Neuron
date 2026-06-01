@@ -12,7 +12,7 @@ def sherlock_search_username(username: str) -> list:
     def timer():
         while not stop_timer.is_set():
             elapsed = int(time.time() - start_time)
-            print(f"\rSearching... {elapsed}s elapsed", end="", flush=True)
+            print(f"\rsearching... {elapsed}s elapsed", end="", flush=True)
             time.sleep(1)
 
     timer_thread = threading.Thread(target=timer)
@@ -40,7 +40,7 @@ def sherlock_search_username(username: str) -> list:
                 })
 
     total_time = round(time.time() - start_time, 1)
-    print(f"Done in {total_time}s — found {len(found)} accounts")
+    print(f"done in {total_time}s — found {len(found)} accounts")
     return found
 
 
@@ -49,4 +49,4 @@ if __name__ == "__main__":
     results = sherlock_search_username(user)
     print()
     for r in results:
-        print(f"  → {r['site']}: {r['url']}")
+        print(f"{r['site']}: {r['url']}")

@@ -16,12 +16,9 @@ from datetime import datetime
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 
 
-# ──────────────────────────────────────────
-#  HELPERS
-# ──────────────────────────────────────────
-
+#helpers
 def resolve_target(target: str) -> str | None:
-    """Resolve a domain to IP. Returns the IP string or None on failure."""
+    """resolve a domain to ip. returns the ip string or none on failure."""
     try:
         return socket.gethostbyname(target.strip())
     except socket.gaierror:
@@ -38,12 +35,11 @@ def is_ip(target: str) -> bool:
         return False
 
 
-# ──────────────────────────────────────────
-#  INDIVIDUAL MODULE WORKERS
-# ──────────────────────────────────────────
 
+#MODULE WORKERS
 class IpIntelWorker(QObject):
-    """Uses socket + ipinfo.io (no API key needed for basic info)."""
+    """Uses socket + ipinfo.io"""
+
     finished = pyqtSignal(dict)   # emits result dict
     error    = pyqtSignal(str)
 
@@ -77,8 +73,10 @@ class IpIntelWorker(QObject):
             self.error.emit(str(e))
 
 
+
+
 class PortScanWorker(QObject):
-    """Fast TCP connect scan on common ports."""
+    """scan on common ports."""
     finished = pyqtSignal(list)   # list of dicts: {port, state, service}
     error    = pyqtSignal(str)
 
@@ -116,7 +114,7 @@ class PortScanWorker(QObject):
 
 
 class WhoisWorker(QObject):
-    """Runs system whois and returns raw cleaned text."""
+    """runs system whois and returns raw cleaned text."""
     finished = pyqtSignal(str)
     error    = pyqtSignal(str)
 
@@ -130,13 +128,15 @@ class WhoisWorker(QObject):
                 ["whois", self.target.strip()],
                 capture_output=True, text=True, timeout=10
             )
-            # Strip comment lines and blank lines for cleaner output
+
+            #strip comment lines and blank lines for cleaner output
             lines = [
                 l for l in proc.stdout.splitlines()
                 if l.strip() and not l.strip().startswith("%")
                 and not l.strip().startswith("#")
             ]
-            self.finished.emit("\n".join(lines[:40]))  # cap at 40 lines
+
+            self.finished.emit("\n".join(lines[:40]))  #cap 40 lines
         except Exception as e:
             self.error.emit(str(e))
 
@@ -151,6 +151,7 @@ class SubdomainWorker(QObject):
     Tries a wordlist of common subdomains via DNS resolution.
     Lightweight — no external tools needed.
     """
+
     finished = pyqtSignal(list)   # list of dicts: {subdomain, ip}
     error    = pyqtSignal(str)
 
@@ -164,16 +165,20 @@ class SubdomainWorker(QObject):
 
     def __init__(self, domain: str):
         super().__init__()
-        # Use raw domain (strip leading http/https)
+
+        #use raw domain
         self.domain = re.sub(r"^https?://", "", domain.strip()).rstrip("/")
 
     def run(self):
         found = []
+
         for sub in self.WORDLIST:
             fqdn = f"{sub}.{self.domain}"
+
             try:
                 ip = socket.gethostbyname(fqdn)
                 found.append({"subdomain": fqdn, "ip": ip})
+
             except socket.gaierror:
                 pass
         self.finished.emit(found)
@@ -186,23 +191,24 @@ class SubdomainWorker(QObject):
 
 class ScanThread(QThread):
     """
-    Orchestrates all enabled modules sequentially in a single thread.
-    Emits per-module signals as each one completes so the UI can
+    all modules sequentially in a single thread.
+    emits per module signals as each one completes so the ui can
     stream results in real time.
     """
 
-    # One signal per module — UI connects to whichever it needs
-    log_line      = pyqtSignal(str)          # raw status line → terminal feed
+    #one signal per module, ui connects to whichever it needs
+    log_line      = pyqtSignal(str)
     ip_done       = pyqtSignal(dict)
     ports_done    = pyqtSignal(list)
     whois_done    = pyqtSignal(str)
     subdomains_done = pyqtSignal(list)
-    scan_complete = pyqtSignal(float)        # total elapsed seconds
+    scan_complete = pyqtSignal(float)        #total elapsed seconds
+
 
     def __init__(self, target: str, modules: list[str]):
         """
-        target  : IP or domain string
-        modules : list of module names to run, e.g. ["ip", "ports", "whois", "subdomains"]
+        target  :ip or domain string
+        modules :list of module names to run
         """
         super().__init__()
         self.target  = target.strip()
@@ -219,7 +225,7 @@ class ScanThread(QThread):
         else:
             self.log_line.emit(f"   [!] could not resolve {self.target!r}")
 
-        # ── IP INTEL ──
+        #ip intel
         if "ip" in self.modules:
             self.log_line.emit("   [ IP INTEL ]  querying ipinfo.io...")
             worker = IpIntelWorker(self.target)
@@ -229,7 +235,7 @@ class ScanThread(QThread):
             worker.run()
             self.log_line.emit("   [ IP INTEL ]  done")
 
-        # ── PORT SCAN ──
+        #port scan
         if "ports" in self.modules:
             self.log_line.emit("   [ PORT SCAN ]  scanning common ports...")
             worker = PortScanWorker(self.target)
@@ -238,7 +244,7 @@ class ScanThread(QThread):
             worker.run()
             self.log_line.emit("   [ PORT SCAN ]  done")
 
-        # ── WHOIS ──
+        #whois
         if "whois" in self.modules:
             self.log_line.emit("   [ WHOIS ]      running whois...")
             worker = WhoisWorker(self.target)
@@ -247,7 +253,7 @@ class ScanThread(QThread):
             worker.run()
             self.log_line.emit("   [ WHOIS ]      done")
 
-        # ── SUBDOMAINS ──
+        #subdomains
         if "subdomains" in self.modules:
             self.log_line.emit("   [ SUBDOMAINS ] enumerating...")
             worker = SubdomainWorker(self.target)

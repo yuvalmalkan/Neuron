@@ -5,7 +5,7 @@ import threading
 import time
 import re
 
-# Filter out these sites (false positives)
+#false positives
 FALSE_POSITIVE_SITES = [
     "OP.GG", "Tom's guide", "mercadolivre", "opensea.io",
     "iXBT", "Livemaster", "3ddd", "Kaskus", "AdultFriendFinder",
@@ -28,7 +28,7 @@ def Maigret_search_username(username: str) -> dict:
     def timer():
         while not stop_timer.is_set():
             elapsed = int(time.time() - start_time)
-            print(f"\rSearching... {elapsed}s elapsed", end="", flush=True)
+            print(f"\rsearching... {elapsed}s elapsed", end="", flush=True)
             time.sleep(1)
 
     timer_thread = threading.Thread(target=timer)
@@ -50,6 +50,8 @@ def Maigret_search_username(username: str) -> dict:
     current_url  = None
     current_details = {}
 
+
+
     for raw_line in result.stdout.split("\n"):
         line = strip_ansi(raw_line).strip()
 
@@ -57,8 +59,9 @@ def Maigret_search_username(username: str) -> dict:
                     or line.startswith("[-]") or line.startswith("[*]"):
             continue
 
+
         if line.startswith("[+]"):
-            # Save previous entry
+            #save previous entry
             if current_site and current_url:
                 if not any(fp in current_site for fp in FALSE_POSITIVE_SITES):
                     found.append({
@@ -66,7 +69,8 @@ def Maigret_search_username(username: str) -> dict:
                         "url":     current_url,
                         "details": current_details
                     })
-            # Parse new entry
+
+            #parse new entry
             content = line.replace("[+]", "").strip()
             parts = content.split(": ", 1)
             current_site    = parts[0].strip() if len(parts) == 2 else content
@@ -79,7 +83,7 @@ def Maigret_search_username(username: str) -> dict:
                 key, value = detail.split(": ", 1)
                 current_details[key.strip()] = value.strip()
 
-    # Save last entry
+    #save last entry
     if current_site and current_url:
         if not any(fp in current_site for fp in FALSE_POSITIVE_SITES):
             found.append({

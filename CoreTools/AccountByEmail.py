@@ -6,12 +6,12 @@ import requests
 import concurrent.futures
 from urllib.parse import quote
 
-# Default User-Agent to prevent basic blocks
+#default user agent
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
 
 
 def _load_data(json_path: str) -> list:
-    """Internal function to load site configurations."""
+    """internal function to load site configurations."""
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"Configuration file '{json_path}' not found.")
 
@@ -21,7 +21,7 @@ def _load_data(json_path: str) -> list:
 
 
 def _execute_pre_check(session: requests.Session, pre_check_data: dict) -> str:
-    """Internal function to fetch necessary cookies/tokens before the main request."""
+    """internal function to fetch necessary cookies/tokens before the main request."""
     try:
         url = pre_check_data.get("endpoint")
         method = pre_check_data.get("method", "GET")
@@ -40,7 +40,7 @@ def _execute_pre_check(session: requests.Session, pre_check_data: dict) -> str:
 
 
 def _check_site(email: str, site: dict) -> dict:
-    """Internal function to check a single site for the existence of the email."""
+    """internal function to check a single site for the existence of the email"""
     session = requests.Session()
 
     name = site.get("name")
@@ -53,7 +53,8 @@ def _check_site(email: str, site: dict) -> dict:
     e_string = site.get("e_string")
     m_string = site.get("m_string")
 
-    # Handle pre-checks (e.g., getting CSRF tokens)
+
+    #handle pre checks
     pre_check = site.get("pre_check")
     if pre_check:
         token = _execute_pre_check(session, pre_check)
@@ -73,12 +74,14 @@ def _check_site(email: str, site: dict) -> dict:
         "category": site.get("cat", "unknown")
     }
 
+
+
     try:
         response = session.request(method, url, data=data, headers=headers, timeout=15)
         res_text = response.text
         res_code = response.status_code
 
-        # Validation Logic
+        #validation Logic
         if m_string and m_string in res_text:
             return result
 
@@ -131,7 +134,6 @@ def scan_email(email: str, json_path: str = "email-data.json", max_threads: int 
                     final_output["found_accounts"].append(res)
                     final_output["total_found"] += 1
             except Exception as exc:
-                # Handle any unexpected thread crashes silently to keep the function robust
                 pass
 
     return final_output
