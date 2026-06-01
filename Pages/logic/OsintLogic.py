@@ -2,19 +2,102 @@ __author__ = 'Yuval Malkan'
 
 import re
 import logging
-
-# FIX: Import on the main thread at module load time to prevent gRPC segfaults
 from Gemini import ask_gemini
+import json
+
+
+def format_ai_response(raw_text: str) -> str:
+    """Cleans markdown tags from Gemini's response and formats the JSON into a terminal report."""
+    # 1. Clean markdown code blocks
+    cleaned = raw_text.strip()
+    if cleaned.startswith("```json"):
+        cleaned = cleaned[7:]
+    elif cleaned.startswith("```"):
+        cleaned = cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+
+    try:
+        data = json.loads(cleaned.strip())
+        profile = data.get("target_profile", {})
+        if not profile:
+            return raw_text  # Fallback if schema doesn't match
+
+        lines = []
+
+        # --- CORE IDENTITY ---
+        core = profile.get("core_identity", {})
+        if core:
+            lines.append("[CORE IDENTITY]")
+            lines.append("─" * 60)
+
+            alias = core.get("primary_name_or_alias", {})
+            if alias.get("deduction"):
+                lines.append(
+                    f"  Primary Alias : {alias.get('deduction')} ({alias.get('confidence_score', 0)}% confidence)")
+                lines.append(f"  ↳ Reasoning   : {alias.get('justification', '')}")
+
+            contacts = core.get("contact_info", [])
+            for c in contacts:
+                lines.append(
+                    f"  Contact       : {c.get('value')} [{c.get('type')}] ({c.get('confidence_score', 0)}% confidence)")
+
+        # --- BEHAVIORAL ANALYSIS ---
+        behav = profile.get("behavioral_analysis", {})
+        if behav:
+            lines.append("\n[BEHAVIORAL ANALYSIS]")
+            lines.append("─" * 60)
+
+            prof = behav.get("inferred_profession", {})
+            if prof.get('deduction') and prof.get('deduction') != "Unknown":
+                lines.append(f"  Profession : {prof.get('deduction')} ({prof.get('confidence_score', 0)}% confidence)")
+
+            hobbies = behav.get("hobbies_and_interests", [])
+            if hobbies:
+                lines.append("  Interests  :")
+                for h in hobbies:
+                    lines.append(f"    • {h.get('deduction')} ({h.get('confidence_score', 0)}%)")
+                    lines.append(f"      ↳ {h.get('justification')}")
+
+            lifestyle = behav.get("lifestyle_indicators", [])
+            if lifestyle:
+                lines.append("  Lifestyle  :")
+                for l in lifestyle:
+                    lines.append(f"    • {l.get('deduction')} ({l.get('confidence_score', 0)}%)")
+
+        # --- INVESTIGATIVE PIVOTS ---
+        pivots = profile.get("investigative_pivots", {})
+        if pivots:
+            lines.append("\n[INVESTIGATIVE PIVOTS]")
+            lines.append("─" * 60)
+
+            vulns = pivots.get("opsec_vulnerabilities", [])
+            if vulns:
+                lines.append("  ⚠️ OPSEC Vulnerabilities:")
+                for v in vulns:
+                    lines.append(f"    • {v}")
+
+            steps = pivots.get("recommended_next_steps", [])
+            if steps:
+                lines.append("\n  🎯 Recommended Next Steps:")
+                for s in steps:
+                    lines.append(f"    • {s}")
+
+        return "\n".join(lines).strip()
+
+    except json.JSONDecodeError:
+        # If Gemini didn't return valid JSON, just return exactly what it said
+        return raw_text
+
 
 def generate_ai_summary(raw_results: str) -> str:
     """Pass raw OSINT results string to Gemini and return the AI summary."""
     try:
-        # Now we just call the already-loaded function
-        return ask_gemini(raw_results)
+        raw_ai_response = ask_gemini(raw_results)
+        return format_ai_response(raw_ai_response)
     except Exception as e:
         logging.error(f"Gemini summary error: {e}", exc_info=True)
         return f"[AI summary unavailable: {e}]"
-
 
 def parse_target_input(raw: str) -> dict:
     """Parse a free-form input string into typed OSINT fields."""
