@@ -29,7 +29,7 @@ CMD_RESEND = "RSEND"
 CMD_FORGOT = "FRGOT"
 CMD_RESET = "RESET"
 
-# ── P2P CHAT COMMANDS ──
+# ── CHAT COMMANDS ──
 CMD_CHAT_INIT = "CINIT"     # Registers the chat socket with the server
 CMD_FETCH_USERS = "FUSRS"   # Request list of online users
 CMD_CHAT_REQUEST = "CREQ"   # Send request to a peer
