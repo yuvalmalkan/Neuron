@@ -339,7 +339,7 @@ class NetworkPage(QWidget):
         target_prefix.setFont(QFont(FONT_MONO, 10))
         target_prefix.setStyleSheet(f"color: {TEXT_TERMINAL}; background: transparent; border: none;")
 
-        self._target_input = GlowInput("IP address, domain, or CIDR range...")
+        self._target_input = GlowInput("IP address, domain...")
         self._target_input.returnPressed.connect(self._on_scan)
 
         self._scan_btn  = GlowingButton("▶  INITIATE SCAN", "primary")
