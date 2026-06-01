@@ -24,7 +24,9 @@ class UserDatabase:
         Args:
             db_file: Path to pickle database file (default: Databases/users.pkl)
         """
-        # Ensure directory exists
+
+
+        #ensure directory exists
         db_dir = os.path.dirname(db_file)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)

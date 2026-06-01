@@ -2,7 +2,7 @@ __author__ = "Yuval Malkan"
 
 import logging
 
-# Global session data
+#global session data
 _session = {
     'user_id': None,
     'username': None,

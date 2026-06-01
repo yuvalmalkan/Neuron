@@ -43,8 +43,6 @@ def ecc_exchange(private_key, peer_public_key):
     return shared_secret
 
 
-
-
 def derive_key_hkdf(shared_key, length=32, info=b'handshake data'):
     """
     Derive cryptographic key using HKDF (HMAC-based Key Derivation Function).
@@ -123,10 +121,6 @@ def derive_key_argon2(password: bytes, salt: bytes, hash_len=32):
     return derived_key
 
 
-# ============================================================================
-# PASSWORD HASHING (ARGON2)
-# ============================================================================
-
 def hash_password_argon2(password: str):
     """
     Hash password using Argon2 for storage in database.
@@ -167,10 +161,6 @@ def verify_password_argon2(hash_str: str, password: str):
         return False
 
 
-# ============================================================================
-# RSA ENCRYPTION (INDUSTRY STANDARD: OAEP + SHA-256)
-# ============================================================================
-
 def generate_rsa_keypair(key_size=2048):
     """
     Generate RSA keypair (industry standard: 2048-bit minimum, 4096-bit recommended).
@@ -186,7 +176,7 @@ def generate_rsa_keypair(key_size=2048):
 
     logging.debug(f"Generating RSA {key_size}-bit keypair")
     private_key = rsa.generate_private_key(
-        public_exponent=65537,  # Industry standard exponent
+        public_exponent=65537,
         key_size=key_size,
     )
     public_key = private_key.public_key()
@@ -213,10 +203,9 @@ def save_rsa_keys(private_key, public_key, private_key_password: bytes,
     logging.info(f"Saving RSA keys: private={priv_filename}, public={pub_filename}")
 
     try:
-        # Serialize private key with encryption
         pem_private = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,  # Industry standard format
+            format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.BestAvailableEncryption(private_key_password)
         )
 
@@ -224,10 +213,9 @@ def save_rsa_keys(private_key, public_key, private_key_password: bytes,
             f.write(pem_private)
         logging.debug(f"Private key saved to {priv_filename}")
 
-        # Serialize public key
         pem_public = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo  # Industry standard
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
         with open(pub_filename, 'wb') as f:
@@ -297,9 +285,8 @@ def rsaEncrypt(public_key, message: bytes):
     Raises:
         ValueError: If message is too long
     """
-    # Calculate max message size
     key_size = public_key.key_size
-    max_msg_size = (key_size // 8) - 66  # OAEP overhead with SHA-256
+    max_msg_size = (key_size // 8) - 66
 
     if len(message) > max_msg_size:
         logging.error(f"Message too long: {len(message)} > {max_msg_size} bytes")
@@ -308,12 +295,11 @@ def rsaEncrypt(public_key, message: bytes):
     logging.debug(f"RSA encrypting {len(message)} bytes with {key_size}-bit key")
 
     try:
-        # OAEP padding is industry standard (PKCS#1 v2.1)
         encrypted_message = public_key.encrypt(
             message,
             padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),  # MGF1 with SHA256
-                algorithm=hashes.SHA256(),  # Use SHA256 for OAEP
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
                 label=None
             )
         )
@@ -354,14 +340,9 @@ def rsaDecrypt(private_key, encrypted_message: bytes):
         return message
 
     except ValueError as e:
-        # Use proper exception instead of returning error message
         logging.error(f"RSA decryption failed: Invalid ciphertext or key mismatch")
         raise ValueError("RSA decryption failed: Invalid ciphertext or incorrect key") from e
 
-
-# ============================================================================
-# AES ENCRYPTION (AES-256-CBC WITH PKCS7 PADDING)
-# ============================================================================
 
 def generateAES():
     """
@@ -377,8 +358,8 @@ def generateAES():
         Both should be transmitted securely to recipient.
     """
     logging.debug("Generating AES-256 key and IV")
-    key = os.urandom(32)  # 256 bits for AES-256
-    iv = os.urandom(16)  # 128 bits for CBC block size
+    key = os.urandom(32)
+    iv = os.urandom(16)
     logging.debug(f"Generated AES key ({len(key)} bytes) and IV ({len(iv)} bytes)")
     return key, iv
 
@@ -404,11 +385,9 @@ def aesEncrypt(key: bytes, iv: bytes, plaintext: str) -> bytes:
     try:
         plaintext_bytes = plaintext.encode('utf-8')
 
-        # Apply PKCS7 padding (industry standard)
         padder = sym_padding.PKCS7(algorithms.AES.block_size).padder()
         padded_data = padder.update(plaintext_bytes) + padder.finalize()
 
-        # Encrypt with AES-256-CBC
         cipher = Cipher(
             algorithms.AES(key),
             modes.CBC(iv),
@@ -451,7 +430,6 @@ def aesDecrypt(key: bytes, iv: bytes, ciphertext: bytes) -> str:
         decryptor = cipher.decryptor()
         padded_data = decryptor.update(ciphertext) + decryptor.finalize()
 
-        # Remove PKCS7 padding
         unpadder = sym_padding.PKCS7(algorithms.AES.block_size).unpadder()
         plaintext_bytes = unpadder.update(padded_data) + unpadder.finalize()
 

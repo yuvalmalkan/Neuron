@@ -15,6 +15,8 @@ class User:
         - email: User email address (must be valid format)
         - password_hash: Argon2 hash of password (never store plain password)
     """
+
+
     
     def __init__(self, username: str, email: str, password_hash: str):
         """
@@ -34,7 +36,9 @@ class User:
         self.password_hash = password_hash
         
         logging.debug(f"User created: id={self.unique_id}, username={username}")
-    
+
+
+
     @staticmethod
     def _validate_username(username: str) -> str:
         """
@@ -56,7 +60,10 @@ class User:
             raise ValueError("Username can only contain alphanumeric characters and underscore")
         
         return username
-    
+
+
+
+
     @staticmethod
     def _validate_email(email: str) -> str:
         """
@@ -80,7 +87,8 @@ class User:
             raise ValueError("Email is too long (max 254 characters)")
         
         return email
-    
+
+
     def to_dict(self) -> dict:
         """
         Convert User object to dictionary for serialization.
@@ -94,7 +102,9 @@ class User:
             'email': self.email,
             'password_hash': self.password_hash
         }
-    
+
+
+
     @classmethod
     def from_dict(cls, data: dict) -> 'User':
         """

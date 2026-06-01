@@ -14,8 +14,8 @@ import sys
 import tempfile
 import os
 
-# Global dictionary to map online usernames to their socket objects
-# Format: { "username": client_socket }
+#global dictionary to map online usernames to their socket objects
+#format: { "username": client_socket }
 active_connections = {}
 connections_lock = threading.Lock()
 
@@ -49,9 +49,14 @@ def main():
             logging.error(f"Server accept error: {e}")
 
 
+
+
+
+
+
 def handle_client(client, userId):
     current_username = None
-    is_chat_session = False  # Track if this connection registered for chat
+    is_chat_session = False  #if this connection registered for chat
 
     try:
         while True:
@@ -64,7 +69,7 @@ def handle_client(client, userId):
                 command = request.get('command')
                 response = None
 
-                # ── AUTHENTICATION ──
+                #auth
                 if command == CMD_SIGNUP:
                     username, email, password = request.get('username'), request.get('email'), request.get('password')
                     success, resp_code, user = handle_signup(username, email, password, user_db)
@@ -77,19 +82,23 @@ def handle_client(client, userId):
                     response = {'status': 'success' if success else 'error', 'code': resp_code}
                     send_one_message(client, json.dumps(response))
 
-                # ── P2P CHAT ROUTING LOGIC ──
+                #chat
                 elif command == CMD_CHAT_INIT:
                     current_username = request.get('username')
-                    is_chat_session = True  # Mark this as a chat session
+                    is_chat_session = True  #chat session mark
                     if current_username:
                         with connections_lock:
                             active_connections[current_username] = client
-                        logging.info(f"[{current_username}] registered for P2P chat.")
+                        logging.info(f"[{current_username}] registered for chat.")
+
+
 
                 elif command == CMD_FETCH_USERS:
                     with connections_lock:
                         online = list(active_connections.keys())
                     send_one_message(client, json.dumps({'type': 'ONLINE_USERS', 'users': online}))
+
+
 
                 elif command == CMD_CHAT_REQUEST:
                     target = request.get('target')
@@ -105,6 +114,8 @@ def handle_client(client, userId):
                             'type': 'ERROR', 'message': f"Target {target} is offline."
                         }))
 
+
+
                 elif command == CMD_CHAT_ACCEPT:
                     target = request.get('target')
                     with connections_lock:
@@ -114,6 +125,8 @@ def handle_client(client, userId):
                             'type': 'REQUEST_ACCEPTED', 'peer': current_username
                         }))
 
+
+
                 elif command == CMD_CHAT_DECLINE:
                     target = request.get('target')
                     with connections_lock:
@@ -122,6 +135,8 @@ def handle_client(client, userId):
                         send_one_message(target_sock, json.dumps({
                             'type': 'REQUEST_DECLINED', 'peer': current_username
                         }))
+
+
 
                 elif command == CMD_DIRECT_MSG:
                     target = request.get('target')
@@ -139,6 +154,8 @@ def handle_client(client, userId):
                             'timestamp': timestamp
                         }))
 
+
+
                 elif command == CMD_END_SESSION:
                     target = request.get('target')
                     with connections_lock:
@@ -148,7 +165,9 @@ def handle_client(client, userId):
                             'type': 'SESSION_ENDED', 'peer': current_username
                         }))
 
-                # ── OSINT COMMANDS ──
+
+
+                #osint
                 elif command == CMD_OSINT_USCAN:
                     username_target = request.get('target_username')
                     logging.info(f"OSINT scan requested for: {username_target}")
@@ -158,19 +177,21 @@ def handle_client(client, userId):
                             'response': RESP_OSINT_ERROR,
                             'message': 'No target username provided'
                         }))
+
+
                     else:
-                        # Run scan in a separate subprocess (completely isolated)
+                        #run scan in a separate subprocess (completely isolated)
                         def run_scan_subprocess():
                             temp_file = None
                             try:
-                                # Create temp file to store results
+                                #create temp file to store results
                                 temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
                                 temp_path = temp_file.name
                                 temp_file.close()
 
                                 logging.info(f"Starting OSINT subprocess for: {username_target}")
 
-                                # Run scan script as subprocess
+                                #run scan script as subprocess
                                 result = subprocess.run(
                                     [sys.executable, '-c', f'''
                                 import json
@@ -196,7 +217,7 @@ def handle_client(client, userId):
                                     cwd=root_dir
                                 )
 
-                                # Read result from temp file
+                                #read result from temp file
                                 if os.path.exists(temp_path):
                                     with open(temp_path, 'r') as f:
                                         response = json.load(f)
@@ -215,6 +236,8 @@ def handle_client(client, userId):
                                     'response': RESP_OSINT_ERROR,
                                     'message': 'Scan timeout'
                                 }))
+
+
                             except Exception as e:
                                 logging.error(f"OSINT subprocess exception: {e}")
                                 try:
@@ -224,11 +247,15 @@ def handle_client(client, userId):
                                     }))
                                 except:
                                     pass
+
+
                             finally:
                                 # Clean up temp file
                                 if temp_file and os.path.exists(temp_path):
                                     try:
                                         os.unlink(temp_path)
+
+
                                     except:
                                         pass
 
@@ -245,22 +272,25 @@ def handle_client(client, userId):
                             'response': RESP_OSINT_ERROR,
                             'message': 'No target email provided'
                         }))
+
+
+
                     else:
-                        # Run scan in a separate subprocess (completely isolated)
+                        #run scan in a separate subprocess (completely isolated)
                         def run_email_scan_subprocess():
                             temp_file = None
                             try:
-                                # Create temp file to store results
+                                #create temp file to store results
                                 temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
                                 temp_path = temp_file.name
                                 temp_file.close()
 
                                 logging.info(f"Starting OSINT subprocess for email: {email_target}")
 
-                                # Get the root directory for proper imports
+                                #get the root directory for proper imports
                                 root_dir = os.path.dirname(os.path.abspath(__file__))
 
-                                # Run scan script as subprocess
+                                #run scan script as subprocess
                                 result = subprocess.run(
                                     [sys.executable, '-c', f'''
 import json
@@ -286,19 +316,21 @@ except Exception as e:
                                     cwd=root_dir  # Set working directory
                                 )
 
-                                # Log subprocess output for debugging
+
                                 if result.stdout:
                                     logging.debug(f"Subprocess stdout: {result.stdout}")
                                 if result.stderr:
                                     logging.warning(f"Subprocess stderr: {result.stderr}")
 
 
-                                # Read result from temp file
+                                #read result from temp file
                                 if os.path.exists(temp_path):
                                     with open(temp_path, 'r') as f:
                                         response = json.load(f)
                                     logging.info(f"OSINT subprocess completed for email: {email_target}")
                                     send_one_message(client, json.dumps(response))
+
+
                                 else:
                                     logging.error(f"OSINT temp file not created for email: {email_target}")
                                     send_one_message(client, json.dumps({
@@ -306,12 +338,15 @@ except Exception as e:
                                         'message': 'Scan failed to write results'
                                     }))
 
+
                             except subprocess.TimeoutExpired:
                                 logging.error(f"OSINT subprocess timeout for email: {email_target}")
                                 send_one_message(client, json.dumps({
                                     'response': RESP_OSINT_ERROR,
                                     'message': 'Scan timeout'
                                 }))
+
+
                             except Exception as e:
                                 logging.error(f"OSINT subprocess exception: {e}", exc_info=True)
                                 try:
@@ -321,8 +356,11 @@ except Exception as e:
                                     }))
                                 except:
                                     pass
+
+
+
                             finally:
-                                # Clean up temp file
+                                #clean up temp file
                                 if temp_file and os.path.exists(temp_path):
                                     try:
                                         os.unlink(temp_path)
@@ -342,6 +380,8 @@ except Exception as e:
                             'response': RESP_OSINT_ERROR,
                             'message': 'No target phone provided'
                         }))
+
+
                     else:
                         def run_phone_scan_subprocess():
                             temp_file = None
@@ -400,6 +440,8 @@ except Exception as e:
                                     'response': RESP_OSINT_ERROR,
                                     'message': 'Scan timeout'
                                 }))
+
+
                             except Exception as e:
                                 logging.error(f"OSINT subprocess exception: {e}", exc_info=True)
                                 try:
@@ -407,8 +449,12 @@ except Exception as e:
                                         'response': RESP_OSINT_ERROR,
                                         'message': str(e)
                                     }))
+
+
                                 except:
                                     pass
+
+
                             finally:
                                 if temp_file and os.path.exists(temp_path):
                                     try:
@@ -424,13 +470,17 @@ except Exception as e:
 
             except json.JSONDecodeError:
                 send_one_message(client, json.dumps({'type': 'ERROR', 'message': 'Invalid JSON format'}))
+
+
             except Exception as e:
                 logging.error(f"Error processing command: {e}")
 
     except Exception as e:
         logging.error(f"Client handler error: {e}")
+
+
     finally:
-        # Only unregister from active sessions if this was a chat session
+        #only unregister from active sessions if this was a chat session
         if is_chat_session and current_username:
             with connections_lock:
                 if current_username in active_connections:
