@@ -6,7 +6,7 @@ import requests
 from pathlib import Path
 
 
-# ── Load sites from JSON ──────────────────────────────────────────────────────
+
 
 def load_sites(json_path: str = "sites.json") -> dict:
     """
@@ -32,8 +32,6 @@ def load_sites(json_path: str = "sites.json") -> dict:
 
 sites = load_sites()
 
-
-# ── Core logic ────────────────────────────────────────────────────────────────
 
 def check_not_found_strings(response_text: str, not_found_strings: list) -> bool:
     """Returns True if any not-found indicator is found in the page text."""
