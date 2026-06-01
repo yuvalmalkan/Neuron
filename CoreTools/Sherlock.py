@@ -12,7 +12,7 @@ def sherlock_search_username(username: str) -> list:
     def timer():
         while not stop_timer.is_set():
             elapsed = int(time.time() - start_time)
-            print(f"\r⏱ Searching... {elapsed}s elapsed", end="", flush=True)
+            print(f"\rSearching... {elapsed}s elapsed", end="", flush=True)
             time.sleep(1)
 
     timer_thread = threading.Thread(target=timer)
