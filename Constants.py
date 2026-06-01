@@ -30,11 +30,11 @@ CMD_FORGOT = "FRGOT"        # Client request to initiate the forgot-password rec
 CMD_RESET = "RESET"         # Client request to submit a new password using a recovery token
 
 # ── CHAT COMMANDS ──
-CMD_CHAT_INIT = "CINIT"     # Registers the client's chat socket with the server for P2P routing
+CMD_CHAT_INIT = "CINIT"     # Registers the client's chat socket with the server
 CMD_FETCH_USERS = "FUSRS"   # Requests the list of all currently online users
-CMD_CHAT_REQUEST = "CREQU"  # Sends a P2P chat session request to a target peer
-CMD_CHAT_ACCEPT = "CACCP"   # Accepts an incoming P2P chat session request
-CMD_CHAT_DECLINE = "CDECL"  # Declines an incoming P2P chat session request
+CMD_CHAT_REQUEST = "CREQU"  # Sends a chat session request to a target peer
+CMD_CHAT_ACCEPT = "CACCP"   # Accepts an incoming chat session request
+CMD_CHAT_DECLINE = "CDECL"  # Declines an incoming chat session request
 CMD_DIRECT_MSG = "DMSGS"    # Routes a direct text message to the active peer through the server
 CMD_END_SESSION = "ESESS"   # Notifies the server and peer that the current chat session is ending
 
