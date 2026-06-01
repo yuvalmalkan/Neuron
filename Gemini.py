@@ -8,13 +8,18 @@ from google import genai
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+
 def ask_gemini(prompt: str) -> str:
+    with open("AIPROMPT.txt", "r") as f:
+        system_prompt = f.read()
+
+    combined_prompt = f"{system_prompt}\n\nUSER INPUT\n{prompt}"
+
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
+        model="gemini-2.5-flash-lite",
+        contents=combined_prompt
     )
     return response.text
-
 
 
 
