@@ -8,14 +8,19 @@ import threading
 from tcp_by_size import send_one_message, recv_one_message
 from Constants import (
     CMD_LOGIN, CMD_SIGNUP, CMD_EXIT,
-    port, serverIp
+    port, serverIp as _default_serverIp
 )
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor
 from Pages.ui.uiConstants import (
     load_application_font, load_stylesheet,
     WINDOW_BG, TEXT_TITLE, CARD_BG, SIDEBAR_BG, INPUT_FOCUS
 )
+import sys as _sys
+
+serverIp = _sys.argv[1] if len(_sys.argv) > 1 else _default_serverIp
+
 
 # Global socket connections
 ClientSocket = None
@@ -300,6 +305,11 @@ def close_osint_socket():
 
 
 def main():
+    if len(sys.argv) > 1:
+        logging.info(f"Using server IP from argument: {serverIp}")
+    else:
+        logging.info(f"Using default server IP: {serverIp}")
+
     from Pages.ui.Login import Login
 
     app = QApplication(sys.argv)
