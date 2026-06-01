@@ -1,6 +1,19 @@
 __author__ = 'Yuval Malkan'
 
 import re
+import logging
+
+# FIX: Import on the main thread at module load time to prevent gRPC segfaults
+from Gemini import ask_gemini
+
+def generate_ai_summary(raw_results: str) -> str:
+    """Pass raw OSINT results string to Gemini and return the AI summary."""
+    try:
+        # Now we just call the already-loaded function
+        return ask_gemini(raw_results)
+    except Exception as e:
+        logging.error(f"Gemini summary error: {e}", exc_info=True)
+        return f"[AI summary unavailable: {e}]"
 
 
 def parse_target_input(raw: str) -> dict:
@@ -43,7 +56,7 @@ def format_osint_results(report: dict) -> str:
     """Convert a raw OSINT report dict into a human-readable terminal string."""
     query = report.get('query', '?')
     elapsed = report.get('elapsed_seconds', '?')
-    summary = report.get('summary', {})
+    summary = report.get('summary') or report.get('sources') or {}
 
     # Determine input type
     is_phone = bool(re.match(r'^\+?\d[\d\s\-.()]{5,}$', query.strip()))
