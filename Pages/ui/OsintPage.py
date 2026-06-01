@@ -9,7 +9,7 @@ from Pages.ui.uiElements import NavButton
 from Pages.ui.RoomsPage import RoomsPanel
 from Pages.ui.NetworkPage import NetworkPage
 from Pages.logic.RoomsLogic import ChatBackend
-from Pages.logic.OsintLogic import parse_target_input, build_target_summary, format_osint_results
+from Pages.logic.OsintLogic import parse_target_input, build_target_summary, format_osint_results, generate_ai_summary
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -71,12 +71,13 @@ class SystemBubble(QWidget):
 
 
 class TypingIndicator(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, label: str = "scanning", parent=None):
         super().__init__(parent)
         row = QHBoxLayout(self)
         row.setContentsMargins(12, 2, 80, 2)
 
-        self._lbl = QLabel("scanning")
+        self._label = label
+        self._lbl = QLabel(label)
         self._lbl.setFont(QFont(FONT_MONO, 10))
         self._lbl.setStyleSheet(f"""
             background: {CARD_BG};
@@ -95,7 +96,7 @@ class TypingIndicator(QWidget):
 
     def _tick(self):
         self._dots = (self._dots + 1) % 4
-        self._lbl.setText("scanning" + "." * self._dots)
+        self._lbl.setText(self._label + "." * self._dots)
 
     def stop(self):
         self._timer.stop()
@@ -230,6 +231,48 @@ class InputBar(QWidget):
         self.field.setEnabled(v)
 
 
+class AiSummaryBubble(QWidget):
+    """AI-generated intelligence summary — visually distinct from raw data bubbles."""
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 2, 80, 2)
+
+        wrapper = QFrame()
+        wrapper.setStyleSheet(f"""
+            QFrame {{
+                background: {CARD_BG};
+                border: 1px solid {TEXT_TITLE};
+                border-radius: 10px;
+                padding: 0px;
+            }}
+        """)
+        inner = QVBoxLayout(wrapper)
+        inner.setContentsMargins(14, 10, 14, 10)
+        inner.setSpacing(6)
+
+        header = QLabel("⬡  AI INTELLIGENCE SUMMARY")
+        header.setFont(QFont(FONT_MONO, 11, QFont.Weight.Bold))
+        header.setStyleSheet(f"color: {TEXT_TITLE}; background: transparent; border: none;")
+        inner.addWidget(header)
+
+        divider = QFrame()
+        divider.setFrameShape(QFrame.Shape.HLine)
+        divider.setStyleSheet(f"color: {TEXT_TITLE}; background: {TEXT_TITLE}; border: none; max-height: 1px;")
+        inner.addWidget(divider)
+
+        body = QLabel(text)
+        body.setWordWrap(True)
+        body.setFont(QFont(FONT_MONO, 14))
+        body.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        body.setStyleSheet(f"color: {TEXT_BODY}; background: transparent; border: none;")
+        body.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        inner.addWidget(body)
+
+        row.addWidget(wrapper)
+        row.addStretch()
+
+
 class WelcomeBubble(QWidget):
     """Welcome message"""
     def __init__(self, text: str, parent=None):
@@ -259,25 +302,46 @@ class WelcomeBubble(QWidget):
 class OsintDashboard(QWidget):
     results_ready = pyqtSignal(str)
     error_occurred = pyqtSignal(str)
+    ai_summary_ready = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("osintDashboard")
         self._typing: TypingIndicator | None = None
+        self._ai_typing: TypingIndicator | None = None
         self._listener_thread = None
         self._build_ui()
-        self.results_ready.connect(self._on_results_ready)
-        self.error_occurred.connect(self._on_error)
+
+        # FIX: Explicitly queue the connections to the main thread
+        self.results_ready.connect(self._on_results_ready, Qt.ConnectionType.QueuedConnection)
+        self.error_occurred.connect(self._on_error, Qt.ConnectionType.QueuedConnection)
+        self.ai_summary_ready.connect(self._on_ai_summary_ready, Qt.ConnectionType.QueuedConnection)
 
     def _on_results_ready(self, result_text: str):
         self._hide_typing()
         self._add(SystemBubble(result_text))
         self._bar.set_enabled(True)
+        # Kick off Gemini summary in background — doesn't block the UI
+        threading.Thread(
+            target=self._run_ai_summary,
+            args=(result_text,),
+            daemon=True
+        ).start()
+        self._show_ai_typing()
 
     def _on_error(self, error_msg: str):
         self._hide_typing()
+        self._hide_ai_typing()
         self._add(SystemBubble(f"Error: {error_msg}"))
         self._bar.set_enabled(True)
+
+    def _run_ai_summary(self, raw_results: str):
+        summary = generate_ai_summary(raw_results)
+        self.ai_summary_ready.emit(summary)
+
+    def _on_ai_summary_ready(self, summary_text: str):
+        self._hide_ai_typing()
+        self._add(AiSummaryBubble(summary_text))
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -452,6 +516,7 @@ class OsintDashboard(QWidget):
 
         for scan_type, target in scans:
             try:
+                logging.debug(f"_launch_all: starting {scan_type} for {target}")
                 if scan_type == "username":
                     sock = Client.osint_raw_scan("USCAN", {"target_username": target})
                 elif scan_type == "email":
@@ -462,16 +527,27 @@ class OsintDashboard(QWidget):
                     continue
 
                 resp = Client.receive_from_socket(sock, 180)
+                logging.debug(f"_launch_all: response={resp.get('response')} for {scan_type}")
+
                 if resp.get('response') in (RESP_OSINT_RESULT, RESP_OSINT_PHONE_RESULT):
-                    parts.append(format_osint_results(resp.get('report', {})))
+                    try:
+                        formatted = format_osint_results(resp.get('report', {}))
+                        parts.append(formatted)
+                        logging.debug(f"_launch_all: formatted {scan_type} OK ({len(formatted)} chars)")
+                    except Exception as fmt_err:
+                        logging.error(f"_launch_all: format_osint_results crashed for {scan_type}: {fmt_err}", exc_info=True)
+                        import json as _json
+                        raw_dump = _json.dumps(resp.get('report', {}), indent=2, default=str)
+                        parts.append(f"[{scan_type} result formatting error: {fmt_err}]\n\nRaw report:\n{raw_dump}")
                 elif resp.get('response') == RESP_OSINT_ERROR:
                     parts.append(f"Error ({scan_type}): {resp.get('message', 'Unknown error')}")
                 else:
                     parts.append(f"Unexpected response for {scan_type} scan")
             except Exception as e:
-                logging.error(f"{scan_type} scan error: {e}", exc_info=True)
+                logging.error(f"_launch_all: {scan_type} scan error: {e}", exc_info=True)
                 parts.append(f"Error ({scan_type}): {str(e)}")
 
+        logging.debug(f"_launch_all: complete, {len(parts)} parts, emitting")
         if parts:
             self.results_ready.emit(DIVIDER.join(parts))
         else:
@@ -505,6 +581,18 @@ class OsintDashboard(QWidget):
             self._mlayout.removeWidget(self._typing)
             self._typing.deleteLater()
             self._typing = None
+
+    def _show_ai_typing(self):
+        self._hide_ai_typing()
+        self._ai_typing = TypingIndicator(label="analyzing")
+        self._add(self._ai_typing)
+
+    def _hide_ai_typing(self):
+        if self._ai_typing:
+            self._ai_typing.stop()
+            self._mlayout.removeWidget(self._ai_typing)
+            self._ai_typing.deleteLater()
+            self._ai_typing = None
 
     def _listen_worker(self):
         import Client
