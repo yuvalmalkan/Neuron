@@ -4,6 +4,7 @@ import sys
 import threading
 import logging
 import Client
+from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN, CMD_OSINT_PSCAN
 from Pages.ui.uiConstants import *
 from Pages.ui.uiElements import NavButton
 from Pages.ui.RoomsPage import RoomsPanel
@@ -518,11 +519,11 @@ class OsintDashboard(QWidget):
             try:
                 logging.debug(f"_launch_all: starting {scan_type} for {target}")
                 if scan_type == "username":
-                    sock = Client.osint_raw_scan("USCAN", {"target_username": target})
+                    sock = Client.osint_raw_scan(CMD_OSINT_USCAN, {"target_username": target})
                 elif scan_type == "email":
-                    sock = Client.osint_raw_scan("ESCAN", {"target_email": target})
+                    sock = Client.osint_raw_scan(CMD_OSINT_ESCAN, {"target_email": target})
                 elif scan_type == "phone":
-                    sock = Client.osint_raw_scan("PSCAN", {"target_phone": target})
+                    sock = Client.osint_raw_scan(CMD_OSINT_PSCAN, {"target_phone": target})
                 else:
                     continue
 
