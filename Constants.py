@@ -32,10 +32,10 @@ CMD_RESET = "RESET"
 # ── CHAT COMMANDS ──
 CMD_CHAT_INIT = "CINIT"     # Registers the chat socket with the server
 CMD_FETCH_USERS = "FUSRS"   # Request list of online users
-CMD_CHAT_REQUEST = "CREQ"   # Send request to a peer
-CMD_CHAT_ACCEPT = "CACC"    # Accept incoming request
-CMD_CHAT_DECLINE = "CDEC"   # Decline incoming request
-CMD_DIRECT_MSG = "DMSG"     # Send actual message payload
+CMD_CHAT_REQUEST = "CREQU"  # Send request to a peer
+CMD_CHAT_ACCEPT = "CACCP"   # Accept incoming request
+CMD_CHAT_DECLINE = "CDECL"  # Decline incoming request
+CMD_DIRECT_MSG = "DMSGS"    # Send actual message payload
 CMD_END_SESSION = "ESESS"   # Notify peer the session is terminated
 
 # ── RESPONSES ──
@@ -44,13 +44,13 @@ RESP_SIGNUP_OK = "OKSNP"
 RESP_ERROR = "ERROR"
 
 RESP_SIGNUP_USER_EXISTS = "EUSER"
-RESP_SIGNUP_EMAIL_EXISTS = "EEML"
+RESP_SIGNUP_EMAIL_EXISTS = "EEMAI"
 RESP_SIGNUP_INVALID_USERNAME = "EUNAM"
 RESP_SIGNUP_INVALID_EMAIL = "EINML"
-RESP_SIGNUP_INVALID_PASSWORD = "EPWD"
+RESP_SIGNUP_INVALID_PASSWORD = "EPWDS"
 
-RESP_LOGIN_FAIL = "FLOG"
-RESP_LOGIN_USER_NOT_FOUND = "UFND"
+RESP_LOGIN_FAIL = "FLOGN"
+RESP_LOGIN_USER_NOT_FOUND = "UFNDS"
 
 RESP_OTP_SENT = "OTPOK"
 RESP_VERIFY_OK = "OKVRF"
@@ -64,6 +64,6 @@ CMD_OSINT_ESCAN = "ESCAN"   # Client → Server: Email OSINT scan request
 CMD_OSINT_PSCAN = "PSCAN"   # Client → Server: Phone OSINT scan request
 
 # ── OSINT RESPONSES ──
-RESP_OSINT_RESULT = "ORLT"  # Server → Client: OSINT scan complete with results
-RESP_OSINT_ERROR = "OERR"   # Server → Client: OSINT scan failed with error message
-RESP_OSINT_PHONE_RESULT = "OPLT"  # Server → Client: Phone OSINT scan complete with results
+RESP_OSINT_RESULT = "ORSLT"  # Server → Client: OSINT scan complete with results
+RESP_OSINT_ERROR = "OERRS"   # Server → Client: OSINT scan failed with error message
+RESP_OSINT_PHONE_RESULT = "OPLTS"  # Server → Client: Phone OSINT scan complete with results
