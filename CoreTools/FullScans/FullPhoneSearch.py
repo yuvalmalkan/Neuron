@@ -36,9 +36,12 @@ def run_function_with_timeout(func, timeout, *args, **kwargs):
 
         if thread.is_alive():
             return {"error": f"Timeout after {timeout}s"}
+
         if exception[0]:
             return {"error": str(exception[0])}
+
         return result[0]
+
     except Exception as e:
         return {"error": str(e)}
 

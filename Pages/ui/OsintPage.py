@@ -100,6 +100,8 @@ class TypingIndicator(QWidget):
         self._timer.stop()
 
 
+
+
 class TerminalBubble(QWidget):
     """Plain terminal text — no bubble styling."""
     def __init__(self, text: str, parent=None):
@@ -120,6 +122,8 @@ class TerminalBubble(QWidget):
         lbl.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         row.addWidget(lbl)
         row.addStretch()
+
+
 
 
 class AnimatedSystemBubble(QWidget):

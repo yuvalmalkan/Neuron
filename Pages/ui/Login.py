@@ -141,7 +141,7 @@ class Login(QMainWindow):
 
 
 
-#  LOGIN FORM
+#login form
 class LoginForm(QWidget):
     def __init__(self, switch_callback, parent=None):
         super().__init__(parent)
@@ -170,6 +170,10 @@ class LoginForm(QWidget):
         layout.addSpacing(10)
         layout.addWidget(self.login_btn)
         layout.addWidget(self.switch_btn)
+
+
+
+
 
 
 def LoginClicked(form: LoginForm):

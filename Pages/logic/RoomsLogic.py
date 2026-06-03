@@ -5,6 +5,8 @@ import socket
 import logging
 from datetime import datetime
 from PyQt6.QtCore import QThread, pyqtSignal
+
+import Client
 from tcp_by_size import send_one_message, recv_one_message
 
 from Constants import (
@@ -22,7 +24,7 @@ class ChatBackend(QThread):
     session_ended = pyqtSignal(str)
     connection_lost = pyqtSignal(str)
 
-    def __init__(self, host="127.0.0.1", port=34401):
+    def __init__(self, host=Client.serverIp, port=34401): #127.0.0.1
         super().__init__()
         self.host = host
         self.port = port
