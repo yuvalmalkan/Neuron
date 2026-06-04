@@ -2,7 +2,10 @@ __author__ = "Yuval Malkan"
 import logging
 from UserDatabase import UserDatabase
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 debug = True
 
 log_level = logging.DEBUG if debug else logging.INFO
@@ -15,6 +18,9 @@ logging.basicConfig(
 root_dir = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
 user_db = UserDatabase(db_path)
+
+
+PASSWORD_PEPPER = os.getenv("PASSWORD_PEPPER")
 
 port = 34401
 serverIp = "0.0.0.0"
