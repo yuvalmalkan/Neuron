@@ -4,8 +4,6 @@ from UserDatabase import UserDatabase
 import os
 from dotenv import load_dotenv
 
-
-load_dotenv()
 debug = True
 
 log_level = logging.DEBUG if debug else logging.INFO
@@ -20,7 +18,17 @@ db_path = os.path.join(root_dir, 'Databases', 'users.pkl')
 user_db = UserDatabase(db_path)
 
 
+load_dotenv()
+
 PASSWORD_PEPPER = os.getenv("PASSWORD_PEPPER")
+if not PASSWORD_PEPPER:
+    raise ValueError("CRITICAL: PASSWORD_PEPPER is missing from the .env file.")
+
+
+rsa_pass_str = os.getenv("RSA_PRIVATE_KEY_PASSWORD")
+
+RSA_PASSWORD = rsa_pass_str.encode('utf-8')
+
 
 port = 34401
 serverIp = "0.0.0.0"
