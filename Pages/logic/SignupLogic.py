@@ -6,7 +6,8 @@ from UserDatabase import UserDatabase
 from EncryptionManager import hash_password_argon2
 from Constants import (
     RESP_SIGNUP_OK, RESP_SIGNUP_USER_EXISTS, RESP_SIGNUP_EMAIL_EXISTS,
-    RESP_SIGNUP_INVALID_USERNAME, RESP_SIGNUP_INVALID_EMAIL, RESP_SIGNUP_INVALID_PASSWORD
+    RESP_SIGNUP_INVALID_USERNAME, RESP_SIGNUP_INVALID_EMAIL, RESP_SIGNUP_INVALID_PASSWORD,
+    PASSWORD_PEPPER
 )
 
 
@@ -85,7 +86,8 @@ def handle_signup(username: str, email: str, password: str, db: UserDatabase) ->
             return False, RESP_SIGNUP_INVALID_EMAIL, None
         
         #hash password
-        password_hash = hash_password_argon2(password)
+        peppered_password = password + PASSWORD_PEPPER
+        password_hash = hash_password_argon2(peppered_password)
         
         #create new user
         new_user = User(username, email, password_hash)
