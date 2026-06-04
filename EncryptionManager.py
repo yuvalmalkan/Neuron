@@ -8,8 +8,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from argon2 import low_level, PasswordHasher
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from Constants import debug
 
 
@@ -346,92 +345,52 @@ def rsaDecrypt(private_key, encrypted_message: bytes):
 
 def generateAES():
     """
-    Generate random AES-256 key and IV for encryption.
+    Generate random AES-256 key for encryption.
 
     Returns:
-        Tuple of (key, iv) where:
-        - key: 32 bytes for AES-256
-        - iv: 16 bytes for CBC mode
-
-    Note:
-        IV should be unique for each encryption with the same key.
-        Both should be transmitted securely to recipient.
+        key: 32 bytes for AES-256
     """
-    logging.debug("Generating AES-256 key and IV")
-    key = os.urandom(32)
-    iv = os.urandom(16)
-    logging.debug(f"Generated AES key ({len(key)} bytes) and IV ({len(iv)} bytes)")
-    return key, iv
+    logging.debug("Generating AES-256 key")
+    key = AESGCM.generate_key(bit_length=256)
+    logging.debug(f"Generated AES key ({len(key)} bytes)")
+    return key
 
 
-def aesEncrypt(key: bytes, iv: bytes, plaintext: str) -> bytes:
+def aesEncrypt(key: bytes, plaintext: str) -> bytes:
     """
-    Encrypt plaintext using AES-256-CBC with PKCS7 padding.
-
-    Args:
-        key: 32-byte AES-256 key
-        iv: 16-byte initialization vector
-        plaintext: String to encrypt
-
-    Returns:
-        Encrypted ciphertext as bytes
-
-    Note:
-        IV must be random and unique for each encryption with same key.
-        IV can be transmitted in plaintext (it doesn't need to be secret).
+    Encrypt plaintext using AES-256-GCM.
+    Prefixes a 12-byte nonce to the ciphertext.
     """
     logging.debug(f"AES encrypting {len(plaintext)} characters")
 
     try:
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(12)
         plaintext_bytes = plaintext.encode('utf-8')
 
-        padder = sym_padding.PKCS7(algorithms.AES.block_size).padder()
-        padded_data = padder.update(plaintext_bytes) + padder.finalize()
-
-        cipher = Cipher(
-            algorithms.AES(key),
-            modes.CBC(iv),
-            backend=default_backend()
-        )
-        encryptor = cipher.encryptor()
-        ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+        ciphertext = aesgcm.encrypt(nonce, plaintext_bytes, b"")
 
         logging.debug(f"AES encryption successful, ciphertext size: {len(ciphertext)} bytes")
-        return ciphertext
+        return nonce + ciphertext
 
     except Exception as e:
         logging.error(f"AES encryption failed: {e}")
         raise
 
 
-def aesDecrypt(key: bytes, iv: bytes, ciphertext: bytes) -> str:
+def aesDecrypt(key: bytes, data: bytes) -> str:
     """
-    Decrypt AES-256-CBC encrypted message with PKCS7 padding.
-
-    Args:
-        key: Same 32-byte key used for encryption
-        iv: Same 16-byte IV used for encryption
-        ciphertext: Encrypted data from aesEncrypt()
-
-    Returns:
-        Decrypted plaintext as string
-
-    Raises:
-        ValueError: If decryption fails or padding is invalid
+    Decrypt AES-256-GCM encrypted message.
+    Extracts the 12-byte nonce from the beginning.
     """
-    logging.debug(f"AES decrypting {len(ciphertext)} bytes")
+    logging.debug(f"AES decrypting {len(data)} bytes")
 
     try:
-        cipher = Cipher(
-            algorithms.AES(key),
-            modes.CBC(iv),
-            backend=default_backend()
-        )
-        decryptor = cipher.decryptor()
-        padded_data = decryptor.update(ciphertext) + decryptor.finalize()
+        aesgcm = AESGCM(key)
+        nonce = data[:12]
+        ciphertext = data[12:]
 
-        unpadder = sym_padding.PKCS7(algorithms.AES.block_size).unpadder()
-        plaintext_bytes = unpadder.update(padded_data) + unpadder.finalize()
+        plaintext_bytes = aesgcm.decrypt(nonce, ciphertext, b"")
 
         plaintext = plaintext_bytes.decode('utf-8')
         logging.debug(f"AES decryption successful, plaintext size: {len(plaintext)} characters")
