@@ -7,7 +7,7 @@ from datetime import datetime
 from PyQt6.QtCore import QThread, pyqtSignal
 
 import Client
-from tcp_by_size import send_one_message, recv_one_message
+from SecureProtocol import send_secure, recv_secure
 
 from Constants import (
     CMD_CHAT_INIT, CMD_FETCH_USERS, CMD_CHAT_REQUEST,
@@ -31,6 +31,7 @@ class ChatBackend(QThread):
         self.socket = None
         self.username = None
         self.active_peer = None
+        self.aes_key = None
         self._is_running = False
 
     def connect(self, username):
@@ -39,9 +40,12 @@ class ChatBackend(QThread):
             self.socket.connect((self.host, self.port))
             self.username = username
 
-            #register with the Server
+            # Perform the secure handshake on this dedicated Chat socket
+            self.aes_key = Client.perform_secure_handshake(self.socket)
+
+            #register with the Server securely
             req = {"command": CMD_CHAT_INIT, "username": self.username}
-            send_one_message(self.socket, json.dumps(req))
+            send_secure(self.socket, self.aes_key, req)
 
             #start the background listening loop
             self._is_running = True
@@ -69,11 +73,10 @@ class ChatBackend(QThread):
 
         while self._is_running:
             try:
-                data = recv_one_message(self.socket, return_type="string")
-                if not data:
+                payload = recv_secure(self.socket, self.aes_key)
+                if not payload:
                     break
 
-                payload = json.loads(data)
                 msg_type = payload.get("type")
 
                 #qt natively routes these emissions safely to the main ui thread
@@ -140,6 +143,6 @@ class ChatBackend(QThread):
     def _send(self, data):
         if self.socket:
             try:
-                send_one_message(self.socket, json.dumps(data))
+                send_secure(self.socket, self.aes_key, data)
             except Exception as e:
                 logging.error(f"Failed to send payload: {e}")
