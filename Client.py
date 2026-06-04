@@ -10,6 +10,10 @@ from Constants import (
     CMD_LOGIN, CMD_SIGNUP, CMD_EXIT,
     port, serverIp as _default_serverIp
 )
+from EncryptionManager import generateAES, rsaEncrypt
+from SecureProtocol import send_secure, recv_secure
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QPalette, QColor
@@ -21,24 +25,46 @@ import sys as _sys
 
 serverIp = _sys.argv[1] if len(_sys.argv) > 1 else _default_serverIp
 
-
-#global socket connections
+#global
 ClientSocket = None
+client_aes_key = None
 is_connected = False
+
 OsintSocket = None
+osint_aes_key = None
 osint_connected = False
 socket_lock = threading.Lock()
 
 
+def perform_secure_handshake(sock):
+    """Handles the RSA/AES key exchange for a newly opened socket"""
+    try:
+        pub_bytes = recv_one_message(sock, return_type="bytes")
+        server_public_key = serialization.load_pem_public_key(pub_bytes, backend=default_backend())
+
+        aes_key = generateAES()
+
+        encrypted_payload = rsaEncrypt(server_public_key, aes_key)
+        send_one_message(sock, encrypted_payload)
+
+        return aes_key
+    except Exception as e:
+        logging.error(f"Secure handshake failed: {e}")
+        raise
+
+
 def connect_to_server(host=serverIp, port_num=port):
     """connect to the server"""
-    global ClientSocket, is_connected
+    global ClientSocket, is_connected, client_aes_key
 
     try:
         ClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ClientSocket.connect((host, port_num))
+
+        client_aes_key = perform_secure_handshake(ClientSocket)
+
         is_connected = True
-        logging.info(f"Connected to server at {host}:{port_num}")
+        logging.info(f"Connected securely to server at {host}:{port_num}")
         return True
     except Exception as e:
         logging.error(f"Failed to connect to server: {e}")
@@ -48,24 +74,28 @@ def connect_to_server(host=serverIp, port_num=port):
 
 def connect_osint_socket(host=serverIp, port_num=port):
     """create a separate socket connection for osint operations."""
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
     try:
         OsintSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         OsintSocket.connect((host, port_num))
+
+        osint_aes_key = perform_secure_handshake(OsintSocket)
+
         osint_connected = True
-        logging.info(f"OSINT socket connected to {host}:{port_num}")
+        logging.info(f"OSINT socket connected securely to {host}:{port_num}")
         return True
     except Exception as e:
         logging.error(f"Failed to connect OSINT socket: {e}")
         osint_connected = False
         OsintSocket = None
+        osint_aes_key = None
         return False
 
 
 def send_request(command, **data):
     """send a request to the server."""
-    global ClientSocket, is_connected
+    global ClientSocket, is_connected, client_aes_key
 
     if not is_connected:
         raise ConnectionError("Not connected to server")
@@ -73,8 +103,8 @@ def send_request(command, **data):
     request = {"command": command, **data}
 
     try:
-        send_one_message(ClientSocket, json.dumps(request))
-        logging.debug(f"Sent request: {command}")
+        send_secure(ClientSocket, client_aes_key, request)
+        logging.debug(f"Sent encrypted request: {command}")
 
     except Exception as e:
         logging.error(f"Failed to send request: {e}")
@@ -84,17 +114,16 @@ def send_request(command, **data):
 
 def receive_response():
     """receive a response from the server."""
-    global ClientSocket, is_connected
+    global ClientSocket, is_connected, client_aes_key
 
     if not is_connected:
         raise ConnectionError("Not connected to server")
 
     try:
-        response_data = recv_one_message(ClientSocket, return_type="string")
-        if not response_data:
+        response = recv_secure(ClientSocket, client_aes_key)
+        if not response:
             raise ConnectionError("Server disconnected")
 
-        response = json.loads(response_data)
         logging.debug(f"Received response: {response.get('response', response.get('status'))}")
         return response
     except Exception as e:
@@ -158,11 +187,11 @@ def osint_username_scan(username: str):
     from Constants import CMD_OSINT_USCAN
     import time
 
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
-    #always close old socket and create a fresh one for each scan
+    # always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1)  #socket cleanup
+    time.sleep(0.1)  # socket cleanup
 
     logging.info("Creating fresh OSINT socket for new scan...")
     if not connect_osint_socket():
@@ -170,7 +199,7 @@ def osint_username_scan(username: str):
 
     request = {"command": CMD_OSINT_USCAN, "target_username": username}
     try:
-        send_one_message(OsintSocket, json.dumps(request))
+        send_secure(OsintSocket, osint_aes_key, request)
         logging.info(f"Sent OSINT scan request for: {username}")
     except Exception as e:
         logging.error(f"Failed to send OSINT request: {e}")
@@ -179,29 +208,25 @@ def osint_username_scan(username: str):
         raise
 
 
-
-
 def osint_email_scan(email: str):
     """Send email OSINT scan request to server via OSINT socket."""
     from Constants import CMD_OSINT_ESCAN
     import time
 
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
-    #always close old socket and create a fresh one for each scan
+    # always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1) #socket cleanup
+    time.sleep(0.1)  # socket cleanup
 
     logging.info("Creating fresh OSINT socket for new email scan...")
     if not connect_osint_socket():
         raise ConnectionError("Cannot connect OSINT socket to server")
 
-
     request = {"command": CMD_OSINT_ESCAN, "target_email": email}
 
-
     try:
-        send_one_message(OsintSocket, json.dumps(request))
+        send_secure(OsintSocket, osint_aes_key, request)
         logging.info(f"Sent OSINT email scan request for: {email}")
     except Exception as e:
         logging.error(f"Failed to send OSINT email request: {e}")
@@ -215,11 +240,11 @@ def osint_phone_scan(phone: str):
     from Constants import CMD_OSINT_PSCAN
     import time
 
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
-    #always close old socket and create a fresh one for each scan
+    # always close old socket and create a fresh one for each scan
     close_osint_socket()
-    time.sleep(0.1)  #allow socket cleanup
+    time.sleep(0.1)  # allow socket cleanup
 
     logging.info("Creating fresh OSINT socket for new phone scan...")
     if not connect_osint_socket():
@@ -227,7 +252,7 @@ def osint_phone_scan(phone: str):
 
     request = {"command": CMD_OSINT_PSCAN, "target_phone": phone}
     try:
-        send_one_message(OsintSocket, json.dumps(request))
+        send_secure(OsintSocket, osint_aes_key, request)
         logging.info(f"Sent OSINT phone scan request for: {phone}")
     except Exception as e:
         logging.error(f"Failed to send OSINT phone request: {e}")
@@ -236,53 +261,64 @@ def osint_phone_scan(phone: str):
         raise
 
 
+
+_osint_raw_keys = {} #id = socket, key = aes key
 def osint_raw_scan(command: str, payload: dict) -> socket.socket:
     """
     open a fresh independent socket, send one osint command, return the socket.
     Caller is responsible for receiving and closing it
     """
+    global _osint_raw_keys
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((serverIp, port))
+
+    aes_key = perform_secure_handshake(sock)
+
     request = {"command": command, **payload}
-    send_one_message(sock, json.dumps(request))
+    send_secure(sock, aes_key, request)
+
+    #store the key in dict, socket as the id/key
+    _osint_raw_keys[sock] = aes_key
     return sock
 
 
 def receive_from_socket(sock: socket.socket, timeout=180) -> dict:
     """receive one osint response from a given socket and close it"""
+    global _osint_raw_keys
+
     try:
-        sock.settimeout(timeout)
-        data = recv_one_message(sock, return_type="string")
-        if not data:
+        #retrieve the key from the dict
+        aes_key = _osint_raw_keys.get(sock)
+
+        response = recv_secure(sock, aes_key, timeout=timeout)
+        if not response:
             raise ConnectionError("Socket disconnected")
-        return json.loads(data)
+        return response
     finally:
+        # Clean up the dictionary and close the socket
+        _osint_raw_keys.pop(sock, None)
         try:
             sock.close()
         except:
             pass
 
 
-
 def receive_osint_response(timeout=180):
     """receive osint response from dedicated osint socket."""
 
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
     if not osint_connected or OsintSocket is None:
         raise ConnectionError("OSINT socket not connected")
 
     try:
-        OsintSocket.settimeout(timeout)
-        response_data = recv_one_message(OsintSocket, return_type="string")
-
-        if not response_data:
+        response = recv_secure(OsintSocket, osint_aes_key, timeout=timeout)
+        if not response:
             raise ConnectionError("OSINT socket disconnected")
 
-        response = json.loads(response_data)
         logging.debug(f"Received OSINT response: {response.get('response')}")
         return response
-
 
     except socket.timeout:
         logging.error(f"OSINT socket timeout after {timeout}s")
@@ -293,14 +329,13 @@ def receive_osint_response(timeout=180):
         raise
 
     finally:
-        #close socket after receiving response
+        # close socket after receiving response
         close_osint_socket()
-
 
 
 def close_osint_socket():
     """close the osint socket cleanly"""
-    global OsintSocket, osint_connected
+    global OsintSocket, osint_connected, osint_aes_key
 
     try:
         if OsintSocket:
@@ -311,8 +346,7 @@ def close_osint_socket():
     finally:
         OsintSocket = None
         osint_connected = False
-
-
+        osint_aes_key = None
 
 
 def main():
@@ -341,7 +375,7 @@ def main():
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(WINDOW_BG))
     app.setPalette(palette)
 
-    #Login page
+    # Login page
     window = Login()
     window.show()
     sys.exit(app.exec())
