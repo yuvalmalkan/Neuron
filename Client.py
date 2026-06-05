@@ -33,6 +33,7 @@ is_connected = False
 OsintSocket = None
 osint_aes_key = None
 osint_connected = False
+_osint_raw_keys = {} #key = socket, value = aes key
 socket_lock = threading.Lock()
 
 
@@ -61,6 +62,9 @@ def perform_secure_handshake(sock):
         raise
 
 
+
+
+
 def connect_to_server(host=serverIp, port_num=port):
     """connect to the server"""
     global ClientSocket, is_connected, client_aes_key
@@ -74,10 +78,14 @@ def connect_to_server(host=serverIp, port_num=port):
         is_connected = True
         logging.info(f"Connected securely to server at {host}:{port_num}")
         return True
+
     except Exception as e:
         logging.error(f"Failed to connect to server: {e}")
         is_connected = False
         return False
+
+
+
 
 
 def connect_osint_socket(host=serverIp, port_num=port):
@@ -134,6 +142,7 @@ def receive_response():
 
         logging.debug(f"Received response: {response.get('response', response.get('status'))}")
         return response
+
     except Exception as e:
         logging.error(f"Failed to receive response: {e}")
         is_connected = False
@@ -206,9 +215,11 @@ def osint_username_scan(username: str):
         raise ConnectionError("Cannot connect OSINT socket to server")
 
     request = {"command": CMD_OSINT_USCAN, "target_username": username}
+
     try:
         send_secure(OsintSocket, osint_aes_key, request)
         logging.info(f"Sent OSINT scan request for: {username}")
+
     except Exception as e:
         logging.error(f"Failed to send OSINT request: {e}")
         osint_connected = False
@@ -270,7 +281,7 @@ def osint_phone_scan(phone: str):
 
 
 
-_osint_raw_keys = {} #id = socket, key = aes key
+
 def osint_raw_scan(command: str, payload: dict) -> socket.socket:
     """
     open a fresh independent socket, send one osint command, return the socket.
