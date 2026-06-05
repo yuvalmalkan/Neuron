@@ -37,7 +37,14 @@ socket_lock = threading.Lock()
 
 
 def perform_secure_handshake(sock):
-    """Handles the RSA/AES key exchange for a newly opened socket"""
+    """
+    Handles the RSA/AES key exchange for a newly opened socket
+
+    args: client socket
+
+    returns aes key
+
+    """
     try:
         pub_bytes = recv_one_message(sock, return_type="bytes")
         server_public_key = serialization.load_pem_public_key(pub_bytes, backend=default_backend())
@@ -48,6 +55,7 @@ def perform_secure_handshake(sock):
         send_one_message(sock, encrypted_payload)
 
         return aes_key
+
     except Exception as e:
         logging.error(f"Secure handshake failed: {e}")
         raise
