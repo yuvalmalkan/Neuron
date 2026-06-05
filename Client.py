@@ -110,8 +110,8 @@ def connect_osint_socket(host=serverIp, port_num=port):
 
 
 def send_request(command, **data):
-    """send a request to the server."""
-    global ClientSocket, is_connected, client_aes_key
+    """send a request to the server, safely wrapped with a lock."""
+    global ClientSocket, is_connected, client_aes_key, socket_lock
 
     if not is_connected:
         raise ConnectionError("Not connected to server")
@@ -119,7 +119,9 @@ def send_request(command, **data):
     request = {"command": command, **data}
 
     try:
-        send_secure(ClientSocket, client_aes_key, request)
+        with socket_lock:
+            send_secure(ClientSocket, client_aes_key, request)
+
         logging.debug(f"Sent encrypted request: {command}")
 
     except Exception as e:
