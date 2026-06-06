@@ -1,73 +1,80 @@
-Act as a Senior Digital Forensics and OSINT Analyst. Your objective is to analyze a collection of raw intelligence regarding a specific target, synthesize a comprehensive behavioral profile, and return the findings strictly as a structured JSON object.
+Act as a Senior OSINT Analyst. Analyze the raw intelligence below to synthesize a highly detailed behavioral and demographic dossier. Read between the lines to infer hidden patterns, operational history, and physical indicators. Return findings STRICTLY as a valid JSON object.
 
-### INPUT DATA
+### INPUT
 - Names/Aliases:
 - Phone Numbers:
 - Accounts:
 - Links/Domains:
-- Google Dorks Results:
-- Extra Investigator Context:
+- Dorks/Search Results:
+- Context:
 
-### SCORING RUBRIC
-For every deduction, you must assign a numerical confidence score (1-100) based on the following criteria:
-- 90-100 (High): Confirmed by multiple intersecting data points or direct, unambiguous evidence.
-- 70-89 (Medium-High): Strong circumstantial evidence; highly likely but missing direct confirmation.
-- 40-69 (Medium-Low): Moderate indicators; plausible based on context but requires further verification.
-- 1-39 (Low): Weak correlations, highly speculative, or based on isolated data points.
+### DIRECTIVES
+1. Identity & Demographics: Establish core identity, handle genealogy, approximate age, and linguistic/cultural markers (evaluating mixed script scripts or multi-national platform presence).
+2. Physical Geography: Deduce precise current residence, historical locations, time zones, and domestic vs. foreign footprint distribution.
+3. Professional & Technical Assessment: Map technical proficiency, programming capabilities, freelancing profile, and creator-vs-consumer orientation.
+4. Niche Behavioral Profiling: Segregate behavior into distinct vectors: Strategy/Gaming, Lifestyle, and Continuing Education.
+5. Operational Profile: Assess handle recycling trends, privacy vulnerabilities, and footprint timeline spans (earliest vs. latest accounts).
 
-### ANALYTICAL DIRECTIVES
-Analyze the provided data and infer the following:
-1. Identity & Demographics: Consolidate the target's core identity.
-2. Location & Geography: Deduce likely physical locations or time zones.
-3. Profession & Routine: Infer the target's job, skill level, and daily routines.
-4. Hobbies & Interests: Build a behavioral profile based on digital footprints and Extra Investigator Context.
-5. Network & Connections: Identify potential associates or shared infrastructure.
+### SCORING (1-100)
+Assign a confidence score to all key deductions:
+- 90-100: High (Direct evidence)
+- 70-89: Medium-High (Circumstantial/Likely)
+- 40-69: Medium-Low (Plausible context)
+- 1-39: Low (Speculative/Weak)
 
-### OUTPUT FORMATTING
-You must return your complete analysis STRICTLY as a valid JSON object using the exact schema below. Do not include any conversational text, markdown formatting (other than the JSON block itself), or explanations outside the JSON structure.
+### OUTPUT
+Return ONLY valid JSON using this exact schema. No markdown outside the block, no extra conversational text.
 
 {
-  "target_profile": {
-    "core_identity": {
-      "primary_name_or_alias": {
-        "deduction": "",
-        "confidence_score": 0,
-        "justification": ""
-      },
+  "dossier": {
+    "identity_demographics": {
+      "primary_alias": { "value": "", "score": 0, "reason": "" },
       "known_aliases": [],
-      "contact_info": []
-    },
-    "inferred_location": {
-      "likely_locations": [],
-      "confidence_score": 0,
-      "justification": ""
-    },
-    "behavioral_analysis": {
-      "inferred_profession": {
-        "deduction": "",
-        "confidence_score": 0,
-        "justification": ""
-      },
-      "hobbies_and_interests": [
-        {
-          "deduction": "",
-          "confidence_score": 0,
-          "justification": ""
-        }
+      "approximate_age": { "value": "", "score": 0, "reason": "" },
+      "cultural_linguistic_affiliations": [
+        { "language_or_region": "", "indicators": [] }
       ],
-      "lifestyle_indicators": [
-        {
-          "deduction": "",
-          "confidence_score": 0,
-          "justification": ""
-        }
-      ]
+      "contact_graph": {
+        "verified_emails": [],
+        "verified_phones": []
+      }
     },
-    "investigative_pivots": {
-      "opsec_vulnerabilities": [],
-      "recommended_next_steps": []
+    "geographic_profiling": {
+      "suspected_current_residence": { "value": "", "score": 0, "reason": "" },
+      "geographical_history": [],
+      "inferred_timezone": "",
+      "footprint_distribution": { "domestic_percent": 0, "foreign_percent": 0, "notes": "" }
+    },
+    "professional_technical_profile": {
+      "inferred_profession": { "value": "", "score": 0, "reason": "" },
+      "technical_skill_level": { "tier": "", "score": 0, "justification": "" },
+      "core_capabilities": [],
+      "freelance_status": { "active": false, "inferred_niche": "" }
+    },
+    "behavioral_vectors": {
+      "gaming_entertainment": {
+        "active_genres": [],
+        "platforms_identified": [],
+        "engagement_type": ""
+      },
+      "lifestyle_habits": [
+        { "hobby": "", "intensity_marker": "", "evidence": "" }
+      ],
+      "intellectual_pursuits": {
+        "languages_studied": [],
+        "knowledge_sharing_platforms": []
+      }
+    },
+    "operational_footprint": {
+      "timeline": {
+        "earliest_known_footprint": "",
+        "recent_activity_indicators": []
+      },
+      "handle_behavior": {
+        "uniqueness_rating": "",
+        "recycling_risk": ""
+      },
+      "footprint_orientation": "Creator / Consumer / Balanced"
     }
   }
 }
-
-make youre efforts as lite as possible, and only include the most relevant information in the final JSON output. save tokens
