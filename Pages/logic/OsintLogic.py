@@ -1,148 +1,193 @@
 __author__ = 'Yuval Malkan'
 
 import re
+import os
 import logging
 from Gemini import ask_gemini
 import json
 
 
-def format_ai_response(raw_text: str) -> str:
-    """formats the json into a terminal report from the gemini response"""
 
-    #clean markdown
-    cleaned = raw_text.strip()
-    if cleaned.startswith("```json"):
-        cleaned = cleaned[7:]
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:]
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3]
+
+def format_ai_response(raw_text: str) -> str:
+    """Formats the JSON into a terminal report from the Gemini response."""
+    if not raw_text:
+        return "AI Summary Error: Empty response from model."
+
+    start_idx = raw_text.find('{')
+    end_idx = raw_text.rfind('}')
+
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        cleaned = raw_text[start_idx:end_idx + 1]
+    else:
+        cleaned = raw_text
 
     try:
-        data = json.loads(cleaned.strip())
-        profile = data.get("target_profile", {})
-        if not profile:
+
+        data = json.loads(cleaned, strict=False)
+
+        #fallback handling
+        dossier = data.get("dossier", data)
+
+        if not dossier:
             return raw_text
 
         lines = []
 
-
-        # identity summary
-        core = profile.get("core_identity", {})
-        if core:
-            lines.append("CORE IDENTITY")
+        #identity and demographics
+        ident = dossier.get("identity_demographics", {})
+        if ident:
+            lines.append("IDENTITY & DEMOGRAPHICS")
             lines.append("─" * 60)
 
-            alias = core.get("primary_name_or_alias", {})
-            if alias.get("deduction"):
+            alias = ident.get("primary_alias", {})
+            if alias.get("value"):
+                lines.append(f"  Primary Alias : {alias.get('value')} ({alias.get('score', 0)}% confidence)")
+                lines.append(f"  ↳ Reasoning   : {alias.get('reason', '')}")
+
+            age = ident.get("approximate_age", {})
+            if age.get("value"):
+                lines.append(f"  Est. Age      : {age.get('value')} ({age.get('score', 0)}%) - {age.get('reason', '')}")
+
+            cult = ident.get("cultural_linguistic_affiliations", [])
+            if cult:
+                lines.append("  Cultural/Linguistic Markers:")
+                for c in cult:
+                    inds = ", ".join(c.get("indicators", []))
+                    lines.append(f"    • {c.get('language_or_region', 'Unknown')} [{inds}]")
+
+
+
+        #geographic profiling
+        geo = dossier.get("geographic_profiling", {})
+        if geo:
+            lines.append("\nGEOGRAPHIC PROFILING")
+            lines.append("─" * 60)
+
+            res = geo.get("suspected_current_residence", {})
+            if res.get("value"):
+                lines.append(f"  Residence     : {res.get('value')} ({res.get('score', 0)}%)")
+                lines.append(f"  ↳ Reasoning   : {res.get('reason', '')}")
+
+            tz = geo.get("inferred_timezone", "")
+            if tz:
+                lines.append(f"  Timezone      : {tz}")
+
+            dist = geo.get("footprint_distribution", {})
+            if dist:
                 lines.append(
-                    f"  Primary Alias : {alias.get('deduction')} ({alias.get('confidence_score', 0)}% confidence)")
-                lines.append(f"  ↳ Reasoning   : {alias.get('justification', '')}")
+                    f"  Distribution  : {dist.get('domestic_percent', 0)}% Domestic / {dist.get('foreign_percent', 0)}% Foreign")
 
-            contacts = core.get("contact_info", [])
-            for c in contacts:
+
+
+        #professional and technical profile
+        prof = dossier.get("professional_technical_profile", {})
+        if prof:
+            lines.append("\nPROFESSIONAL & TECHNICAL PROFILE")
+            lines.append("─" * 60)
+
+            job = prof.get("inferred_profession", {})
+            if job.get("value"):
+                lines.append(f"  Profession    : {job.get('value')} ({job.get('score', 0)}%)")
+                lines.append(f"  ↳ Reasoning   : {job.get('reason', '')}")
+
+            skill = prof.get("technical_skill_level", {})
+            if skill.get("tier"):
                 lines.append(
-                    f"  Contact       : {c.get('value')} [{c.get('type')}] ({c.get('confidence_score', 0)}% confidence)")
+                    f"  Skill Level   : {skill.get('tier')} ({skill.get('score', 0)}%) - {skill.get('justification', '')}")
 
-
-
-        #BEHAVIORAL ANALYSIS
-        behav = profile.get("behavioral_analysis", {})
+        #behavioral vectors
+        behav = dossier.get("behavioral_vectors", {})
         if behav:
-            lines.append("\nBEHAVIORAL ANALYSIS")
+            lines.append("\nBEHAVIORAL VECTORS")
             lines.append("─" * 60)
 
-            prof = behav.get("inferred_profession", {})
-            if prof.get('deduction') and prof.get('deduction') != "Unknown":
-                lines.append(f"  Profession : {prof.get('deduction')} ({prof.get('confidence_score', 0)}% confidence)")
+            gaming = behav.get("gaming_entertainment", {})
+            if gaming.get("platforms_identified"):
+                lines.append(f"  Gaming Profile: {gaming.get('engagement_type', 'Unknown')}")
+                lines.append(f"    • Platforms : {', '.join(gaming.get('platforms_identified', []))}")
 
-            hobbies = behav.get("hobbies_and_interests", [])
-            if hobbies:
-                lines.append("  Interests  :")
-                for h in hobbies:
-                    lines.append(f"    • {h.get('deduction')} ({h.get('confidence_score', 0)}%)")
-                    lines.append(f"      ↳ {h.get('justification')}")
+            habits = behav.get("lifestyle_habits", [])
+            if habits:
+                lines.append("  Lifestyle Habits:")
+                for h in habits:
+                    lines.append(f"    • {h.get('hobby', 'Unknown')} (Intensity: {h.get('intensity_marker', 'N/A')})")
 
-            lifestyle = behav.get("lifestyle_indicators", [])
-            if lifestyle:
-                lines.append("  Lifestyle  :")
-                for l in lifestyle:
-                    lines.append(f"    • {l.get('deduction')} ({l.get('confidence_score', 0)}%)")
-
-
-
-        #cool add
-        pivots = profile.get("investigative_pivots", {})
-        if pivots:
-            lines.append("\nINVESTIGATIVE PIVOTS")
+        #operational footprint
+        opsec = dossier.get("operational_footprint", {})
+        if opsec:
+            lines.append("\nOPERATIONAL FOOTPRINT")
             lines.append("─" * 60)
 
-            vulns = pivots.get("opsec_vulnerabilities", [])
-            if vulns:
-                lines.append("  Vulnerabilities:")
-                for v in vulns:
-                    lines.append(f"    • {v}")
+            timeline = opsec.get("timeline", {})
+            if timeline.get("earliest_known_footprint"):
+                lines.append(f"  Earliest Trace: {timeline.get('earliest_known_footprint')}")
 
-            steps = pivots.get("recommended_next_steps", [])
-            if steps:
-                lines.append("\n  Recommended Next Steps:")
-                for s in steps:
-                    lines.append(f"    • {s}")
+            behavior = opsec.get("handle_behavior", {})
+            if behavior.get("uniqueness_rating"):
+                lines.append(
+                    f"  Handle Rating : {behavior.get('uniqueness_rating')} (Risk: {behavior.get('recycling_risk', 'Unknown')})")
+
+            if opsec.get("footprint_orientation"):
+                lines.append(f"  Orientation   : {opsec.get('footprint_orientation')}")
 
         return "\n".join(lines).strip()
 
     except json.JSONDecodeError:
-        #if gemini didn't return valid json, just return what it said
-        return raw_text
+        return f"\n[AI SUMMARY PARSING ERROR]\nRaw AI Output:\n{raw_text}"
 
 
+def generate_ai_summary(target_input: str, raw_results: str) -> str:
+    """Read the master prompt from file, inject both target input and scan results, then ask Gemini."""
+    prompt_file_path = "AIPROMPT.txt"
 
+    if os.path.exists(prompt_file_path):
+        with open(prompt_file_path, "r", encoding="utf-8") as f:
+            base_prompt = f.read()
+    else:
+        logging.warning("AIPROMPT.txt not found in root path. Defaulting to fallback baseline prompt.")
+        base_prompt = "Act as an OSINT Analyst. Synthesize a behavioral profile from data. Return valid JSON only."
 
+    # Assemble complete operational context block
+    full_payload = f"""{base_prompt}
 
-
-
-
-def generate_ai_summary(raw_results: str) -> str:
-    """Pass raw osint results string to gemini and return the ai summary."""
+        RAW USER INPUT:
+    {target_input}
+    
+        RAW OSINT SCAN RESULTS:
+    {raw_results}
+    """
 
     try:
-        raw_ai_response = ask_gemini(raw_results)
+        raw_ai_response = ask_gemini(full_payload)
         return format_ai_response(raw_ai_response)
     except Exception as e:
         logging.error(f"Gemini summary error: {e}", exc_info=True)
         return f"AI summary unavailable: {e}"
 
 
-
 def parse_target_input(raw: str) -> dict:
     """parse a free form input string into typed osint fields."""
-    fields = {"phone": None, "email": None, "username": None, "name": None}
+    fields = {"phone": None, "email": None, "username": None, "name": None, "extra": raw}
     tokens = raw.split()
     remaining = []
 
-
     for token in tokens:
-        #phone
         if re.match(r'^\+\d{6,15}$', token) or re.match(r'^\d[\d\-\s().]{6,}$', token):
             fields["phone"] = token
 
-
-        #email
         elif re.match(r'[^@]+@[^@]+\.[^@]+', token):
             fields["email"] = token.lstrip("@")
 
-        #username: starts with @
         elif token.startswith("@") and len(token) > 1:
             fields["username"] = token.lstrip("@")
+
         else:
             remaining.append(token)
-
 
     if remaining and not any(fields[k] for k in ("phone", "email", "username")):
         fields["name"] = " ".join(remaining)
     return fields
-
-
 
 
 def build_target_summary(fields: dict) -> str:
@@ -159,20 +204,15 @@ def build_target_summary(fields: dict) -> str:
     return "\n".join(lines)
 
 
-
-
-
 def format_osint_results(report: dict) -> str:
     """convert a raw OSINT report dict into a human readable terminal string."""
     query = report.get('query', '?')
     elapsed = report.get('elapsed_seconds', '?')
     summary = report.get('summary') or report.get('sources') or {}
 
-    #determine input type
     is_phone = bool(re.match(r'^\+?\d[\d\s\-.()]{5,}$', query.strip()))
     is_email = not is_phone and ('@' in query and '.' in query)
 
-    #phone
     if is_phone:
         lines = [
             f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
@@ -198,7 +238,8 @@ def format_osint_results(report: dict) -> str:
             if summary.get('telegram_fake'):
                 lines.append("  FAKE FLAG: YES")
             if summary.get('telegram_photo_saved'):
-                lines.append(f"  Photo    : {summary['telegram_photo_saved']} ({summary.get('telegram_photo_size_kb', '?')} KB)")
+                lines.append(
+                    f"  Photo    : {summary['telegram_photo_saved']} ({summary.get('telegram_photo_size_kb', '?')} KB)")
             elif summary.get('telegram_has_photo'):
                 lines.append("  Photo    : exists (download failed)")
             else:
@@ -219,7 +260,6 @@ def format_osint_results(report: dict) -> str:
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)
 
-    #email
     elif is_email:
         lines = [
             f"OSINT SCAN COMPLETE — {query}  ({elapsed}s)",
@@ -248,9 +288,6 @@ def format_osint_results(report: dict) -> str:
         lines.append("\n" + "─" * 60)
         return "\n".join(lines)
 
-
-
-    #username
     else:
         lines = [
             f"OSINT SCAN COMPLETE — @{query}  ({elapsed}s)",
