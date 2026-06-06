@@ -322,7 +322,7 @@ class OsintDashboard(QWidget):
 
         threading.Thread(
             target=self._run_ai_summary,
-            args=(result_text,),
+            args=(self._last_raw_input, result_text,),  # Pass both arguments
             daemon=True
         ).start()
         self._show_ai_typing()
@@ -333,8 +333,8 @@ class OsintDashboard(QWidget):
         self._add(SystemBubble(f"Error: {error_msg}"))
         self._bar.set_enabled(True)
 
-    def _run_ai_summary(self, raw_results: str):
-        summary = generate_ai_summary(raw_results)
+    def _run_ai_summary(self, target_input: str, raw_results: str):
+        summary = generate_ai_summary(target_input, raw_results)
         self.ai_summary_ready.emit(summary)
 
     def _on_ai_summary_ready(self, summary_text: str):
@@ -417,6 +417,8 @@ class OsintDashboard(QWidget):
     def _on_submit(self, raw: str):
         from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN, CMD_OSINT_PSCAN
 
+        self._last_raw_input = raw  # Save this for the AI summary later
+
         self._add(UserBubble(raw))
         self._bar.set_enabled(False)
 
@@ -463,12 +465,16 @@ class OsintDashboard(QWidget):
         try:
             Client.osint_username_scan(self._scan_username)
             response = Client.receive_osint_response(timeout=180)
+
             if response.get('response') == RESP_OSINT_RESULT:
                 self.results_ready.emit(format_osint_results(response.get('report', {})))
+
             elif response.get('response') == RESP_OSINT_ERROR:
                 self.error_occurred.emit(response.get('message', 'Unknown error'))
+
             else:
                 self.error_occurred.emit("Unexpected response from server")
+
         except Exception as e:
             logging.error(f"Username scan error: {e}", exc_info=True)
             self.error_occurred.emit(str(e))
