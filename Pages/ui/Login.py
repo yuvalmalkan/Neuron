@@ -153,7 +153,7 @@ class LoginForm(QWidget):
         self.pass_input = GlowInput("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        self.forgot_button = HyperButton("Forgot Password?", "primary")
+        #self.forgot_button = HyperButton("Forgot Password?", "primary")
         self.login_btn = GlowingButton("LOGIN INTO NEURON", "primary")
         self.switch_btn = GlowingButton("NEW USER? SIGN UP", "danger")
 
@@ -162,11 +162,11 @@ class LoginForm(QWidget):
 
 
         self.login_btn.clicked.connect(lambda: LoginClicked(self))
-        self.forgot_button.clicked.connect(lambda: ForgotPasswordClicked(self))
+        #self.forgot_button.clicked.connect(lambda: ForgotPasswordClicked(self))
 
         layout.addWidget(self.user_input)
         layout.addWidget(self.pass_input)
-        layout.addWidget(self.forgot_button)
+        #layout.addWidget(self.forgot_button)
         layout.addSpacing(10)
         layout.addWidget(self.login_btn)
         layout.addWidget(self.switch_btn)
