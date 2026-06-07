@@ -4,6 +4,8 @@ import subprocess
 import threading
 import time
 import re
+import platform
+import shutil
 
 #false positives
 FALSE_POSITIVE_SITES = [
@@ -17,6 +19,32 @@ def strip_ansi(text: str) -> str:
     """Remove ANSI escape codes like \x1b[0m"""
     return re.sub(r'\x1b\[[0-9;]*m', '', text)
 
+def _subprocess_flags() -> dict:
+    #suppress console popup windows on Windows; no-op on Mac/Linux
+    if platform.system() == "Windows":
+        return {"creationflags": subprocess.CREATE_NO_WINDOW}
+    return {}
+
+def _find_maigret() -> list:
+    #on Windows, pip scripts are .cmd files that need shell=True to run directly.
+    #using sys.executable -m maigret avoids that entirely and works on all platforms.
+    try:
+        result = subprocess.run(
+            [sys.executable, '-m', 'maigret', '--version'],
+            capture_output=True, text=True, timeout=5,
+            **_subprocess_flags()
+        )
+        if result.returncode == 0:
+            return [sys.executable, '-m', 'maigret']
+    except Exception:
+        pass
+    #fall back to the script on PATH
+    found = shutil.which('maigret')
+    if found:
+        return [found]
+    return ['maigret']
+
+_MAIGRET_CMD = _find_maigret()
 
 
 
@@ -36,9 +64,11 @@ def Maigret_search_username(username: str) -> dict:
 
     try:
         result = subprocess.run(
-            ["maigret", username, "--no-color", "--no-progressbar"],
+            _MAIGRET_CMD + [username, "--no-color", "--no-progressbar"],
             capture_output=True,
             text=True,
+            timeout=300,
+            **_subprocess_flags()
         )
     finally:
         stop_timer.set()
