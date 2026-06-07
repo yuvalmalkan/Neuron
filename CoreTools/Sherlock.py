@@ -3,9 +3,39 @@ __author__ = "Yuval Malkan"
 import subprocess
 import threading
 import time
+import platform
+import shutil
+import sys
+
+def _subprocess_flags() -> dict:
+    #suppress console popup windows on Windows no-op on Mac/Linux
+    if platform.system() == "Windows":
+        return {"creationflags": subprocess.CREATE_NO_WINDOW}
+    return {}
+
+def _find_sherlock() -> list:
+    try:
+        result = subprocess.run(
+            [sys.executable, '-m', 'sherlock', '--version'],
+            capture_output=True, text=True, timeout=5,
+            **_subprocess_flags()
+        )
+        if result.returncode == 0:
+            return [sys.executable, '-m', 'sherlock']
+    except Exception:
+        pass
+    #fall back to the script on path
+    found = shutil.which('sherlock')
+    if found:
+        return [found]
+
+    return ['sherlock']
+
+_SHERLOCK_CMD = _find_sherlock()
 
 def sherlock_search_username(username: str) -> list:
-    # Timer that prints elapsed time every second
+
+    #timer print
     start_time = time.time()
     stop_timer = threading.Event()
 
@@ -20,9 +50,11 @@ def sherlock_search_username(username: str) -> list:
 
     try:
         result = subprocess.run(
-            ["sherlock", username, "--print-found", "--no-color"],
+            _SHERLOCK_CMD + [username, "--print-found", "--no-color"],
             capture_output=True,
             text=True,
+            timeout=300,
+            **_subprocess_flags()
         )
     finally:
         stop_timer.set()
