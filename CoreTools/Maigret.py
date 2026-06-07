@@ -6,13 +6,17 @@ import time
 import re
 import platform
 import shutil
+import sys
+
 
 #false positives
 FALSE_POSITIVE_SITES = [
     "OP.GG", "Tom's guide", "mercadolivre", "opensea.io",
     "iXBT", "Livemaster", "3ddd", "Kaskus", "AdultFriendFinder",
     "hi5", "Weedmaps", "Bibsonomy", "authorSTREAM", "getmyuni",
-    "Blu-ray", "TechPowerUp", "forums.bulbagarden.net",
+    "Blu-ray", "TechPowerUp", "forums.bulbagarden.net", "Behance", "Scribd",
+    "SlideShare", "AppleDeveloper", "AppleDiscussions", "Kaggle", "Warface", "HackerNews",
+    "WikimapiaSearch", "interpals", "igromania", "Kinja", "hashnode", "MoscowFlamp"
 ]
 
 def strip_ansi(text: str) -> str:
@@ -26,8 +30,6 @@ def _subprocess_flags() -> dict:
     return {}
 
 def _find_maigret() -> list:
-    #on Windows, pip scripts are .cmd files that need shell=True to run directly.
-    #using sys.executable -m maigret avoids that entirely and works on all platforms.
     try:
         result = subprocess.run(
             [sys.executable, '-m', 'maigret', '--version'],
@@ -38,7 +40,8 @@ def _find_maigret() -> list:
             return [sys.executable, '-m', 'maigret']
     except Exception:
         pass
-    #fall back to the script on PATH
+
+    #fall back to the script on path
     found = shutil.which('maigret')
     if found:
         return [found]
@@ -79,6 +82,7 @@ def Maigret_search_username(username: str) -> dict:
     current_site = None
     current_url  = None
     current_details = {}
+
 
 
 
