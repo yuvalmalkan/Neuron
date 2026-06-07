@@ -11,7 +11,7 @@ from SecureProtocol import send_secure, recv_secure
 
 from Constants import (
     CMD_CHAT_INIT, CMD_FETCH_USERS, CMD_CHAT_REQUEST,
-    CMD_CHAT_ACCEPT, CMD_CHAT_DECLINE, CMD_DIRECT_MSG, CMD_END_SESSION
+    CMD_CHAT_ACCEPT, CMD_CHAT_DECLINE, CMD_DIRECT_MSG, CMD_END_SESSION, port
 )
 
 
@@ -24,7 +24,7 @@ class ChatBackend(QThread):
     session_ended = pyqtSignal(str)
     connection_lost = pyqtSignal(str)
 
-    def __init__(self, host=Client.serverIp, port=34401): #127.0.0.1
+    def __init__(self, host=Client.serverIp, port=port):
         super().__init__()
         self.host = host
         self.port = port
@@ -55,6 +55,8 @@ class ChatBackend(QThread):
         except Exception as e:
             logging.error(f"Chat connection failed: {e}")
             return False
+
+
 
     def disconnect(self):
         self._is_running = False
