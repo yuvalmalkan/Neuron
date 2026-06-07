@@ -21,7 +21,7 @@ async def _run_all(phone: str, config: dict) -> dict:
     report = {"query": phone, "sources": {}}
     start = time.time()
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     with ThreadPoolExecutor(max_workers=3) as pool:
         future_basic = loop.run_in_executor(
@@ -62,7 +62,7 @@ def _build_summary(sources: dict) -> dict:
         name = None
 
     return {
-        # Identity
+        #identity
         "name": name,
         "telegram_id": tg.get("telegram_id"),
         "telegram_username": tg.get("username"),
@@ -77,14 +77,14 @@ def _build_summary(sources: dict) -> dict:
         "telegram_photo_base64": tg.get("profile_photo_base64"),
         "telegram_profile_url": tg.get("profile_url"),
 
-        # Line info
+        #line info
         "phone_e164": parsed.get("e164"),
         "country": ab.get("country") or co.get("country"),
         "country_flag": co.get("flag"),
         "line_type": ab.get("type"),
         "location": ab.get("location"),
 
-        # Google dorks
+        #google dorks
         "google_dork_urls": basic.get("google_dorks", []),
     }
 
