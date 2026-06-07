@@ -14,18 +14,43 @@ import subprocess
 import sys
 import tempfile
 import os
+import platform
 from cryptography.hazmat.primitives import serialization
 from EncryptionManager import generate_rsa_keypair, save_rsa_keys, load_rsa_keys, rsaDecrypt
 
-#global dictionary to map online usernames to their socket objects
-#format: { "username": (client_socket, client_aes_key) }
+
+#format: {"username": (client_socket, client_aes_key) }
 active_connections = {}
+
 connections_lock = threading.Lock()
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 
-#for subprocesses windows
-root_dir_escaped = root_dir.replace("\\", "/")
+#for subprocesses repr handles Windows bugs
+root_dir_repr = repr(root_dir)
+
+def _subprocess_flags() -> dict:
+    #suppress console popup windows on Windows
+    if platform.system() == "Windows":
+        return {"creationflags": subprocess.CREATE_NO_WINDOW}
+    return {}
+
+def _safe_terminate(proc: subprocess.Popen, timeout: int = 3) -> None:
+    #terminate a subprocess safely
+
+    try:
+        proc.terminate()
+        proc.wait(timeout=timeout)
+
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+            proc.wait(timeout=2)
+        except Exception:
+            pass
+
+    except Exception:
+        pass
 
 def main():
     if not os.path.exists("private_key.pem") or not os.path.exists("public_key.pem"):
@@ -41,6 +66,7 @@ def main():
         server.bind((serverIp, port))
         server.listen(10)
         logging.info(f"Server listening natively on {serverIp}:{port}")
+
     except Exception as e:
         logging.error(f"Server bind error: {e}")
         return
@@ -221,9 +247,10 @@ def handle_client(client, userId, private_key, public_key):
                     proc = None
                     try:
                         #create temp for results
-                        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
+                        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json', dir=root_dir)
                         temp_path = temp_file.name
                         temp_file.close()
+                        temp_repr = repr(temp_path)
 
                         #what script to use
                         script_import = ""
@@ -240,22 +267,23 @@ def handle_client(client, userId, private_key, public_key):
                         import json
                         import sys
                         import os
-                        sys.path.insert(0, "{root_dir_escaped}")
-                        os.chdir("{root_dir_escaped}")
+                        sys.path.insert(0, {root_dir_repr})
+                        os.chdir({root_dir_repr})
                         {script_import}
                         try:
                             result = {{"response": "ORSLT" if "{cmd}" != "{CMD_OSINT_PSCAN}" else "OPLTS", "report": report}}
-                            with open("{temp_path}", "w") as f:
+                            with open({temp_repr}, "w") as f:
                                 json.dump(result, f)
                         except Exception as e:
                             result = {{"response": "OERRS", "message": str(e)}}
-                            with open("{temp_path}", "w") as f:
+                            with open({temp_repr}, "w") as f:
                                 json.dump(result, f)
                         '''],
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             text=True,
-                            cwd=root_dir
+                            cwd=root_dir,
+                            **_subprocess_flags()
                         )
 
 
@@ -277,8 +305,9 @@ def handle_client(client, userId, private_key, public_key):
                     except subprocess.TimeoutExpired:
                         logging.error(f"OSINT subprocess timeout for target: {val}")
                         if proc:
-                            proc.kill()
-                            proc.communicate()
+                            _safe_terminate(proc)
+
+
                         try:
                             with client_lock:
                                 send_secure(client, client_aes_key,
@@ -323,8 +352,7 @@ def handle_client(client, userId, private_key, public_key):
             for proc in active_subprocesses:
                 try:
                     logging.info(f"Terminating orphan OSINT subprocess PID: {proc.pid} due to client disconnect.")
-                    proc.terminate()
-                    proc.wait(timeout=2)
+                    _safe_terminate(proc)
                 except Exception as ex:
                     logging.error(f"Failed to terminate process {proc.pid}: {ex}")
             active_subprocesses.clear()
