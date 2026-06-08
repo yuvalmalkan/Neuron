@@ -66,7 +66,7 @@ def generate_rsa_keypair(key_size=2048):
         Tuple of (private_key, public_key)
     """
     if key_size < 2048:
-        logging.warning(f"RSA key_size={key_size} is less than 2048 bits - not recommended!")
+        logging.warning(f"RSA key_size={key_size} is less than 2048 bits, not recommended!")
 
     logging.debug(f"Generating RSA {key_size}-bit keypair")
     private_key = rsa.generate_private_key(
