@@ -48,7 +48,7 @@ def perform_secure_handshake(sock):
     """
     try:
         pub_bytes = recv_one_message(sock, return_type="bytes")
-        server_public_key = serialization.load_pem_public_key(pub_bytes, backend=default_backend())
+        server_public_key = serialization.load_pem_public_key(pub_bytes, backend=default_backend()) #change bytes to a usable key object
 
         aes_key = generateAES()
 
