@@ -52,16 +52,24 @@ def _safe_terminate(proc: subprocess.Popen, timeout: int = 3) -> None:
     except Exception:
         pass
 
+
+
+
+
+
+
 def main():
     if not os.path.exists("private_key.pem") or not os.path.exists("public_key.pem"):
         logging.info("Generating new RSA keypair and saving to disk...")
         private_key, public_key = generate_rsa_keypair(key_size=2048)
         save_rsa_keys(private_key, public_key, RSA_PASSWORD)
+
     else:
         logging.info("Loading existing RSA keys from disk...")
         private_key, public_key = load_rsa_keys(RSA_PASSWORD)
 
     server = socket.socket()
+
     try:
         server.bind((serverIp, port))
         server.listen(10)
@@ -112,7 +120,7 @@ def handle_client(client, userId, private_key, public_key):
         return
 
     current_username = None
-    is_chat_session = False  # If this connection registered for chat
+    is_chat_session = False  #if this connection registered for chat
 
     try:
         while True:
