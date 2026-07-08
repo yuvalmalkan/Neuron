@@ -16,7 +16,7 @@ def ask_gemini(prompt: str) -> str:
     combined_prompt = f"{system_prompt}\n\nUSER INPUT\n{prompt}"
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.5-flash",
         contents=combined_prompt
     )
     return response.text
@@ -26,7 +26,7 @@ def ask_gemini(prompt: str) -> str:
 
 #multi-prompt chat
 def start_chat():
-    chat = client.chats.create(model="gemini-2.0-flash")
+    chat = client.chats.create(model="gemini-2.5-flash")
     return chat
 
 def send_message(chat, message: str) -> str:
