@@ -83,7 +83,7 @@ class Login(QMainWindow):
         root.setContentsMargins(80, 0, 80, 0)
         root.setSpacing(40)
 
-        self.typing_label = TypingLabel("N  E  U  R  O  N \nA Project By Yuval Malkan" )
+        self.typing_label = TypingLabel("N  E  U  R  O  N \nOSINT Tools - Powered By AI" )
         root.addWidget(self.typing_label, 1)
 
         card_container = QVBoxLayout()
