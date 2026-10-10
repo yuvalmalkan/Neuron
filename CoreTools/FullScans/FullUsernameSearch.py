@@ -5,7 +5,6 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from CoreTools.Maigret import Maigret_search_username
 from CoreTools.Sherlock import sherlock_search_username
-#from CoreTools.accountFinder import findByUsername
 from CoreTools.SocialMedia.Telegram import lookup_username_sync
 from CoreTools.SocialMedia.Facebook import FacebookFullScan
 from CoreTools.SocialMedia.Instagram import InstagramFullScan

@@ -67,26 +67,6 @@ GlowingButton[variant="danger"] {
 GlowingButton[variant="danger"]:hover   { background: @BTN_DANGER_HOVER@; }
 GlowingButton[variant="danger"]:pressed { background: @BTN_DANGER_PRESS@; }
 
-/* ── TOPBAR NAV BUTTON ── */
-NavButton {
-    background: transparent;
-    border: none;
-    border-radius: 0px;
-    color: @NAV_TEXT_IDLE@;
-    text-align: center;
-    padding: 8px;
-    font-size: 14px;
-}
-NavButton:hover {
-    background: transparent;
-    color: @NAV_TEXT_HOVER@;
-}
-NavButton:checked {
-    background: transparent;
-    color: @NAV_TEXT_ACTIVE@;
-    font-weight: bold;
-}
-
 /* ── RESULT DISPLAY ── */
 ResultDisplay {
     background: @CARD_BG@;
@@ -133,8 +113,3 @@ HyperButton[variant="primary"] {
 }
 HyperButton[variant="primary"]:hover   { background: transparent; color: @TEXT_BODY@; }
 HyperButton[variant="primary"]:pressed { background: transparent; }
-
-/* ── NETWORK PAGE ── */
-#networkPage {
-    background: @WINDOW_BG@;
-}

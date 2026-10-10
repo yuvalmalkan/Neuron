@@ -257,7 +257,7 @@ def format_osint_results(report: dict) -> str:
             for url in dorks:
                 lines.append(f"  LINK: {url}")
 
-        lines.append("\n" + "─" * 60)
+ 
         return "\n".join(lines)
 
     elif is_email:
@@ -285,7 +285,7 @@ def format_osint_results(report: dict) -> str:
             lines.append("\n[PLATFORMS WHERE EMAIL IS REGISTERED]")
             lines.append("   No accounts found")
 
-        lines.append("\n" + "─" * 60)
+      
         return "\n".join(lines)
 
     else:
@@ -353,13 +353,15 @@ def format_osint_results(report: dict) -> str:
             lines.append(f"\n[SOCIAL MEDIA & PLATFORMS] ({len(platforms)} total accounts found)")
             lines.append("─" * 60)
             for i, platform in enumerate(platforms, 1):
-                lines.append(f"\n  {i}. {platform.get('site', 'Unknown')} (from {platform.get('source', '?')})")
+                lines.append(f"\n  {i}. {platform.get('site', 'Unknown')}")
                 lines.append(f"     LINK: {platform.get('url', 'No URL')}")
+
                 if platform.get('details'):
                     for key, val in platform['details'].items():
                         lines.append(f"     • {key}: {val}")
+
         else:
             lines.append("\n[SOCIAL MEDIA & PLATFORMS]\n    No accounts found")
 
-        lines.append("\n" + "─" * 60)
+        
         return "\n".join(lines)

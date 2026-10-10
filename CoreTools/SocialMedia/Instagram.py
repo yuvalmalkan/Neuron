@@ -18,8 +18,6 @@ def get_info_from_html(filename: str) -> dict:
     args: html filename(from temp folder)
     returns: profile info in a dict
     """
-
-
     filePath = os.path.join(TEMP_FOLDER, filename)
 
     profile = {
@@ -38,57 +36,44 @@ def get_info_from_html(filename: str) -> dict:
 
         followers = re.search(r'(\d+[KM]?)\s+Followers', data)
         if followers:
-            followers_str = followers.group(1)
-            profile["followers"] = followers_str
-
+            profile["followers"] = followers.group(1)
 
         following = re.search(r'(\d+[,\d]*)\s+Following', data)
         if following:
             profile["following"] = following.group(1)
 
-
-
         posts = re.search(r'(\d+)\s+Posts', data)
         if posts:
             profile["number_of_posts"] = int(posts.group(1))
 
-
-
-
-        display_name = re.search(r'Posts\s+-\s+([^(]+?)\s+\(&#064;', data)
+        # FIXED: Extract display name using the og:title meta tag
+        display_name = re.search(r'<meta property="og:title" content="([^&#]+)', data)
         if display_name:
-            display_name = display_name.group(1).strip()
-            textToRemove = "See Instagram photos and videos from "
-            display_name = display_name[len(textToRemove)::]
-            profile["display_name"] = display_name
+            profile["display_name"] = display_name.group(1).strip()
 
-
-
-
-        username = re.search(r'&#064;([^)]+)\)', data)
+        # FIXED: Extract username using the reliable canonical link tag
+        username = re.search(r'<link rel="canonical" href="https://www.instagram.com/([^/]+)/"', data)
         if username:
             profile["username"] = username.group(1)
+        else:
+            # Fallback that restricts extraction to valid Instagram characters only (no HTML)
+            username = re.search(r'&#064;([a-zA-Z0-9_.]+)', data)
+            if username:
+                profile["username"] = username.group(1)
 
-
-        bio = re.search(r'on Instagram:\s+&quot;([^&]*)', data)
+        # FIXED: Extract bio more accurately
+        bio = re.search(r'on Instagram:\s+&quot;(.*?)&quot;', data)
         if bio:
             profile["bio"] = bio.group(1)
 
-
-
         profile_picture_url = re.search(r'property="og:image"\s+content="([^"]*)"', data)
         if profile_picture_url:
-            profile_picture_url = profile_picture_url.group(1)
-            profile["profile_picture_url"] = fix_profile_pic_url(profile_picture_url)
+            profile["profile_picture_url"] = fix_profile_pic_url(profile_picture_url.group(1))
 
+        # Now that the username is HTML-free, the link will assemble correctly
+        profile["profile_url"] = f"https://www.instagram.com/{profile['username']}/" if profile['username'] else ""
 
-
-        profile_url = f"https://www.instagram.com/{profile['username']}/"
-        profile["profile_url"] = profile_url
-
-
-
-        return profile
+    return profile
 
 
 

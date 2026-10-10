@@ -1,6 +1,6 @@
 import socket, struct
 
-TCP_DEBUG = True
+TCP_DEBUG = False
 
 
 def send_one_message(sock, data):

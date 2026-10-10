@@ -6,15 +6,11 @@ import logging
 import Client
 from Constants import CMD_OSINT_USCAN, CMD_OSINT_ESCAN, CMD_OSINT_PSCAN
 from Pages.ui.uiConstants import *
-from Pages.ui.uiElements import NavButton
-from Pages.ui.RoomsPage import RoomsPanel
-from Pages.ui.NetworkPage import NetworkPage
-from Pages.logic.RoomsLogic import ChatBackend
 from Pages.logic.OsintLogic import parse_target_input, build_target_summary, format_osint_results, generate_ai_summary
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QScrollArea, QStackedWidget, QSizePolicy, QPlainTextEdit,
+    QLabel, QScrollArea, QSizePolicy, QPlainTextEdit,
     QPushButton, QFrame
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
@@ -624,10 +620,6 @@ class MainWindow(QMainWindow):
 
         self.username = SessionManager.get_username()
 
-        self.chat_backend = ChatBackend(host=Client.serverIp, port=34401)  # todo change it later to other ip
-        if self.username:
-            self.chat_backend.connect(self.username)
-
         self._build_layout()
 
     def _build_layout(self):
@@ -650,25 +642,7 @@ class MainWindow(QMainWindow):
         tl.addWidget(logo)
         tl.addSpacing(30)
 
-        self.pages = QStackedWidget()
-        self.nav_buttons = []
-
-        nav_items = [("", "OSINT"), ("", "ROOMS"), ("", "NETWORK")]
-        pages_list = [
-            OsintDashboard(),
-            RoomsPanel(backend=self.chat_backend),
-            NetworkPage(),
-        ]
-
         tl.addStretch()
-        for (icon, label), page in zip(nav_items, pages_list):
-            btn = NavButton(icon, label)
-            btn.clicked.connect(lambda _, b=btn: self._switch_page(b))
-            tl.addWidget(btn)
-            self.pages.addWidget(page)
-            self.nav_buttons.append(btn)
-            tl.addStretch()
-
         tl.addSpacing(30)
 
         user_lbl = QLabel(self.username.upper() if self.username else "USER")
@@ -677,19 +651,9 @@ class MainWindow(QMainWindow):
         tl.addWidget(user_lbl)
 
         root.addWidget(topbar)
-        root.addWidget(self.pages, 1)
-        self._switch_page(self.nav_buttons[0])
-
-    def _switch_page(self, clicked_btn: NavButton):
-        for i, btn in enumerate(self.nav_buttons):
-            active = btn is clicked_btn
-            btn.setChecked(active)
-            if active:
-                self.pages.setCurrentIndex(i)
+        root.addWidget(OsintDashboard(), 1)
 
     def closeEvent(self, event):
-        if hasattr(self, "chat_backend"):
-            self.chat_backend.disconnect()
         super().closeEvent(event)
 
 

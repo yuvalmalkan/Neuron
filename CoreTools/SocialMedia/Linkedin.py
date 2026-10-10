@@ -126,5 +126,5 @@ def scrape_linkedin_osint(full_name):
 
 if __name__ == "__main__":
 
-    result_dict = scrape_linkedin_osint("test name")
+    result_dict = scrape_linkedin_osint("Yuval Malkan")
     print(result_dict)

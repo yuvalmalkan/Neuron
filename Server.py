@@ -19,11 +19,6 @@ from cryptography.hazmat.primitives import serialization
 from EncryptionManager import generate_rsa_keypair, save_rsa_keys, load_rsa_keys, rsaDecrypt
 
 
-#format: {"username": (client_socket, client_aes_key) }
-active_connections = {}
-
-connections_lock = threading.Lock()
-
 root_dir = os.path.dirname(os.path.abspath(__file__))
 
 #for subprocesses repr handles Windows bugs
@@ -119,9 +114,6 @@ def handle_client(client, userId, private_key, public_key):
         client.close()
         return
 
-    current_username = None
-    is_chat_session = False  #if this connection registered for chat
-
     try:
         while True:
             request = recv_secure(client, client_aes_key)
@@ -145,98 +137,6 @@ def handle_client(client, userId, private_key, public_key):
                 response = {'status': 'success' if success else 'error', 'code': resp_code}
                 with client_lock:
                     send_secure(client, client_aes_key, response)
-
-            #chat
-            elif command == CMD_CHAT_INIT:
-                current_username = request.get('username')
-
-                is_chat_session = True
-
-                if current_username:
-                    with connections_lock:
-                        active_connections[current_username] = (client, client_aes_key)
-                    logging.info(f"[{current_username}] registered for chat.")
-
-
-
-            elif command == CMD_FETCH_USERS:
-                with connections_lock:
-                    online = list(active_connections.keys())
-                with client_lock:
-                    send_secure(client, client_aes_key, {'type': 'ONLINE_USERS', 'users': online})
-
-
-            elif command == CMD_CHAT_REQUEST:
-                target = request.get('target')
-                with connections_lock:
-                    target_info = active_connections.get(target)
-
-                if target_info:
-                    target_sock, target_aes_key = target_info
-                    send_secure(target_sock, target_aes_key, {
-                        'type': 'INCOMING_REQUEST', 'sender': current_username
-                    })
-                else:
-                    with client_lock:
-                        send_secure(client, client_aes_key, {
-                            'type': 'ERROR', 'message': f"Target {target} is offline."
-                        })
-
-
-
-            elif command == CMD_CHAT_ACCEPT:
-                target = request.get('target')
-                with connections_lock:
-                    target_info = active_connections.get(target)
-                if target_info:
-                    target_sock, target_aes_key = target_info
-                    send_secure(target_sock, target_aes_key, {
-                        'type': 'REQUEST_ACCEPTED', 'peer': current_username
-                    })
-
-
-
-            elif command == CMD_CHAT_DECLINE:
-                target = request.get('target')
-                with connections_lock:
-                    target_info = active_connections.get(target)
-                if target_info:
-                    target_sock, target_aes_key = target_info
-                    send_secure(target_sock, target_aes_key, {
-                        'type': 'REQUEST_DECLINED', 'peer': current_username
-                    })
-
-
-
-            elif command == CMD_DIRECT_MSG:
-                target = request.get('target')
-                text = request.get('text')
-                timestamp = request.get('timestamp')
-
-                with connections_lock:
-                    target_info = active_connections.get(target)
-
-                if target_info:
-                    target_sock, target_aes_key = target_info
-                    send_secure(target_sock, target_aes_key, {
-                        'type': 'DIRECT_MESSAGE',
-                        'sender': current_username,
-                        'text': text,
-                        'timestamp': timestamp
-                    })
-
-
-            elif command == CMD_END_SESSION:
-                target = request.get('target')
-                with connections_lock:
-                    target_info = active_connections.get(target)
-                if target_info:
-                    target_sock, target_aes_key = target_info
-                    send_secure(target_sock, target_aes_key, {
-                        'type': 'SESSION_ENDED', 'peer': current_username
-                    })
-
-
 
             #osint
             elif command in [CMD_OSINT_USCAN, CMD_OSINT_ESCAN, CMD_OSINT_PSCAN]:
@@ -364,14 +264,6 @@ def handle_client(client, userId, private_key, public_key):
                 except Exception as ex:
                     logging.error(f"Failed to terminate process {proc.pid}: {ex}")
             active_subprocesses.clear()
-
-        #remove user from active dict
-        if is_chat_session and current_username:
-            with connections_lock:
-                if current_username in active_connections:
-                    del active_connections[current_username]
-            logging.info(f"[{current_username}] disconnected.")
-
 
         try:
             with client_lock:

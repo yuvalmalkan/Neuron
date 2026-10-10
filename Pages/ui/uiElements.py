@@ -58,21 +58,6 @@ class HyperButton(QPushButton):
 
 
 
-#side bar nav button
-class NavButton(QPushButton):
-    def __init__(self, icon_text, label, parent=None):
-        super().__init__(parent)
-        self.label = label
-        self.icon_text = icon_text
-        self.setCheckable(True)
-        self.setMinimumHeight(52)
-        self.setFont(QFont(FONT_TITLE, 10))
-        self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        self.setText(f"  {icon_text}  {label}")
-
-
-
-
 class ResultDisplay(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
